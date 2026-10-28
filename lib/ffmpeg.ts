@@ -28,7 +28,7 @@ export async function imageToClip(img: Buffer, seconds: number): Promise<Buffer>
   return out;
 }
 
-/** Junta clipes (cortados a `seconds`) em um único MP4 1920x1080, 24 fps, sem áudio. */
+/** Junta clipes (cortados a `seconds` só se > 0; senão inteiros) em um único MP4 1920x1080, 24 fps, sem áudio. */
 export async function concatClips(clips: Buffer[], seconds: number): Promise<Buffer> {
   const d = tmp();
   const inputs: string[] = [];
@@ -37,12 +37,12 @@ export async function concatClips(clips: Buffer[], seconds: number): Promise<Buf
     const f = path.join(d, `c${i}.mp4`);
     fs.writeFileSync(f, c);
     inputs.push("-i", f);
-    filters.push(`[${i}:v]trim=duration=${seconds},setpts=PTS-STARTPTS,scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=24,setsar=1[v${i}]`);
+    filters.push(`[${i}:v]${seconds > 0 ? `trim=duration=${seconds},` : ""}setpts=PTS-STARTPTS,scale=1920:1080:flags=lanczos:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=24,setsar=1[v${i}]`);
   });
   const chain = clips.map((_, i) => `[v${i}]`).join("") + `concat=n=${clips.length}:v=1:a=0[out]`;
   const out = path.join(d, "final.mp4");
   await run([...inputs, "-filter_complex", filters.join(";") + ";" + chain, "-map", "[out]",
-    "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart", out]);
+    "-c:v", "libx264", "-preset", "slow", "-crf", "16", "-pix_fmt", "yuv420p", "-movflags", "+faststart", out]);
   const buf = fs.readFileSync(out);
   fs.rmSync(d, { recursive: true, force: true });
   return buf;

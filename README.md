@@ -82,3 +82,13 @@ O sistema de créditos funciona (saldo, débito na criação, estorno em falha, 
 ## Vercel + Supabase (próximo passo)
 
 O app **não roda como está na Vercel**: ela tem sistema de arquivos efêmero (o `data/db.json` e `data/files/` se perdem), a fila é em memória e funções serverless têm tempo limite (o filme leva minutos). Para publicar: usuários/créditos/histórico → Supabase Postgres (+ Supabase Auth no lugar do login atual), arquivos → Supabase Storage, e a geração (principalmente o filme) em um worker/fila externo (ex.: Supabase Edge + fila, Inngest, ou um serviço Node em Railway/Fly com ffmpeg).
+
+## Deploy no Render (Opção 1: instância única com disco persistente)
+
+1. Suba o repositório no GitHub e, no Render, **New + > Blueprint** apontando para ele (usa `render.yaml`). Plano pago, pois o disco persistente (`/var/data`) não existe no plano grátis.
+2. Preencha as variáveis marcadas como `sync: false`: `GEMINI_API_KEY`, `GOOGLE_MAPS_API_KEY`, `APP_URL` (URL final) e, se usar login Google, `GOOGLE_CLIENT_ID/SECRET` (cadastre `APP_URL/api/auth/google/callback` como redirect URI).
+3. `SIGNUP_CREDITS=0` em produção: cadastro aberto com crédito grátis é gasto direto de API. Dê créditos manualmente a usuários de teste editando `/var/data/db.json` (shell do Render) até a cobrança existir.
+4. Restrinja a chave do Maps à Static API. Faça backup periódico do disco (snapshots do Render).
+
+**Qualidade do vídeo:** `CLIP_SECONDS=0` mantém cada clipe inteiro como o Gemini devolveu (sem corte); o ffmpeg reencoda com H.264 `-preset slow -crf 16` e redimensionamento lanczos para 1920x1080; a chamada ao Gemini usa timeouts sem limite para não abortar gerações longas. O Render não altera a qualidade: ela depende do modelo e da imagem de entrada.
+**Limites desta opção:** uma única instância (sem escala horizontal), fila em memória (deploy/reinício durante uma geração a interrompe e estorna os créditos), indisponibilidade breve a cada deploy por causa do disco.

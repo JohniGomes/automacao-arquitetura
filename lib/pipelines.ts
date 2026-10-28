@@ -96,7 +96,7 @@ async function filme(c: Ctx) {
     addOutput(c, img, ext(img), "image", `Cena: ${cena.label}`);
     progress(c, base + slice * 0.3, `Cena ${i + 1}/${n} (${cena.label}): gerando clipe de vídeo…`);
     c.gen.usage.videoClips++;
-    if (mockGemini()) clips.push(await imageToClip(img, env.clipSeconds));
+    if (mockGemini()) clips.push(await imageToClip(img, env.clipSeconds || 5));
     else clips.push(await generateVideo(cena.video, asImg(img)));
   }
   progress(c, 93, "Montando o filme final com ffmpeg…");

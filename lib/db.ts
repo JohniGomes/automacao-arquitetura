@@ -14,7 +14,7 @@ export type Generation = {
 export type Tx = { id: string; userId: string; delta: number; reason: string; genId?: string; at: string };
 type DB = { users: User[]; generations: Generation[]; txs: Tx[] };
 
-export const DATA_DIR = path.join(process.cwd(), "data");
+export const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data"); // no Render: disco persistente, ex. /var/data
 const FILE = path.join(DATA_DIR, "db.json");
 
 const g = globalThis as unknown as { __db?: DB };

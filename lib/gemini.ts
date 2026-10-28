@@ -1,4 +1,8 @@
+import { Agent } from "undici";
 import { env } from "./config";
+
+// Gerar vídeo pode levar minutos com a conexão aberta: sem isso o fetch do Node desiste em ~5 min.
+const longAgent = new Agent({ headersTimeout: 0, bodyTimeout: 0, connectTimeout: 30_000 });
 
 const BASE = "https://generativelanguage.googleapis.com/v1beta";
 export type Img = { data: Buffer; mime: string };
@@ -8,7 +12,8 @@ async function post(body: unknown) {
     method: "POST",
     headers: { "x-goog-api-key": env.geminiKey, "Content-Type": "application/json" },
     body: JSON.stringify(body),
-  });
+    dispatcher: longAgent,
+  } as RequestInit);
   const text = await res.text();
   if (!res.ok) throw new Error(`Gemini API ${res.status}: ${text.slice(0, 400)}`);
   return JSON.parse(text);
