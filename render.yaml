@@ -1,29 +1,23 @@
-# Blueprint do Render: New + > Blueprint > selecione o repositório.
-# Disco persistente exige plano pago. Para qualidade máxima no filme (ffmpeg 1080p, preset slow) use 2 GB de RAM ou mais.
+# Blueprint do Render — PLANO GRÁTIS (demo). Sem disco: usuários, créditos e arquivos se perdem a cada reinício/deploy,
+# e o serviço dorme após inatividade. Para produção use render.paid.yaml (plano pago + disco persistente).
 services:
   - type: web
     name: arqia
     runtime: node
-    plan: standard
+    plan: free
     region: oregon
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /
-    disk:
-      name: arqia-data
-      mountPath: /var/data
-      sizeGB: 10
     envVars:
       - key: NODE_VERSION
         value: 22
-      - key: DATA_DIR
-        value: /var/data
       - key: SESSION_SECRET
         generateValue: true
       - key: MOCK_MODE
-        value: "false"
+        value: auto   # sem GEMINI_API_KEY/GOOGLE_MAPS_API_KEY roda em mock
       - key: SIGNUP_CREDITS
-        value: "0"   # cadastro público NÃO deve dar crédito grátis: cada crédito gasta dinheiro de API
+        value: "30"   # cadastro é aberto: cada conta nova pode gastar API real se houver chave
       - key: CLIP_SECONDS
         value: "0"
       - key: GEMINI_IMAGE_MODEL
@@ -33,7 +27,7 @@ services:
       - key: GEMINI_IMAGE_SIZE
         value: 1K
       - key: APP_URL
-        sync: false   # https://SEU-APP.onrender.com (ou domínio próprio)
+        sync: false   # https://SEU-APP.onrender.com
       - key: GEMINI_API_KEY
         sync: false
       - key: GOOGLE_MAPS_API_KEY

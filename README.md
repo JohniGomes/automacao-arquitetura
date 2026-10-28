@@ -85,7 +85,7 @@ O app **não roda como está na Vercel**: ela tem sistema de arquivos efêmero (
 
 ## Deploy no Render (Opção 1: instância única com disco persistente)
 
-1. Suba o repositório no GitHub e, no Render, **New + > Blueprint** apontando para ele (usa `render.yaml`). Plano pago, pois o disco persistente (`/var/data`) não existe no plano grátis.
+1. No Render, **New + > Blueprint** apontando para o repositório. `render.yaml` = plano **grátis** (demo: sem disco, dados somem a cada reinício, dorme por inatividade, pouca RAM para ffmpeg 1080p). `render.paid.yaml` = produção com disco persistente em `/var/data` (renomeie para `render.yaml` ou aponte-o no Blueprint).
 2. Preencha as variáveis marcadas como `sync: false`: `GEMINI_API_KEY`, `GOOGLE_MAPS_API_KEY`, `APP_URL` (URL final) e, se usar login Google, `GOOGLE_CLIENT_ID/SECRET` (cadastre `APP_URL/api/auth/google/callback` como redirect URI).
 3. `SIGNUP_CREDITS=0` em produção: cadastro aberto com crédito grátis é gasto direto de API. Dê créditos manualmente a usuários de teste editando `/var/data/db.json` (shell do Render) até a cobrança existir.
 4. Restrinja a chave do Maps à Static API. Faça backup periódico do disco (snapshots do Render).
