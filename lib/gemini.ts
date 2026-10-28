@@ -62,7 +62,7 @@ export async function generateVideo(prompt: string, image: Img): Promise<Buffer>
   const id = String(m.uri).match(/files\/([a-zA-Z0-9_-]+)/)?.[1];
   if (!id) throw new Error("URI de vídeo inesperada: " + m.uri);
   for (let i = 0; i < 120; i++) {
-    const f = await (await ufetch(`${BASE}/files/${id}`, { headers: { "x-goog-api-key": env.geminiKey }, dispatcher: longAgent })).json();
+    const f: any = await (await ufetch(`${BASE}/files/${id}`, { headers: { "x-goog-api-key": env.geminiKey }, dispatcher: longAgent })).json();
     if (f.state === "ACTIVE") break;
     if (f.state === "FAILED") throw new Error("Geração de vídeo falhou no Gemini.");
     await new Promise((r) => setTimeout(r, 5000));
