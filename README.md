@@ -12,7 +12,7 @@ Transversal: login (e-mail/senha e Google), créditos por ação com estorno em 
 
 ## Stack (e por quê)
 
-Next.js 16 (App Router) + TypeScript, um único projeto front+back. Persistência **local em arquivos** (`data/db.json` + `data/files/`) para rodar sem infraestrutura; `sharp` para imagens; `ffmpeg-static` (binário embutido, sem instalar ffmpeg); fila em memória (2 jobs simultâneos). Sessão por cookie HMAC assinado; senha com scrypt.
+Next.js 16 (App Router) + TypeScript, um único projeto front+back. Persistência no **Supabase** (Postgres + Storage privado) em produção, e **arquivos locais** (`data/`) só em desenvolvimento quando `SUPABASE_URL` não está definida (em produção o app se recusa a subir sem Supabase); `sharp` para imagens; `ffmpeg-static` (binário embutido, sem instalar ffmpeg); fila em memória (2 jobs simultâneos). Sessão por cookie HMAC assinado; senha com scrypt.
 **Para produção** troque: JSON → Postgres/Supabase, arquivos → S3/Supabase Storage, fila em memória → BullMQ/Redis ou worker separado (a fila atual perde jobs em reinício — eles são marcados como erro e estornados), e use um segredo de sessão forte.
 
 ## Como rodar
@@ -92,3 +92,14 @@ O app **não roda como está na Vercel**: ela tem sistema de arquivos efêmero (
 
 **Qualidade do vídeo:** `CLIP_SECONDS=0` mantém cada clipe inteiro como o Gemini devolveu (sem corte); o ffmpeg reencoda com H.264 `-preset slow -crf 16` e redimensionamento lanczos para 1920x1080; a chamada ao Gemini usa timeouts sem limite para não abortar gerações longas. O Render não altera a qualidade: ela depende do modelo e da imagem de entrada.
 **Limites desta opção:** uma única instância (sem escala horizontal), fila em memória (deploy/reinício durante uma geração a interrompe e estorna os créditos), indisponibilidade breve a cada deploy por causa do disco.
+
+## Supabase (dados fora do servidor)
+
+Usuários, créditos, extrato, histórico e arquivos (imagens/vídeos) ficam no Supabase; o Render guarda só o código.
+1. Crie um projeto em supabase.com. Em **SQL Editor**, cole e rode `supabase/schema.sql` (tabelas, RLS, funções de crédito atômicas e o bucket privado `arqia`).
+2. Em **Settings > API** copie a *Project URL* e a chave **service_role**.
+3. No Render (Environment), defina `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`. **Nunca** commite nem cole a service_role em chats/arquivos: ela dá acesso total ao banco.
+4. O acesso é só pelo servidor; RLS está ligado sem políticas, então a chave anon pública não lê nada. Arquivos são entregues por URL assinada de 1 h.
+
+Login atual (e-mail/senha com scrypt + Google) continua próprio do app, com os usuários na tabela `users`. Migrar para o Supabase Auth é possível depois.
+Não testado: a integração real com o Supabase (sem projeto não há como validar aqui); o modo local foi testado.

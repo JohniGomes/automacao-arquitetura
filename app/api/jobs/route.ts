@@ -4,11 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { currentUser } from "@/lib/auth";
 import { charge, COSTS } from "@/lib/credits";
-import { db, Generation, GenType, save, uid } from "@/lib/db";
-import { enqueue, recoverStale } from "@/lib/jobs";
+import { Generation, GenType, uid } from "@/lib/db";
+import { enqueue, live, recoverStale } from "@/lib/jobs";
 import { Img } from "@/lib/gemini";
 import { mockGemini, mockMaps } from "@/lib/config";
-import { readFile, mimeOf } from "@/lib/storage";
+import { store } from "@/lib/store";
 import { AMBIENTES, AmbienteKey, CENAS, CenaKey, LUZES, LuzKey, PROMPT_RENDER } from "@/lib/prompts";
 
 export const runtime = "nodejs";
@@ -18,12 +18,12 @@ const TEMPLATES = path.join(process.cwd(), "templates", "moodboards");
 export async function GET() {
   const u = await currentUser();
   if (!u) return bad("Não autenticado.", 401);
-  recoverStale();
-  const list = db().generations.filter((g) => g.userId === u.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  await recoverStale();
+  const list = (await store.listGens(u.id)).map((g) => live.get(g.id) ?? g);
   return NextResponse.json({ credits: u.credits, generations: list });
 }
 
-/** Lê imagem enviada (arquivo) ou referência a uma geração anterior ("ref:<arquivo>"); normaliza e limita o tamanho. */
+/** Lê imagem enviada (arquivo), referência a uma geração anterior ("ref:<arquivo>") ou modelo da galeria ("tpl:<arquivo>"). */
 async function readImage(userId: string, form: FormData, key: string): Promise<Img | null> {
   const f = form.get(key);
   let buf: Buffer | null = null;
@@ -31,7 +31,7 @@ async function readImage(userId: string, form: FormData, key: string): Promise<I
     if (f.size > 15 * 1024 * 1024) throw new Error("Imagem acima de 15 MB.");
     buf = Buffer.from(await f.arrayBuffer());
   } else if (typeof f === "string" && f.startsWith("ref:")) {
-    buf = readFile(userId, f.slice(4));
+    buf = await store.getFile(userId, f.slice(4));
   } else if (typeof f === "string" && f.startsWith("tpl:")) {
     const p = path.join(TEMPLATES, path.basename(f.slice(4)));
     if (fs.existsSync(p)) buf = fs.readFileSync(p);
@@ -48,7 +48,7 @@ async function readImage(userId: string, form: FormData, key: string): Promise<I
 export async function POST(req: NextRequest) {
   const u = await currentUser();
   if (!u) return bad("Não autenticado.", 401);
-  recoverStale();
+  await recoverStale();
   const form = await req.formData();
   const type = String(form.get("type")) as GenType;
   const str = (k: string) => String(form.get(k) || "").trim();
@@ -105,14 +105,13 @@ export async function POST(req: NextRequest) {
   }
 
   const id = uid();
-  if (!charge(u, cost, summary, id)) return bad(`Créditos insuficientes: precisa de ${cost}, você tem ${u.credits}.`, 402);
+  if (!(await charge(u.id, cost, summary, id))) return bad(`Créditos insuficientes: precisa de ${cost}, você tem ${u.credits}.`, 402);
   const gen: Generation = {
     id, userId: u.id, type, status: "queued", progress: 0, message: "Na fila…", createdAt: new Date().toISOString(),
     summary, outputs: [], cost, usage: { images: 0, videoClips: 0 },
     mock: mockGemini() || (type === "mapa" && mockMaps() && !images.upload),
   };
-  db().generations.push(gen);
-  save();
+  await store.saveGen(gen);
   enqueue(gen, { type, params, images });
   return NextResponse.json({ id });
 }

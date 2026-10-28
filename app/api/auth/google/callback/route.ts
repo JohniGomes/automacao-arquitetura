@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/config";
-import { createUser, startSession } from "@/lib/auth";
-import { db, save } from "@/lib/db";
+import { startSession } from "@/lib/auth";
+import { store } from "@/lib/store";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
@@ -21,9 +21,9 @@ export async function GET(req: NextRequest) {
   }).then((r) => r.json());
   if (!info.email || info.email_verified === false) return fail();
   const email = String(info.email).toLowerCase();
-  let u = db().users.find((x) => x.email === email);
-  if (!u) u = createUser({ email, name: info.name || email, googleId: info.sub });
-  else if (!u.googleId) { u.googleId = info.sub; save(); }
+  let u = await store.getUserByEmail(email);
+  if (!u) u = await store.createUser({ email, name: info.name || email, googleId: info.sub });
+  else if (!u.googleId) await store.setGoogleId(u.id, info.sub);
   await startSession(u.id);
   return NextResponse.redirect(`${env.appUrl}/app`);
 }

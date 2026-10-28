@@ -1,10 +1,12 @@
 import { env, mockGemini } from "./config";
-import { Generation, Output, save, uid } from "./db";
+import { Generation, Output, uid } from "./db";
+import { persist } from "./persist";
+import { store } from "./store";
 import { generateImage, generateVideo, Img } from "./gemini";
 import { concatClips, imageToClip } from "./ffmpeg";
 import { mockImage } from "./mock";
 import { satellite } from "./maps";
-import { saveFile, mimeOf } from "./storage";
+
 import { AMBIENTES, AmbienteKey, CENAS, CenaKey, PROMPT_MAPA, promptLuz, promptMoodboard } from "./prompts";
 
 export type JobInput = { type: Generation["type"]; params: any; images: Record<string, Img> };
@@ -14,7 +16,7 @@ type Ctx = { gen: Generation; input: JobInput };
 function progress(c: Ctx, pct: number, msg: string) {
   c.gen.progress = Math.min(99, Math.round(pct));
   c.gen.message = msg;
-  save();
+  void persist(c.gen);
 }
 
 async function makeImage(c: Ctx, label: string, prompt: string, imgs: Img[], aspect?: string): Promise<Buffer> {
@@ -26,11 +28,14 @@ async function makeImage(c: Ctx, label: string, prompt: string, imgs: Img[], asp
   return generateImage(prompt, imgs, aspect);
 }
 
-function addOutput(c: Ctx, buf: Buffer, ext: string, kind: Output["kind"], label?: string) {
-  const file = saveFile(c.gen.userId, `${c.gen.id}-${uid().slice(0, 6)}.${ext}`, buf);
+async function addOutput(c: Ctx, buf: Buffer, ext: string, kind: Output["kind"], label?: string) {
+  const file = `${c.gen.id}-${uid().slice(0, 6)}.${ext}`;
+  await store.putFile(c.gen.userId, file, buf);
   c.gen.outputs.push({ file, kind, label });
-  save();
+  void persist(c.gen);
 }
+const mimeOf = (buf: Buffer) =>
+  buf[0] === 0xff ? "image/jpeg" : buf.subarray(8, 12).toString() === "WEBP" ? "image/webp" : "image/png";
 const asImg = (b: Buffer): Img => ({ data: b, mime: mimeOf(b) });
 const ext = (b: Buffer) => (mimeOf(b) === "image/jpeg" ? "jpg" : mimeOf(b) === "image/webp" ? "webp" : "png");
 
@@ -42,11 +47,11 @@ async function mapa(c: Ctx) {
     progress(c, 10, "Buscando imagem de satélite (Google Maps)…");
     sat = asImg(await satellite(address, Number(zoom) || 18));
   }
-  addOutput(c, sat.data, ext(sat.data), "image", "Satélite (entrada)");
+  await addOutput(c, sat.data, ext(sat.data), "image", "Satélite (entrada)");
   progress(c, 35, "Gerando mapa de situação…");
   c.gen.prompt = PROMPT_MAPA;
   const out = await makeImage(c, "Mapa de situação", PROMPT_MAPA, [sat]);
-  addOutput(c, out, ext(out), "image", "Mapa de situação");
+  await addOutput(c, out, ext(out), "image", "Mapa de situação");
   c.gen.outputs.reverse(); // resultado primeiro
 }
 
@@ -56,7 +61,7 @@ async function moodboard(c: Ctx) {
   c.gen.prompt = prompt;
   progress(c, 20, `Gerando moodboard de ${AMBIENTES[amb].label.toLowerCase()}…`);
   const out = await makeImage(c, `Moodboard — ${AMBIENTES[amb].label}`, prompt, [c.input.images.house, c.input.images.template], "2:3");
-  addOutput(c, out, ext(out), "image", `Moodboard — ${AMBIENTES[amb].label}`);
+  await addOutput(c, out, ext(out), "image", `Moodboard — ${AMBIENTES[amb].label}`);
 }
 
 async function render(c: Ctx) {
@@ -65,8 +70,8 @@ async function render(c: Ctx) {
   const n = 4;
   let done = 0;
   const jobs = Array.from({ length: n }, (_, i) =>
-    makeImage(c, `Render versão ${i + 1}`, prompt, [c.input.images.model]).then((b) => {
-      addOutput(c, b, ext(b), "image", `Versão ${i + 1}`);
+    makeImage(c, `Render versão ${i + 1}`, prompt, [c.input.images.model]).then(async (b) => {
+      await addOutput(c, b, ext(b), "image", `Versão ${i + 1}`);
       progress(c, (++done / n) * 95, `${done} de ${n} versões prontas`);
     }));
   const res = await Promise.allSettled(jobs);
@@ -80,7 +85,7 @@ async function luz(c: Ctx) {
   c.gen.prompt = prompt;
   progress(c, 20, "Gerando nova iluminação…");
   const out = await makeImage(c, `Luz: ${c.input.params.rotulo}`, prompt, [c.input.images.base]);
-  addOutput(c, out, ext(out), "image", c.input.params.rotulo);
+  await addOutput(c, out, ext(out), "image", c.input.params.rotulo);
 }
 
 async function filme(c: Ctx) {
@@ -93,7 +98,7 @@ async function filme(c: Ctx) {
     const slice = 90 / n;
     progress(c, base + slice * 0.05, `Cena ${i + 1}/${n} (${cena.label}): gerando imagem…`);
     const img = await makeImage(c, `Cena ${cena.label}`, cena.img, [c.input.images.project], "16:9");
-    addOutput(c, img, ext(img), "image", `Cena: ${cena.label}`);
+    await addOutput(c, img, ext(img), "image", `Cena: ${cena.label}`);
     progress(c, base + slice * 0.3, `Cena ${i + 1}/${n} (${cena.label}): gerando clipe de vídeo…`);
     c.gen.usage.videoClips++;
     if (mockGemini()) clips.push(await imageToClip(img, env.clipSeconds || 5));
@@ -101,7 +106,7 @@ async function filme(c: Ctx) {
   }
   progress(c, 93, "Montando o filme final com ffmpeg…");
   const final = await concatClips(clips, env.clipSeconds);
-  addOutput(c, final, "mp4", "video", "Filme do projeto (1920x1080)");
+  await addOutput(c, final, "mp4", "video", "Filme do projeto (1920x1080)");
   c.gen.outputs.sort((a) => (a.kind === "video" ? -1 : 1));
 }
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkPassword, createUser, currentUser, endSession, hashPassword, startSession } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { checkPassword, currentUser, endSession, hashPassword, startSession } from "@/lib/auth";
+import { store } from "@/lib/store";
 
 const bad = (m: string, s = 400) => NextResponse.json({ error: m }, { status: s });
 
@@ -13,13 +13,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
   if (!/^\S+@\S+\.\S+$/.test(email)) return bad("E-mail inválido.");
   if (action === "register") {
     if (password.length < 8) return bad("A senha precisa ter ao menos 8 caracteres.");
-    if (db().users.some((u) => u.email === email)) return bad("Este e-mail já está cadastrado.", 409);
-    const u = createUser({ email, name: String(b.name || email.split("@")[0]), passHash: hashPassword(password) });
+    if (await store.getUserByEmail(email)) return bad("Este e-mail já está cadastrado.", 409);
+    const u = await store.createUser({ email, name: String(b.name || email.split("@")[0]), passHash: hashPassword(password) });
     await startSession(u.id);
     return NextResponse.json({ ok: true });
   }
   if (action === "login") {
-    const u = db().users.find((x) => x.email === email);
+    const u = await store.getUserByEmail(email);
     if (!u || !checkPassword(password, u.passHash)) return bad("E-mail ou senha incorretos.", 401);
     await startSession(u.id);
     return NextResponse.json({ ok: true });

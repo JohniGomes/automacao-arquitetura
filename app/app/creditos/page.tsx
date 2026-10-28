@@ -1,5 +1,5 @@
 import { currentUser } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { store } from "@/lib/store";
 import { COSTS, PACOTES } from "@/lib/costs";
 import BuyButton from "./BuyButton";
 
@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Creditos() {
   const u = (await currentUser())!;
-  const txs = db().txs.filter((t) => t.userId === u.id).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 30);
+  const txs = await store.listTxs(u.id, 30);
   return (
     <>
       <h1>Créditos</h1>

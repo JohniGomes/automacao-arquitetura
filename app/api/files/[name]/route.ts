@@ -1,19 +1,20 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
-import { readFile } from "@/lib/storage";
-
-const TYPES: Record<string, string> = { png: "image/png", jpg: "image/jpeg", webp: "image/webp", mp4: "video/mp4" };
+import { contentType, store } from "@/lib/store";
 
 export async function GET(req: Request, { params }: { params: Promise<{ name: string }> }) {
   const u = await currentUser();
   if (!u) return new NextResponse("Não autenticado", { status: 401 });
   const { name } = await params;
-  const buf = readFile(u.id, name);
+  const dl = !!new URL(req.url).searchParams.get("dl");
+  // Supabase: redireciona para uma URL assinada (1 h) — vídeo e imagens saem direto do Storage, com suporte a Range.
+  const url = await store.fileUrl(u.id, name, dl);
+  if (url) return NextResponse.redirect(url, { headers: { "Cache-Control": "private, max-age=600" } });
+  const buf = await store.getFile(u.id, name);
   if (!buf) return new NextResponse("Não encontrado", { status: 404 });
-  const dl = new URL(req.url).searchParams.get("dl");
   return new NextResponse(new Uint8Array(buf), {
     headers: {
-      "Content-Type": TYPES[name.split(".").pop() || ""] || "application/octet-stream",
+      "Content-Type": contentType(name),
       "Cache-Control": "private, max-age=3600",
       ...(dl ? { "Content-Disposition": `attachment; filename="${name}"` } : {}),
     },
