@@ -1,4 +1,4 @@
-import { Agent } from "undici";
+import { Agent, fetch as ufetch } from "undici";
 import { env } from "./config";
 
 // Gerar vídeo pode levar minutos com a conexão aberta: sem isso o fetch do Node desiste em ~5 min.
@@ -8,12 +8,12 @@ const BASE = "https://generativelanguage.googleapis.com/v1beta";
 export type Img = { data: Buffer; mime: string };
 
 async function post(body: unknown) {
-  const res = await fetch(`${BASE}/interactions`, {
+  const res = await ufetch(`${BASE}/interactions`, {
     method: "POST",
     headers: { "x-goog-api-key": env.geminiKey, "Content-Type": "application/json" },
     body: JSON.stringify(body),
     dispatcher: longAgent,
-  } as RequestInit);
+  } as any).catch((e: any) => { throw new Error(`Falha de rede ao chamar o Gemini: ${e?.cause?.message || e?.message}`); });
   const text = await res.text();
   if (!res.ok) throw new Error(`Gemini API ${res.status}: ${text.slice(0, 400)}`);
   return JSON.parse(text);
@@ -62,12 +62,12 @@ export async function generateVideo(prompt: string, image: Img): Promise<Buffer>
   const id = String(m.uri).match(/files\/([a-zA-Z0-9_-]+)/)?.[1];
   if (!id) throw new Error("URI de vídeo inesperada: " + m.uri);
   for (let i = 0; i < 120; i++) {
-    const f = await (await fetch(`${BASE}/files/${id}`, { headers: { "x-goog-api-key": env.geminiKey } })).json();
+    const f = await (await ufetch(`${BASE}/files/${id}`, { headers: { "x-goog-api-key": env.geminiKey }, dispatcher: longAgent })).json();
     if (f.state === "ACTIVE") break;
     if (f.state === "FAILED") throw new Error("Geração de vídeo falhou no Gemini.");
     await new Promise((r) => setTimeout(r, 5000));
   }
-  const dl = await fetch(`${BASE}/files/${id}:download?alt=media`, { headers: { "x-goog-api-key": env.geminiKey }, redirect: "follow" });
+  const dl = await ufetch(`${BASE}/files/${id}:download?alt=media`, { headers: { "x-goog-api-key": env.geminiKey }, redirect: "follow", dispatcher: longAgent });
   if (!dl.ok) throw new Error(`Download do vídeo falhou: ${dl.status}`);
   return Buffer.from(await dl.arrayBuffer());
 }
