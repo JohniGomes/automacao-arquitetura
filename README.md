@@ -148,3 +148,15 @@ Menu lateral com ícones (Início, Projetos, Gerações, Ferramentas e atalhos f
 - **Fidelidade é questão de prompt.** Com "preserve o ângulo da câmera e a composição" o Grok trocou a isométrica do print por uma perspectiva baixa e reorganizou os volumes. Com a câmera, a vista (isométrica, axonométrica, vista de cima) e cada elemento descritos como "exatamente no mesmo lugar", sem pedir céu nem "fotografia profissional de arquitetura" (que levam o modelo para a altura dos olhos), o render saiu alinhado com o print: forma em L, coberturas, janelas, volume de madeira e piscina no lugar. O prompt de `composeRender` (`lib/compose.ts`) já usa essa versão.
 - **Atenção ao `.env.local`:** `AI_PROVIDER` precisa ser `grok`. O modelo `.env.example` traz `gemini`; com `MOCK_MODE=false` isso manda as chamadas para o Gemini e falha por falta de chave.
 - **Ainda não testado com IA real:** vídeo (Grok e Gemini), editor por regiões, multi-ângulo, melhorar render, esboço, ideias, moodboard, mapa de situação e luz.
+
+## Prompts da auditoria (versão aplicada em 29/10/2026)
+
+Os prompts de todas as ferramentas foram substituídos pelos do documento "auditoria e novos prompts" (hierarquia de instruções, preservação arquitetônica por padrão, criatividade delimitada por ferramenta). Estão em `lib/prompts.ts` (mapa, luz, moodboard, filme) e `lib/compose.ts` (render, melhorar, esboço, ideias, editor, multi-ângulo).
+
+- **Montagem:** blocos separados por linha em branco; blocos opcionais vazios somem por inteiro, com o rótulo; texto livre do usuário entra sempre subordinado às travas de geometria e câmera.
+- **Snapshot de cada geração:** o prompt final, o provedor, o modelo e as opções ficam gravados na geração (tela de Gerações, "Prompt e opções usados"), para reproduzir e comparar testes.
+- **Mapa de situação:** não marca mais estabelecimentos (a IA não sabe onde eles existem). Para pontos de interesse reais é preciso uma fonte geográfica (por exemplo Google Places) e marcadores desenhados por código: ainda não implementado.
+- **Editor por regiões:** depois de cada edição o servidor recompõe a imagem original fora da máscara (transição de 1,2 px), para garantir que nada fora da região mude. Se a proporção da imagem devolvida diferir da original, o recorte não é aplicado e o app avisa.
+- **Multi-ângulo:** a vista de cima prevalece sobre o giro; sem giro nem altura o pedido é "mantenha a câmera". A tela avisa que os lados ocultos são inferidos.
+- **Filme:** primeiro cria uma "bíblia visual" (descrição de continuidade do projeto, por um modelo de texto com visão: `GEMINI_TEXT_MODEL` / `GROK_TEXT_MODEL`, nomes padrão não verificados) e a reaproveita em todas as cenas; se o modelo de texto falhar, as cenas seguem sem ela. A cena Interior exige uma imagem interior; Fachada e Acesso aceitam uma referência opcional (enviada como imagem 2).
+- **Validação:** só o Render foi testado com IA real depois da troca (Grok, câmera isométrica preservada). Os demais ainda não.

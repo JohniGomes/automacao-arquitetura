@@ -71,3 +71,23 @@ export async function generateVideo(prompt: string, image: Img): Promise<Buffer>
   if (!dl.ok) throw new Error(`Download do vídeo falhou: ${dl.status}`);
   return Buffer.from(await dl.arrayBuffer());
 }
+
+function findText(n: any): string | null {
+  if (!n || typeof n !== "object") return null;
+  if (typeof n.output_text === "string" && n.output_text.trim()) return n.output_text;
+  if (n.type === "text" && typeof n.text === "string" && n.text.trim()) return n.text;
+  for (const k of Object.keys(n)) { const r = findText(n[k]); if (r) return r; }
+  return null;
+}
+
+/** Texto a partir de prompt + imagens (usado na "bíblia visual" do filme). Modelo: GEMINI_TEXT_MODEL. */
+export async function geminiText(prompt: string, images: Img[]): Promise<string> {
+  const input = [
+    { type: "text", text: prompt },
+    ...images.map((i) => ({ type: "image", mime_type: i.mime, data: i.data.toString("base64") })),
+  ];
+  const json = await post({ model: env.geminiTextModel, input });
+  const out = (Array.isArray(json?.steps) ? json.steps.filter((s: any) => s?.type === "model_output") : []).map(findText).filter(Boolean).join("\n") || findText(json);
+  if (!out) throw new Error("Gemini não devolveu texto.");
+  return out.trim();
+}

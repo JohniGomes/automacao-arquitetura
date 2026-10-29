@@ -91,3 +91,13 @@ export async function grokVideo(prompt: string, image: Img, publicUrl?: string |
   }
   throw new Error("Tempo esgotado aguardando o vídeo do xAI (15 min).");
 }
+
+/** Texto a partir de prompt + imagens (usado na "bíblia visual" do filme). Modelo: GROK_TEXT_MODEL (precisa aceitar imagem). */
+export async function grokText(prompt: string, images: Img[]): Promise<string> {
+  const content: unknown[] = [{ type: "text", text: prompt }, ...images.map((i) => ({ type: "image_url", image_url: { url: dataUri(i) } }))];
+  const r = await call("POST", "/chat/completions", { model: env.grokTextModel, messages: [{ role: "user", content }], max_tokens: 500, temperature: 0.2 });
+  if (r.status < 200 || r.status >= 300) throw fail("chat/completions", r);
+  const t = r.json?.choices?.[0]?.message?.content;
+  if (typeof t !== "string" || !t.trim()) throw new Error(`xAI não devolveu texto: ${r.text.slice(0, 300)}`);
+  return t.trim();
+}

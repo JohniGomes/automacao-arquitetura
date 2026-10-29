@@ -6,7 +6,7 @@ import Logo from "@/components/Logo";
 export const dynamic = "force-dynamic";
 
 const ETAPAS = [
-  ["Mapa de situação", "Digite o endereço e receba o entorno sobre uma vista aérea, com farmácias, mercados, parques, academias e shoppings marcados. Se preferir, envie o seu próprio print."],
+  ["Mapa de situação", "Digite o endereço e receba o entorno em uma vista aérea realista, fiel às ruas e quadras do satélite. Se preferir, envie o seu próprio print."],
   ["Moodboard", "Escolha o modelo de composição e o ambiente (cozinha, sala, banheiro ou quarto). Cores e materiais saem da casa de referência do seu projeto."],
   ["Render", "Envie o print do modelo 3D e receba quatro versões fotorrealistas. O prompt padrão pede para preservar geometria, aberturas e enquadramento, e você pode editá-lo."],
   ["Variação de luz", "Manhã, golden hour, blue hour, noite ou uma luz descrita por você. A casa, a câmera e a composição ficam como estão."],

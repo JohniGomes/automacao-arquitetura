@@ -30,7 +30,7 @@ export default function Angulos() {
   return (
     <ToolShell
       title="Multi-ângulo"
-      tip="Beta: os lados que não aparecem na imagem são inventados pela IA. Confira a geometria."
+      tip="Beta: os lados que não aparecem na imagem são inferidos pela IA e não representam o projeto com precisão. Para vistas fiéis, use o modelo 3D."
       cost={count * COSTS_EDICAO.anguloPorImagem}
       busy={busy}
       canGenerate={!!base && (mode === "unica" || multi.length >= 2)}

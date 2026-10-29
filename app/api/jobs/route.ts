@@ -11,7 +11,7 @@ import { enqueue, live, recoverStale } from "@/lib/jobs";
 import { Img } from "@/lib/gemini";
 import { mockGemini, mockMaps, mockVideo } from "@/lib/config";
 import { store } from "@/lib/store";
-import { AMBIENTES, AmbienteKey, CENAS, CenaKey, LUZES, LuzKey, PROMPT_RENDER } from "@/lib/prompts";
+import { AMBIENTES, AmbienteKey, CENAS, CenaKey, LUZES, LuzKey } from "@/lib/prompts";
 
 export const runtime = "nodejs";
 const bad = (m: string, s = 400) => NextResponse.json({ error: m }, { status: s });
@@ -166,13 +166,19 @@ export async function POST(req: NextRequest) {
       const livre = str("luzLivre");
       const desc = livre || LUZES[k as LuzKey]?.text;
       if (!desc) throw new Error("Escolha a iluminação ou descreva uma luz.");
-      params = { descricao: livre ? `a custom light: ${livre}` : desc, rotulo: livre ? `Luz: ${livre}` : LUZES[k as LuzKey].label };
+      params = { descricao: desc, rotulo: livre ? `Luz: ${livre}` : LUZES[k as LuzKey].label };
       cost = COSTS.luz;
       summary = `Variação de luz — ${params.rotulo}`;
     } else if (type === "filme") {
       await need("project", "Envie a imagem do projeto.");
       const cenas = str("cenas").split(",").filter((c) => CENAS[c as CenaKey]) as CenaKey[];
       if (cenas.length < 1 || cenas.length > 5) throw new Error("Escolha de 1 a 5 cenas.");
+      // referências dedicadas (imagem 2 das cenas Interior, Fachada e Acesso)
+      for (const k of ["interior", "fachada", "acesso"] as const) {
+        const r = await readImage(u.id, form, k);
+        if (r) images[k] = r;
+      }
+      if (cenas.includes("interior" as CenaKey) && !images.interior) throw new Error("A cena Interior precisa de uma imagem interior de referência: o app não inventa um ambiente que não existe no projeto.");
       params = { cenas };
       cost = cenas.length * (COSTS.filmeImagemPorCena + COSTS.filmeVideoPorCena);
       summary = `Filme do projeto — ${cenas.length} cena(s)`;

@@ -1,15 +1,14 @@
+import sharp from "sharp";
 import { env, mockGemini, mockVideo } from "./config";
 import { Generation, Output, uid } from "./db";
 import { persist } from "./persist";
 import { store } from "./store";
-import { generateImage, generateVideo, Img } from "./ai";
+import { describeProject, generateImage, generateVideo, Img } from "./ai";
 import { concatClips, imageToClip } from "./ffmpeg";
-import sharp from "sharp";
 import { mockEdit, mockImage } from "./mock";
 import { composeEdit } from "./compose";
 import { satellite } from "./maps";
-
-import { AMBIENTES, AmbienteKey, CENAS, CenaKey, PROMPT_MAPA, promptLuz, promptMoodboard } from "./prompts";
+import { AMBIENTES, AmbienteKey, CENAS, CenaDef, CenaKey, PROMPT_BIBLIA, PROMPT_MAPA, promptLuz, promptMoodboard, REF_PREFIX } from "./prompts";
 
 export type JobInput = { type: Generation["type"]; params: any; images: Record<string, Img> };
 
@@ -41,6 +40,16 @@ const mimeOf = (buf: Buffer) =>
 const asImg = (b: Buffer): Img => ({ data: b, mime: mimeOf(b) });
 const ext = (b: Buffer) => (mimeOf(b) === "image/jpeg" ? "jpg" : mimeOf(b) === "image/webp" ? "webp" : "png");
 
+/**
+ * Snapshot do prompt final: provedor, modelo, opções usadas e o texto exato enviado. Fica gravado na geração
+ * para reproduzir e comparar os testes.
+ */
+function snap(c: Ctx, prompt: string, extra?: Record<string, unknown>): string {
+  const { prompt: _p, angles: _a, regions: _r, ...opts } = c.input.params || {};
+  const model = env.imageProvider === "grok" ? env.grokImageModel : env.imageModel;
+  return `[Provedor: ${env.imageProvider} · Modelo: ${model}]\n[Opções: ${JSON.stringify({ ...opts, ...extra })}]\n\n${prompt}`;
+}
+
 async function mapa(c: Ctx) {
   const { address, zoom } = c.input.params;
   let sat: Img;
@@ -50,8 +59,8 @@ async function mapa(c: Ctx) {
     sat = asImg(await satellite(address, Number(zoom) || 18));
   }
   await addOutput(c, sat.data, ext(sat.data), "image", "Satélite (entrada)");
-  progress(c, 35, "Gerando mapa de situação…");
-  c.gen.prompt = PROMPT_MAPA;
+  progress(c, 35, "Gerando o mapa de situação…");
+  c.gen.prompt = snap(c, PROMPT_MAPA);
   const out = await makeImage(c, "Mapa de situação", PROMPT_MAPA, [sat]);
   await addOutput(c, out, ext(out), "image", "Mapa de situação");
   c.gen.outputs.reverse(); // resultado primeiro
@@ -60,8 +69,9 @@ async function mapa(c: Ctx) {
 async function moodboard(c: Ctx) {
   const amb = c.input.params.ambiente as AmbienteKey;
   const prompt = promptMoodboard(amb);
-  c.gen.prompt = prompt;
+  c.gen.prompt = snap(c, prompt);
   progress(c, 20, `Gerando moodboard de ${AMBIENTES[amb].label.toLowerCase()}…`);
+  // ordem declarada no prompt: imagem 1 = casa, imagem 2 = layout
   const out = await makeImage(c, `Moodboard — ${AMBIENTES[amb].label}`, prompt, [c.input.images.house, c.input.images.template], "2:3");
   await addOutput(c, out, ext(out), "image", `Moodboard — ${AMBIENTES[amb].label}`);
 }
@@ -71,7 +81,7 @@ async function variants(c: Ctx, label: string, imgs: Img[]) {
   const prompt: string = c.input.params.prompt;
   const n: number = c.input.params.versions || 1;
   const size: string | undefined = c.input.params.size;
-  c.gen.prompt = prompt;
+  c.gen.prompt = snap(c, prompt);
   let done = 0;
   const jobs = Array.from({ length: n }, (_, i) =>
     makeImage(c, `${label} ${i + 1}`, prompt, imgs, undefined, size).then(async (b) => {
@@ -84,30 +94,54 @@ async function variants(c: Ctx, label: string, imgs: Img[]) {
   if (failed.length) c.gen.message = `${n - failed.length} de ${n} versões geradas (algumas falharam).`;
 }
 
+// a ordem das imagens enviadas é a declarada nos prompts: imagem 1 = a base, imagem 2 = referência (se houver)
 const withRef = (c: Ctx, key: string) => [c.input.images[key], ...(c.input.images.reference ? [c.input.images.reference] : [])];
 async function render(c: Ctx) { await variants(c, "Render", withRef(c, "model")); }
-async function melhorar(c: Ctx) { await variants(c, "Render melhorado", withRef(c, "render")); }
-async function esboco(c: Ctx) { await variants(c, "Render do esboço", withRef(c, "sketch")); }
+async function melhorar(c: Ctx) { await variants(c, "Render melhorado", [c.input.images.render]); }
+async function esboco(c: Ctx) { await variants(c, "Render do esboço", [c.input.images.sketch]); }
 async function ideias(c: Ctx) { await variants(c, "Ideia", withRef(c, "base")); }
 
 async function luz(c: Ctx) {
   const prompt = promptLuz(c.input.params.descricao);
-  c.gen.prompt = prompt;
+  c.gen.prompt = snap(c, prompt);
   progress(c, 20, "Gerando nova iluminação…");
   const out = await makeImage(c, `Luz: ${c.input.params.rotulo}`, prompt, [c.input.images.base]);
   await addOutput(c, out, ext(out), "image", c.input.params.rotulo);
+}
+
+/** Bíblia visual: descrição de continuidade do projeto, criada uma vez e reaproveitada em todas as cenas. */
+async function visualBible(c: Ctx): Promise<string | null> {
+  if (mockGemini()) return "- (modo mock) especificação visual de exemplo: volumes, materiais e aberturas do projeto.";
+  try {
+    return await describeProject(PROMPT_BIBLIA, [c.input.images.project]);
+  } catch (e: any) {
+    console.warn("Bíblia visual não gerada (as cenas seguem sem ela):", e?.message || e);
+    return null;
+  }
 }
 
 async function filme(c: Ctx) {
   const cenas: CenaKey[] = c.input.params.cenas;
   const n = cenas.length;
   const clips: Buffer[] = [];
+
+  progress(c, 3, "Analisando o projeto para manter a continuidade entre as cenas…");
+  const bible = await visualBible(c);
+  const bibleBlock = bible ? `\n\nPROJECT VISUAL CONTINUITY SPECIFICATION (shared by all scenes):\n${bible}` : "";
+  c.gen.prompt = snap(c, bible ? `PROJECT VISUAL CONTINUITY SPECIFICATION (shared by all scenes):\n${bible}` : "(bíblia visual não gerada: as cenas seguem sem a descrição de continuidade)");
+  if (!bible) c.gen.message = "Sem a bíblia visual (modelo de texto indisponível): as cenas seguem só com a imagem do projeto.";
+
   for (let i = 0; i < n; i++) {
-    const cena = CENAS[cenas[i]];
-    const base = (i / n) * 90;
-    const slice = 90 / n;
+    const cena: CenaDef = CENAS[cenas[i]];
+    const base = 5 + (i / n) * 85;
+    const slice = 85 / n;
+    // cena com referência dedicada recebe a imagem 2 (ex.: interior); as demais partem só da imagem do projeto
+    const ref = cena.ref ? c.input.images[cena.ref] : undefined;
+    const imgs = [c.input.images.project, ...(ref ? [ref] : [])];
+    const imgPrompt = (ref ? REF_PREFIX : "") + cena.img + bibleBlock;
+
     progress(c, base + slice * 0.05, `Cena ${i + 1}/${n} (${cena.label}): gerando imagem…`);
-    const img = await makeImage(c, `Cena ${cena.label}`, cena.img, [c.input.images.project], "16:9");
+    const img = await makeImage(c, `Cena ${cena.label}`, imgPrompt, imgs, "16:9");
     await addOutput(c, img, ext(img), "image", `Cena: ${cena.label}`);
     progress(c, base + slice * 0.3, `Cena ${i + 1}/${n} (${cena.label}): gerando clipe de vídeo…`);
     c.gen.usage.videoClips++;
@@ -124,21 +158,45 @@ async function filme(c: Ctx) {
   c.gen.outputs.sort((a) => (a.kind === "video" ? -1 : 1));
 }
 
+/**
+ * Garantia por código: o modelo pode alterar pixels fora da máscara. Recompõe a imagem original fora da região
+ * autorizada, com uma transição estreita (desfoque de 1,2 px) na borda para evitar emendas visíveis.
+ * Devolve null quando a proporção da saída difere da entrada (não dá para alinhar com segurança).
+ */
+async function recompose(orig: Img, edited: Buffer, mask: Img): Promise<Buffer | null> {
+  const om = await sharp(orig.data).metadata();
+  const em = await sharp(edited).metadata();
+  const W = om.width!, H = om.height!;
+  if (!em.width || !em.height || Math.abs(W / H - em.width / em.height) / (W / H) > 0.03) return null;
+  const base = await sharp(orig.data).removeAlpha().toBuffer();
+  const e = await sharp(edited).resize(W, H, { fit: "fill" }).removeAlpha().toBuffer();
+  const alpha = await sharp(mask.data).resize(W, H, { fit: "fill" }).greyscale().blur(1.2).raw().toBuffer();
+  const eAlpha = await sharp(e).joinChannel(alpha, { raw: { width: W, height: H, channels: 1 } }).png().toBuffer();
+  return sharp(base).composite([{ input: eAlpha }]).png().toBuffer();
+}
+
 /** Edita região por região: cada região usa o resultado da anterior e sua própria máscara. */
 async function editor(c: Ctx) {
   const regions: { text: string }[] = c.input.params.regions;
   const n = regions.length;
   let current = c.input.images.base;
-  c.gen.prompt = regions.map((r, i) => `Região ${i + 1}: ${r.text}`).join("\n");
+  c.gen.prompt = snap(c, `${composeEdit(regions[0].text)}\n\n(a mesma estrutura se repete para cada região; instruções:)\n${regions.map((r, i) => `Região ${i + 1}: ${r.text}`).join("\n")}`, { regioes: n });
+  let semRecorte = false;
   for (let i = 0; i < n; i++) {
     progress(c, (i / n) * 95 + 3, `Editando a região ${i + 1} de ${n}…`);
     const mask = c.input.images[`mask${i + 1}`];
     c.gen.usage.images++;
     let out: Buffer;
+    // ordem declarada no prompt: imagem 1 = imagem atual, imagem 2 = máscara
     if (mockGemini()) { await new Promise((r) => setTimeout(r, 900)); out = await mockEdit(current.data, mask.data, i); }
-    else out = await generateImage(composeEdit(regions[i].text), [current, mask]);
+    else {
+      out = await generateImage(composeEdit(regions[i].text), [current, mask]);
+      const fixed = await recompose(current, out, mask).catch(() => null);
+      if (fixed) out = fixed; else semRecorte = true;
+    }
     current = asImg(out);
   }
+  if (semRecorte) c.gen.message = "Concluído. O formato da imagem devolvida difere do original: o recorte por máscara não pôde ser aplicado, confira as áreas fora da região.";
   await addOutput(c, current.data, ext(current.data), "image", n > 1 ? `Editada (${n} regiões)` : "Editada");
 }
 
@@ -146,7 +204,7 @@ async function editor(c: Ctx) {
 async function angulos(c: Ctx) {
   const list: { label: string; prompt: string }[] = c.input.params.angles;
   const n = list.length;
-  c.gen.prompt = list.map((a) => `${a.label}: ${a.prompt}`).join("\n");
+  c.gen.prompt = snap(c, `${list[0].prompt}\n\n(estrutura repetida para cada ângulo; ângulos:)\n${list.map((a) => a.label).join("\n")}`, { angulos: n });
   const got: { label: string; buf: Buffer }[] = [];
   let done = 0;
   const res = await Promise.allSettled(list.map((a, i) =>

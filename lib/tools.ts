@@ -3,7 +3,7 @@ export type ToolId = "mapa" | "moodboard" | "render" | "luz" | "filme" | "melhor
 export type Tool = { id: ToolId; href: string; label: string; group: "Apresentação" | "Imagem" | "Edição"; icon: string; tone: number; hint: string };
 
 export const TOOLS: Tool[] = [
-  { id: "mapa", href: "/app/mapa", label: "Mapa de situação", group: "Apresentação", tone: 1, hint: "satélite entorno endereço localização",
+  { id: "mapa", href: "/app/mapa", label: "Mapa de situação", group: "Apresentação", tone: 1, hint: "satélite entorno endereço localização vista aérea",
     icon: "M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" },
   { id: "moodboard", href: "/app/moodboard", label: "Moodboard", group: "Apresentação", tone: 2, hint: "ambiente cores materiais referência cozinha sala banheiro quarto",
     icon: "M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z" },

@@ -11,6 +11,9 @@ export const env = {
   imageModel: process.env.GEMINI_IMAGE_MODEL || "gemini-nano-banana-2.1",
   videoModel: process.env.GEMINI_VIDEO_MODEL || "gemini-omni-1.1-flash",
   imageSize: process.env.GEMINI_IMAGE_SIZE || "1K",
+  /** modelos de texto com visão (bíblia visual do filme); os nomes podem mudar, confira na documentação do provedor */
+  geminiTextModel: process.env.GEMINI_TEXT_MODEL || "gemini-3.8-flash",
+  grokTextModel: process.env.GROK_TEXT_MODEL || "grok-4",
   grokImageModel: process.env.GROK_IMAGE_MODEL || "grok-imagine-image-2.0",
   grokVideoModel: process.env.GROK_VIDEO_MODEL || "grok-imagine-video-1.5",
   /** duração e resolução pedidas ao Grok (a duração aceita é de 1 a 15 s; 480p, 720p ou 1080p) */

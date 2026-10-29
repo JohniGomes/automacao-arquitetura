@@ -50,7 +50,7 @@ export default function GenCard({ gen, projects, onChange }: { gen: Gen; project
         </div>
         {err && <p className="err small">{err}</p>}
         {gen.error && <p className="err">{gen.error}</p>}
-        {gen.prompt && <p className="small muted">Prompt: {gen.prompt}</p>}
+        {gen.prompt && <details><summary className="small muted">Prompt e opções usados</summary><p className="small muted" style={{ whiteSpace: "pre-wrap" }}>{gen.prompt}</p></details>}
         <Results gen={gen} />
       </div>
     </details>

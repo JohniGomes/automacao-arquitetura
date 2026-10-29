@@ -14,7 +14,7 @@ export default function Mapa() {
   return (
     <ToolShell
       title="Mapa de situação"
-      tip="Dica: zoom 17 a 19 mostra bem o lote e as quadras vizinhas."
+      tip="Dica: zoom 17 a 19 mostra bem o lote e as quadras vizinhas. Esta ferramenta não marca estabelecimentos: a IA não sabe onde eles existem de verdade."
       cost={COSTS.mapa}
       busy={busy}
       canGenerate={!!address.trim() || !!upload}

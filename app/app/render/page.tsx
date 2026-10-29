@@ -50,7 +50,7 @@ export default function Render() {
             <div className="field"><label>Luz e clima</label>
               <div className="scenes">
                 <button type="button" className={`scene ${!scene && !sceneFree ? "on" : ""}`} aria-pressed={!scene && !sceneFree} onClick={() => { setScene(""); setSceneFree(""); }}><i style={{ background: "var(--field)" }} />Padrão</button>
-                {CENAS_LUZ.map((s) => <button key={s.id} type="button" className={`scene ${scene === s.id && !sceneFree ? "on" : ""}`} aria-pressed={scene === s.id && !sceneFree} onClick={() => { setScene(s.id); setSceneFree(""); }}><i style={{ background: s.swatch }} />{s.label}</button>)}
+                {CENAS_LUZ.map((s) => <button key={s.id} type="button" className={`scene ${scene === s.id && !sceneFree ? "on" : ""}`} aria-pressed={scene === s.id && !sceneFree} onClick={() => { setScene(s.id); setSceneFree(""); }}><i style={{ background: s.swatch }} />{s.label}{s.kind === "clima" && <small className="kind">clima</small>}</button>)}
               </div>
               {saved.list.length > 0 && (
                 <div className="chips" style={{ marginTop: 10 }}>
