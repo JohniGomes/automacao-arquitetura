@@ -9,7 +9,7 @@ import { ANGULOS, angleLabel, composeAngle, LENTES, LenteKey, MAX_REGIOES, compo
 import { Generation, GenType, uid } from "@/lib/db";
 import { enqueue, live, recoverStale } from "@/lib/jobs";
 import { Img } from "@/lib/gemini";
-import { mockGemini, mockMaps } from "@/lib/config";
+import { mockGemini, mockMaps, mockVideo } from "@/lib/config";
 import { store } from "@/lib/store";
 import { AMBIENTES, AmbienteKey, CENAS, CenaKey, LUZES, LuzKey, PROMPT_RENDER } from "@/lib/prompts";
 
@@ -190,7 +190,7 @@ export async function POST(req: NextRequest) {
   const gen: Generation = {
     id, userId: u.id, type, status: "queued", progress: 0, message: "Na fila…", createdAt: new Date().toISOString(),
     summary, outputs: [], cost, usage: { images: 0, videoClips: 0 }, projectId, favorite: false,
-    mock: mockGemini() || (type === "mapa" && mockMaps() && !images.upload),
+    mock: mockGemini() || (type === "filme" && mockVideo()) || (type === "mapa" && mockMaps() && !images.upload),
   };
   await store.saveGen(gen);
   enqueue(gen, { type, params, images });

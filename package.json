@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "seed:templates": "node scripts/seed-templates.mjs"
+    "seed:templates": "node scripts/seed-templates.mjs",
+    "test:ia": "node scripts/test-ia.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",

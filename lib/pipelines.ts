@@ -1,8 +1,8 @@
-import { env, mockGemini } from "./config";
+import { env, mockGemini, mockVideo } from "./config";
 import { Generation, Output, uid } from "./db";
 import { persist } from "./persist";
 import { store } from "./store";
-import { generateImage, generateVideo, Img } from "./gemini";
+import { generateImage, generateVideo, Img } from "./ai";
 import { concatClips, imageToClip } from "./ffmpeg";
 import sharp from "sharp";
 import { mockEdit, mockImage } from "./mock";
@@ -111,8 +111,12 @@ async function filme(c: Ctx) {
     await addOutput(c, img, ext(img), "image", `Cena: ${cena.label}`);
     progress(c, base + slice * 0.3, `Cena ${i + 1}/${n} (${cena.label}): gerando clipe de vídeo…`);
     c.gen.usage.videoClips++;
-    if (mockGemini()) clips.push(await imageToClip(img, env.clipSeconds || 5));
-    else clips.push(await generateVideo(cena.video, asImg(img)));
+    if (mockVideo()) clips.push(await imageToClip(img, env.clipSeconds || 5));
+    else {
+      // link assinado da imagem da cena (o xAI pede a imagem por URL); sem Supabase fica null e vai em base64
+      const url = await store.fileUrl(c.gen.userId, c.gen.outputs[c.gen.outputs.length - 1].file, false).catch(() => null);
+      clips.push(await generateVideo(cena.video, asImg(img), url));
+    }
   }
   progress(c, 93, "Montando o filme final com ffmpeg…");
   const final = await concatClips(clips, env.clipSeconds);
