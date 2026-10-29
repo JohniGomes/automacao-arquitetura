@@ -1,9 +1,9 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Instrument_Sans } from "next/font/google";
+import { Cormorant_Garamond, Jost } from "next/font/google";
 
-const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--f-display", display: "swap" });
-const body = Instrument_Sans({ subsets: ["latin"], variable: "--f-body", display: "swap" });
+const display = Cormorant_Garamond({ subsets: ["latin"], weight: ["500", "600", "700"], style: ["normal", "italic"], variable: "--f-display", display: "swap" });
+const body = Jost({ subsets: ["latin"], variable: "--f-body", display: "swap" });
 
 export const metadata: Metadata = {
   title: "ArqIA — IA para arquitetos",
