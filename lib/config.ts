@@ -10,7 +10,12 @@ export const env = {
   videoProvider: provider(process.env.VIDEO_PROVIDER, AI),
   imageModel: process.env.GEMINI_IMAGE_MODEL || "gemini-nano-banana-2.1",
   videoModel: process.env.GEMINI_VIDEO_MODEL || "gemini-omni-1.1-flash",
+  /** Omni: resolução (360p, 720p, 1080p/4k são upscale) e duração pedida no prompt; custo medido: ~29 mil tokens de vídeo por clipe de 5 s em 720p */
+  videoRes: process.env.GEMINI_VIDEO_RES || "720p",
+  videoSeconds: Number(process.env.GEMINI_VIDEO_SECONDS || 5),
   imageSize: process.env.GEMINI_IMAGE_SIZE || "1K",
+  /** o filme (custo alto de vídeo) só para quem já comprou créditos ou plano */
+  filmeRequerCompra: process.env.FILME_REQUER_COMPRA !== "false",
   /** modelos de texto com visão (bíblia visual do filme); os nomes podem mudar, confira na documentação do provedor */
   geminiTextModel: process.env.GEMINI_TEXT_MODEL || "gemini-3.8-flash",
   grokTextModel: process.env.GROK_TEXT_MODEL || "grok-4",
@@ -20,7 +25,7 @@ export const env = {
   grokVideoSeconds: Number(process.env.GROK_VIDEO_SECONDS || 5),
   grokVideoRes: process.env.GROK_VIDEO_RES || "720p",
   clipSeconds: Number(process.env.CLIP_SECONDS || 0) /* 0 = mantém o clipe inteiro devolvido pela IA, sem corte */,
-  signupCredits: Number(process.env.SIGNUP_CREDITS || 100),
+  signupCredits: Number(process.env.SIGNUP_CREDITS || 15),
   appUrl: process.env.APP_URL || "http://localhost:3000",
   sessionSecret: process.env.SESSION_SECRET || "dev-insecure-secret-change-me",
 };

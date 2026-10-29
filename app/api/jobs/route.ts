@@ -9,7 +9,7 @@ import { ANGULOS, angleLabel, composeAngle, LENTES, LenteKey, MAX_REGIOES, compo
 import { Generation, GenType, uid } from "@/lib/db";
 import { enqueue, live, recoverStale } from "@/lib/jobs";
 import { Img } from "@/lib/gemini";
-import { mockGemini, mockMaps, mockVideo } from "@/lib/config";
+import { env, mockGemini, mockMaps, mockVideo } from "@/lib/config";
 import { store } from "@/lib/store";
 import { AMBIENTES, AmbienteKey, CENAS, CenaKey, LUZES, LuzKey } from "@/lib/prompts";
 
@@ -170,6 +170,8 @@ export async function POST(req: NextRequest) {
       cost = COSTS.luz;
       summary = `Variação de luz — ${params.rotulo}`;
     } else if (type === "filme") {
+      if (env.filmeRequerCompra && !(await store.listTxs(u.id, 500)).some((t) => /^(Compra|Plano)/.test(t.reason)))
+        throw new Error("O filme do projeto é liberado para quem tem plano ou já comprou créditos.");
       await need("project", "Envie a imagem do projeto.");
       const cenas = str("cenas").split(",").filter((c) => CENAS[c as CenaKey]) as CenaKey[];
       if (cenas.length < 1 || cenas.length > 5) throw new Error("Escolha de 1 a 5 cenas.");

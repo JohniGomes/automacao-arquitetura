@@ -45,16 +45,17 @@ export async function generateImage(prompt: string, images: Img[], aspect?: stri
   return Buffer.from(m.data, "base64");
 }
 
-/** Imagem + prompt -> vídeo 16:9 1080p. Ref.: ai.google.dev/gemini-api/docs/omni */
+/** Imagem + prompt -> vídeo 16:9 (720p nativo; 1080p do Omni é upscale, o filme final é montado em 1920x1080 pelo ffmpeg). Ref.: ai.google.dev/gemini-api/docs/omni */
 export async function generateVideo(prompt: string, image: Img): Promise<Buffer> {
   const json = await post({
     model: env.videoModel,
     input: [
       { type: "image", data: image.data.toString("base64"), mime_type: image.mime },
-      { type: "text", text: prompt },
+      // o Omni não tem parâmetro de duração: ela é pedida no texto
+      { type: "text", text: `${prompt}\nTotal clip length: ${env.videoSeconds} seconds.` },
     ],
     generation_config: { video_config: { task: "image_to_video" } },
-    response_format: { type: "video", aspect_ratio: "16:9", resolution: "1080p", delivery: "uri" },
+    response_format: { type: "video", aspect_ratio: "16:9", resolution: env.videoRes, delivery: "uri" },
   });
   const m = findMedia(json, "video");
   if (!m) throw new Error("Gemini não devolveu vídeo.");
