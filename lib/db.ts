@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-export type GenType = "mapa" | "moodboard" | "render" | "luz" | "filme";
+export type GenType = "mapa" | "moodboard" | "render" | "luz" | "filme" | "melhorar" | "esboco" | "ideias";
 export type User = { id: string; email: string; name: string; passHash?: string; googleId?: string; credits: number; createdAt: string; termsAcceptedAt?: string; termsVersion?: string };
 export type Output = { file: string; kind: "image" | "video"; label?: string };
 export type Generation = {

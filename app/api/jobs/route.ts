@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { currentUser } from "@/lib/auth";
 import { charge, COSTS } from "@/lib/credits";
+import { renderCost } from "@/lib/costs";
+import { composeEsboco, composeIdeia, composeMelhorar, composeRender, ESTILOS, ESTILOS_ARQ, EstiloKey, Env, MELHORIAS, MelhoriaKey, TIPOS_IDEIA } from "@/lib/compose";
 import { Generation, GenType, uid } from "@/lib/db";
 import { enqueue, live, recoverStale } from "@/lib/jobs";
 import { Img } from "@/lib/gemini";
@@ -55,6 +57,8 @@ export async function POST(req: NextRequest) {
   let cost = 0, summary = "";
   let params: any = {};
   const images: Record<string, Img> = {};
+  const int = (k: string, min: number, max: number, def: number) => { const n = parseInt(str(k), 10); return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : def; };
+  const envOf = (): Env => (str("env") === "interior" ? "interior" : "exterior");
   const need = async (key: string, msg: string) => {
     const i = await readImage(u.id, form, key);
     if (!i) throw new Error(msg);
@@ -80,9 +84,45 @@ export async function POST(req: NextRequest) {
       summary = `Moodboard — ${AMBIENTES[amb].label}`;
     } else if (type === "render") {
       await need("model", "Envie o print do modelo 3D.");
-      params = { prompt: str("prompt") || PROMPT_RENDER };
-      cost = COSTS.renderPorImagem * 4;
-      summary = "Render fotorrealista (4 versões)";
+      const ref = await readImage(u.id, form, "reference");
+      if (ref) images.reference = ref;
+      const versions = int("versions", 1, 4, 1);
+      const mode = str("mode") === "precisao" ? "precisao" : "rapido";
+      const prompt = str("prompt").slice(0, 4000) || composeRender({
+        style: (str("style") in ESTILOS ? str("style") : "realista") as EstiloKey, level: int("level", 0, 2, 1), env: envOf(),
+        guidance: str("guidance").slice(0, 500), scene: str("scene"), sceneFree: str("sceneFree").slice(0, 200),
+        elements: str("elements").split(",").filter(Boolean), reference: !!ref,
+      });
+      params = { prompt, versions, size: mode === "precisao" ? "2K" : undefined };
+      cost = renderCost(mode, versions);
+      summary = `Render fotorrealista (${versions} ${versions === 1 ? "versão" : "versões"})`;
+    } else if (type === "melhorar") {
+      await need("render", "Envie o render que você quer melhorar.");
+      const preset = (str("preset") in MELHORIAS ? str("preset") : "fidelidade") as MelhoriaKey;
+      const versions = int("versions", 1, 4, 1);
+      const prompt = str("prompt").slice(0, 4000) || composeMelhorar({ preset, creativity: int("creativity", 0, 100, 30), guidance: str("guidance").slice(0, 500) });
+      params = { prompt, versions };
+      cost = versions * COSTS.melhorarPorImagem;
+      summary = `Melhorar render — ${MELHORIAS[preset].label}`;
+    } else if (type === "esboco") {
+      await need("sketch", "Envie o esboço ou desenho.");
+      const versions = int("versions", 1, 4, 1);
+      const prompt = str("prompt").slice(0, 4000) || composeEsboco({ env: envOf(), estilo: str("estilo"), detalhes: str("detalhes").slice(0, 240) });
+      params = { prompt, versions };
+      cost = versions * COSTS.esbocoPorImagem;
+      summary = `Render de esboço (${versions} ${versions === 1 ? "versão" : "versões"})`;
+    } else if (type === "ideias") {
+      await need("base", "Envie a imagem de partida.");
+      const ref = await readImage(u.id, form, "reference");
+      if (ref) images.reference = ref;
+      const env = envOf();
+      const tipo = TIPOS_IDEIA[env].includes(str("tipo")) ? str("tipo") : TIPOS_IDEIA[env][0];
+      const estilo = (ESTILOS_ARQ as readonly string[]).includes(str("estilo")) ? str("estilo") : ESTILOS_ARQ[0];
+      const versions = int("versions", 1, 4, 2);
+      const prompt = str("prompt").slice(0, 4000) || composeIdeia({ env, tipo, estilo, detalhes: str("detalhes").slice(0, 240), reference: !!ref });
+      params = { prompt, versions };
+      cost = versions * COSTS.ideiasPorImagem;
+      summary = `Gerar ideias — ${tipo}, ${estilo}`;
     } else if (type === "luz") {
       await need("base", "Escolha um render ou envie uma imagem.");
       const k = str("luz");

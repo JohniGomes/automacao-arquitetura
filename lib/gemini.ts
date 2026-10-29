@@ -32,12 +32,12 @@ function findMedia(node: any, type: "image" | "video"): any | null {
 }
 
 /** Imagem(ns) de entrada + prompt -> imagem. Ref.: ai.google.dev/gemini-api/docs/image-generation */
-export async function generateImage(prompt: string, images: Img[], aspect?: string): Promise<Buffer> {
+export async function generateImage(prompt: string, images: Img[], aspect?: string, size?: string): Promise<Buffer> {
   const input = [
     { type: "text", text: prompt },
     ...images.map((i) => ({ type: "image", mime_type: i.mime, data: i.data.toString("base64") })),
   ];
-  const response_format: Record<string, string> = { type: "image", mime_type: "image/jpeg", image_size: env.imageSize };
+  const response_format: Record<string, string> = { type: "image", mime_type: "image/jpeg", image_size: size || env.imageSize };
   if (aspect) response_format.aspect_ratio = aspect;
   const json = await post({ model: env.imageModel, input, response_format });
   const m = findMedia(json, "image");

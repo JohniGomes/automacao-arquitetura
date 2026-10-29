@@ -129,3 +129,34 @@
 .shell .gcard .fav { padding: 0; width: 38px; height: 38px; }
 .shell .pop button { margin-top: 8px; }
 .shell .tpanel .full { padding: 11px 22px; }
+
+/* ---------- controles das ferramentas de imagem ---------- */
+.shell .seg { display: flex; padding: 4px; gap: 4px; border-radius: 99px; background: var(--field); box-shadow: var(--inset); }
+.shell .seg button { flex: 1; padding: 7px 8px; font-size: 13px; font-weight: 500; border-radius: 99px; border: 1px solid transparent; background: transparent; color: var(--ink); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.shell .seg button:hover:not(:disabled) { filter: none; transform: none; background: color-mix(in srgb, var(--mist) 55%, transparent); }
+.shell .seg button.on { color: var(--accent-ink); background: linear-gradient(180deg, color-mix(in srgb, var(--sage) 88%, transparent), color-mix(in srgb, var(--sage-d) 96%, transparent)); border-color: rgba(255, 255, 255, .38); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 8px 16px -8px color-mix(in srgb, var(--sage) 70%, transparent); }
+.shell textarea.short { min-height: 78px; }
+.fold { margin: 14px 0 6px; }
+.shell .foldbtn { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 9px 16px; font-size: 13px; }
+.foldbody { padding-top: 6px; }
+.scenes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.shell .scene { display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; font-size: 12px; font-weight: 500; border-radius: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--rim); box-shadow: var(--raise-sm); backdrop-filter: none; -webkit-backdrop-filter: none; justify-content: flex-start; text-align: left; }
+.shell .scene:hover:not(:disabled) { filter: none; transform: none; background: var(--surface); }
+.scene i { width: 28px; height: 28px; border-radius: 9px; flex: none; box-shadow: inset 0 0 0 1px rgba(40, 52, 44, .15); }
+.shell .scene.on { border-color: var(--sage); box-shadow: inset 0 0 0 2px var(--sage), var(--raise-sm); }
+.shell .savedchip { display: inline-flex; padding: 0; overflow: hidden; align-items: center; gap: 0; }
+.shell .savedchip button { padding: 6px 10px; font-size: 12px; background: transparent; color: var(--ink); border: 0; box-shadow: none; border-radius: 0; backdrop-filter: none; -webkit-backdrop-filter: none; font-weight: 500; }
+.shell .savedchip button:hover:not(:disabled) { filter: none; transform: none; background: color-mix(in srgb, var(--mist) 60%, transparent); }
+.presets { display: flex; flex-direction: column; gap: 8px; }
+.shell .preset { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 14px; text-align: left; border-radius: 18px; background: var(--surface); color: var(--ink); border: 1px solid var(--rim); box-shadow: var(--raise-sm); backdrop-filter: none; -webkit-backdrop-filter: none; font-weight: 400; }
+.shell .preset b { font-size: 14px; font-weight: 600; }
+.shell .preset span { font-size: 12px; color: var(--muted); }
+.shell .preset:hover:not(:disabled) { filter: none; transform: none; background: var(--surface); }
+.shell .preset.on { border-color: var(--sage); box-shadow: inset 0 0 0 2px var(--sage), var(--raise-sm); }
+
+/* painel da ferramenta: opções rolam, custo e botão Gerar ficam sempre visíveis */
+.shell .tpanel { display: flex; flex-direction: column; max-height: calc(100vh - 28px); padding: 0; }
+.shell .tpbody { overflow-y: auto; padding: 20px 20px 4px; flex: 1; min-height: 0; }
+.shell .tpfoot { padding: 4px 20px 20px; }
+.shell .tpfoot .tcost { margin-top: 0; }
+@media (max-width: 860px) { .shell .tpanel { max-height: none; } .shell .tpbody { overflow: visible; } }

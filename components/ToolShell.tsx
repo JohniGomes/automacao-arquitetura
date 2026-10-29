@@ -24,10 +24,14 @@ export default function ToolShell({ title, tip, panel, cost, busy, canGenerate =
           {tip && <p className="tip">{tip}</p>}
         </div>
         <aside className="tpanel" aria-label="Opções">
-          {panel}
-          <ProjectSelect />
-          <div className="tcost"><span>Custo total</span><b>{cost} créditos</b></div>
-          <button className="full" disabled={busy || !canGenerate} onClick={onGenerate}>{busy ? "Gerando…" : "Gerar"}</button>
+          <div className="tpbody">
+            {panel}
+            <ProjectSelect />
+          </div>
+          <div className="tpfoot">
+            <div className="tcost"><span>Custo total</span><b>{cost} créditos</b></div>
+            <button className="full" disabled={busy || !canGenerate} onClick={onGenerate}>{busy ? "Gerando…" : "Gerar"}</button>
+          </div>
         </aside>
         {result && <div className="tresult">{result}</div>}
       </div>

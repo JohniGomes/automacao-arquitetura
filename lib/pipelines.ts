@@ -19,13 +19,13 @@ function progress(c: Ctx, pct: number, msg: string) {
   void persist(c.gen);
 }
 
-async function makeImage(c: Ctx, label: string, prompt: string, imgs: Img[], aspect?: string): Promise<Buffer> {
+async function makeImage(c: Ctx, label: string, prompt: string, imgs: Img[], aspect?: string, size?: string): Promise<Buffer> {
   c.gen.usage.images++;
   if (mockGemini()) {
     await new Promise((r) => setTimeout(r, 900));
     return mockImage(label, aspect === "2:3" ? 800 : 1280, aspect === "2:3" ? 1200 : 720, label + prompt.length);
   }
-  return generateImage(prompt, imgs, aspect);
+  return generateImage(prompt, imgs, aspect, size);
 }
 
 async function addOutput(c: Ctx, buf: Buffer, ext: string, kind: Output["kind"], label?: string) {
@@ -64,14 +64,16 @@ async function moodboard(c: Ctx) {
   await addOutput(c, out, ext(out), "image", `Moodboard — ${AMBIENTES[amb].label}`);
 }
 
-async function render(c: Ctx) {
+/** Gera N versões em paralelo a partir do mesmo prompt e das imagens de entrada (render, melhorar, esboço e ideias). */
+async function variants(c: Ctx, label: string, imgs: Img[]) {
   const prompt: string = c.input.params.prompt;
+  const n: number = c.input.params.versions || 1;
+  const size: string | undefined = c.input.params.size;
   c.gen.prompt = prompt;
-  const n = 4;
   let done = 0;
   const jobs = Array.from({ length: n }, (_, i) =>
-    makeImage(c, `Render versão ${i + 1}`, prompt, [c.input.images.model]).then(async (b) => {
-      await addOutput(c, b, ext(b), "image", `Versão ${i + 1}`);
+    makeImage(c, `${label} ${i + 1}`, prompt, imgs, undefined, size).then(async (b) => {
+      await addOutput(c, b, ext(b), "image", n > 1 ? `${label} — versão ${i + 1}` : label);
       progress(c, (++done / n) * 95, `${done} de ${n} versões prontas`);
     }));
   const res = await Promise.allSettled(jobs);
@@ -79,6 +81,12 @@ async function render(c: Ctx) {
   if (failed.length === n) throw failed[0].reason;
   if (failed.length) c.gen.message = `${n - failed.length} de ${n} versões geradas (algumas falharam).`;
 }
+
+const withRef = (c: Ctx, key: string) => [c.input.images[key], ...(c.input.images.reference ? [c.input.images.reference] : [])];
+async function render(c: Ctx) { await variants(c, "Render", withRef(c, "model")); }
+async function melhorar(c: Ctx) { await variants(c, "Render melhorado", withRef(c, "render")); }
+async function esboco(c: Ctx) { await variants(c, "Render do esboço", withRef(c, "sketch")); }
+async function ideias(c: Ctx) { await variants(c, "Ideia", withRef(c, "base")); }
 
 async function luz(c: Ctx) {
   const prompt = promptLuz(c.input.params.descricao);
@@ -110,7 +118,7 @@ async function filme(c: Ctx) {
   c.gen.outputs.sort((a) => (a.kind === "video" ? -1 : 1));
 }
 
-const handlers = { mapa, moodboard, render, luz, filme };
+const handlers = { mapa, moodboard, render, luz, filme, melhorar, esboco, ideias };
 
 export async function runPipeline(gen: Generation, input: JobInput) {
   await handlers[input.type]({ gen, input });

@@ -119,3 +119,12 @@ Menu lateral com ícones (Início, Projetos, Gerações, Ferramentas e atalhos f
 - **Supabase:** rode `supabase/migracao-projetos.sql` no SQL Editor (cria `projects` e as colunas `project_id` e `favorite`; pode repetir sem problema). Até rodar, as gerações continuam funcionando, mas projetos e favoritos mostram um aviso pedindo o SQL.
 - Atalhos e o projeto escolhido por último ficam guardados só no navegador do usuário.
 - A antiga rota `/app/historico` agora redireciona para `/app/geracoes`.
+
+## Ferramentas de imagem (Fase 2)
+
+- **Render:** resultado (Realista, Preciso, Criativo), ambiente (exterior ou interior), modo (Rápido, ou Precisão com imagem em 2K), nível (Leve a Ultra), 1 a 4 versões e orientação adicional. Em "Opções avançadas": imagem de referência de luz e atmosfera, cenas de luz e clima com prévia (meio-dia, manhã, pôr do sol, blue hour, noite, nublado, chuva) ou luz descrita, elementos para adicionar (pessoas, carros, vegetação, plantas, decoração, nuvens), cenas salvas pelo usuário (guardadas no navegador) e o prompt completo editável. O prompt é montado em `lib/compose.ts`.
+- **Melhorar render:** presets (Refinamento, Fidelidade, Realismo, Premium, Iluminação) com controle fidelidade ↔ criatividade.
+- **Render de esboço:** desenho ou croqui em render, com ambiente, estilo e detalhes.
+- **Gerar ideias:** variações de estilo e fachada (ou de ambientes internos) a partir de uma imagem, com inspiração opcional.
+- **Custos em créditos (provisórios, em `lib/costs.ts`):** render 4 por imagem (6 no modo Precisão), melhorar 3, esboço 4 e ideias 3 por versão. O modo Precisão só muda o tamanho da imagem pedida ao modelo.
+- **Não testado com IA real:** o efeito de cada opção (estilo, nível, cenas, elementos) depende de como o modelo responde ao prompt. Foi validado só em modo mock: montagem do prompt, limites das opções no servidor, custos e entrega dos resultados.
