@@ -16,5 +16,5 @@ export async function GET(req: Request) {
     });
   }
   const files = fs.existsSync(DIR) ? fs.readdirSync(DIR).filter((f) => /\.(png|jpe?g|webp)$/i.test(f)).sort() : [];
-  return NextResponse.json({ templates: files.map((f) => ({ file: f, name: f.replace(/\.[^.]+$/, "").replace(/[-_]/g, " ") })) });
+  return NextResponse.json({ templates: files.map((f) => ({ file: f, name: f.replace(/\.[^.]+$/, "").replace(/^\d+[-_]?/, "").replace(/[-_]/g, " ") })) });
 }

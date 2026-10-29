@@ -51,32 +51,41 @@ The result should be the same image under different lighting, not a redesigned o
 // ------------------------------------------------------------------ moodboard
 export const AMBIENTES = {
   cozinha: { label: "Cozinha", en: "KITCHEN", itens: "wooden cutting board, ceramic bowl, stone countertop sample, matte black faucet, copper pot, wooden spoons, fresh herbs, linen kitchen towel, tile sample" },
-  sala: { label: "Sala", en: "LIVING ROOM", itens: "miniature linen sofa, cushion, wooden coffee table, throw blanket, table lamp, woven rug sample, vase with foliage, book, leather sample" },
-  banheiro: { label: "Banheiro", en: "BATHROOM", itens: "folded white towel, stone soap dish, ceramic basin, matte black faucet, bath mat, wooden tray, glass bottle, fern, stone sample" },
+  sala: { label: "Sala de estar", en: "LIVING ROOM", itens: "linen sofa, cushion, wooden coffee table, throw blanket, table lamp, woven rug, vase with foliage, book, leather sample" },
+  jantar: { label: "Sala de jantar", en: "DINING ROOM", itens: "dining table in wood or stone, upholstered chairs, pendant lamp, ceramic tableware, linen napkins, vase with branches, sideboard, glassware, rug sample" },
   quarto: { label: "Quarto", en: "BEDROOM", itens: "linen bedding, pillow, wool blanket, wooden headboard sample, bedside lamp, ceramic base, book, dried grass, curtain sample" },
+  infantil: { label: "Quarto infantil", en: "CHILD'S BEDROOM", itens: "soft cotton bedding, wooden toy, rounded wooden furniture sample, woven basket, play rug, pastel curtain sample, small lamp, picture books, paint swatch" },
+  closet: { label: "Closet", en: "WALK-IN CLOSET", itens: "wooden drawer front sample, brass handle, folded knitwear, leather accessory, velvet hanger, mirror sample, linen fabric, shoe form, fabric lining sample" },
+  banheiro: { label: "Banheiro", en: "BATHROOM", itens: "folded white towel, stone soap dish, ceramic basin, matte black faucet, bath mat, wooden tray, glass bottle, fern, stone sample" },
+  lavabo: { label: "Lavabo", en: "POWDER ROOM", itens: "sculptural stone basin, brass faucet, small mirror, hand towel, marble sample, scented candle, small vase, wall-covering sample, sconce" },
+  escritorio: { label: "Escritório", en: "HOME OFFICE", itens: "wooden desk surface sample, leather desk pad, task lamp, ceramic pen holder, notebooks, wool felt sample, brass accessory, upholstery sample, small plant" },
+  hall: { label: "Hall de entrada", en: "ENTRANCE HALL", itens: "wooden bench sample, woven basket, console surface in stone, decorative mirror, ceramic vase, leather key tray, wall-covering sample, rug sample, sconce" },
+  lavanderia: { label: "Lavanderia", en: "LAUNDRY ROOM", itens: "ceramic tile sample, laminate or stone countertop sample, woven laundry basket, linen towels, wooden shelf sample, matte metal faucet, ceramic jar, cabinet front sample, plant" },
+  varanda: { label: "Varanda e área gourmet", en: "TERRACE AND OUTDOOR KITCHEN", itens: "weatherproof wood decking sample, stone countertop sample, outdoor fabric, rattan or woven material, ceramic planter, metal grill detail, lantern, cushion, herbs" },
+  jardim: { label: "Jardim e área externa", en: "GARDEN AND OUTDOOR AREA", itens: "outdoor paving stone sample, decking wood sample, gravel, planter in concrete or terracotta, native plants and foliage, weathered metal sample, outdoor lantern, bench material" },
+  piscina: { label: "Piscina e deck", en: "POOL AND DECK", itens: "pool tile or mosaic sample, non-slip stone paving sample, teak decking sample, outdoor cushion fabric, ceramic planter, linen towel, sun-lounger detail, glass bottle, coping stone sample" },
+  fachada: { label: "Fachada (materiais externos)", en: "EXTERIOR FACADE", itens: "exposed concrete sample, render or plaster sample, wooden cladding sample, aluminium or steel frame finish, stone cladding sample, glass sample, roof material sample, paving sample, native plant cutting" },
 } as const;
 export type AmbienteKey = keyof typeof AMBIENTES;
 
-/** Imagem 1 = render da casa; imagem 2 = layout do moodboard (a ordem em que o app envia). */
-export const promptMoodboard = (amb: AmbienteKey) => `Create a vertical 2:3 architectural interior-design moodboard.
+/** Imagem 1 = render da casa; imagem 2 = modelo escolhido pelo usuário, cujo layout deve ser reproduzido à risca (a ordem em que o app envia). */
+export const promptMoodboard = (amb: AmbienteKey) => `Create a moodboard image that REPRODUCES the layout of Image 2 as exactly as possible, replacing its content.
 
 IMAGE ROLES:
-- Image 1 is the house/project render. It is the ONLY source for the project's existing color palette, materials, finishes and overall design character.
-- Image 2 is a layout reference ONLY. Use it only for the white background, vertical 2:3 flat-lay format, asymmetric overlapping arrangement, soft studio lighting and four rounded color-swatch pills aligned in a row at the bottom.
+- Image 1 is the house/project render. It is the ONLY source for the project's color palette, materials, finishes and overall design character.
+- Image 2 is the TEMPLATE the user selected. It defines the output FORMAT and is mandatory. Reproduce faithfully: the aspect ratio and orientation, the type of image (flat lay of material samples, collage of panels, room photograph, or any mix), the background, the NUMBER, size, position, overlap and proportion of every panel, sample and object, the camera angle and framing of any photographed scene, the lighting mood and the way the color palette is presented (same number of swatches, same swatch shape and same placement).
 
-Do not copy objects, colors, text, logos, watermarks or branding from Image 2. Replace all of its content.
+REPLACE THE CONTENT:
+Replace every material, object, color and photographed scene of Image 2 with new ones derived from Image 1 and appropriate for the room type below. Keep the same number of panels, samples and objects as Image 2. Do not copy its specific objects, brand names, logos or watermarks.
 
 ROOM TYPE:
-Every selected object must clearly belong to a ${AMBIENTES[amb].en}: ${AMBIENTES[amb].itens}.
+Every selected object, material and scene must clearly belong to a ${AMBIENTES[amb].en}: ${AMBIENTES[amb].itens}.
 
 MATERIAL AND COLOR MATCH:
-Derive the moodboard palette from Image 1. Use colors and materials that are visibly supported by the house render; do not impose an unrelated palette. The four color swatches must represent colors actually present or strongly supported by the project materials. If a material is not visible, choose a restrained complementary option rather than claiming it is an exact match.
-
-COMPOSITION:
-Arrange the room-related material samples, furniture/accessory objects and finishes as a refined editorial flat lay on a clean white background. Use an asymmetric but balanced composition with natural overlap, clear separation between objects and soft studio shadows. Keep all objects fully inside the canvas. Place exactly four rounded pill-shaped color swatches in one horizontal row at the bottom.
+Derive the palette from Image 1. Use colors and materials that are visibly supported by the house render; do not impose an unrelated palette. The color swatches must represent colors actually present or strongly supported by the project materials. If a material is not visible in Image 1, choose a restrained complementary option rather than claiming it is an exact match.
 
 OUTPUT RESTRICTIONS:
-No text, captions, labels, letters, numbers, logos, watermark, border or extra swatches. Do not show a room scene or perspective interior; this must remain a flat-lay moodboard.`;
+Do not render any text, captions, labels, letters, numbers, hex codes, logos or watermarks, even if Image 2 contains them; show the swatches without labels. Keep all elements fully inside the canvas.`;
 
 // ------------------------------------------------------------------ filme do projeto
 /** Instrução para criar a "bíblia visual" (descrição de continuidade reaproveitada em todas as cenas). */

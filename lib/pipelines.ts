@@ -72,7 +72,15 @@ async function moodboard(c: Ctx) {
   c.gen.prompt = snap(c, prompt);
   progress(c, 20, `Gerando moodboard de ${AMBIENTES[amb].label.toLowerCase()}…`);
   // ordem declarada no prompt: imagem 1 = casa, imagem 2 = layout
-  const out = await makeImage(c, `Moodboard — ${AMBIENTES[amb].label}`, prompt, [c.input.images.house, c.input.images.template], "2:3");
+  // a proporção da saída segue a do modelo escolhido (a mais próxima entre as aceitas pela IA)
+  const tm = await sharp(c.input.images.template.data).metadata();
+  const ratio = (tm.width || 2) / (tm.height || 3);
+  const aspect = (["9:16", "2:3", "3:4", "4:5", "1:1", "5:4", "4:3", "3:2", "16:9"] as const).reduce<string>((best, a) => {
+    const [w, h] = a.split(":").map(Number);
+    const [bw, bh] = best.split(":").map(Number);
+    return Math.abs(w / h - ratio) < Math.abs(bw / bh - ratio) ? a : best;
+  }, "2:3");
+  const out = await makeImage(c, `Moodboard — ${AMBIENTES[amb].label}`, prompt, [c.input.images.house, c.input.images.template], aspect);
   await addOutput(c, out, ext(out), "image", `Moodboard — ${AMBIENTES[amb].label}`);
 }
 
