@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { ImageInput, Run, useJob, Val } from "@/components/client";
+import ToolShell from "@/components/ToolShell";
 import { AMBIENTES } from "@/lib/prompts";
 import { COSTS } from "@/lib/costs";
 
@@ -16,23 +17,25 @@ export default function Moodboard() {
   const template: Val = custom || (tpl ? "tpl:" + tpl : null);
 
   return (
-    <>
-      <h1>Moodboard por ambiente</h1>
+    <ToolShell
+      title="Moodboard por ambiente"
+      cost={COSTS.moodboard}
+      busy={busy}
+      canGenerate={!!template && !!house}
+      onGenerate={() => submit({ type: "moodboard", ambiente: amb, house, template })}
+      panel={<div className="field"><label>Ambiente</label><div className="chips">{Object.entries(AMBIENTES).map(([k, v]) => <button key={k} type="button" className={`chip ${amb === k ? "on" : ""}`} aria-pressed={amb === k} onClick={() => setAmb(k)}>{v.label}</button>)}</div></div>}
+      result={<Run gen={gen} error={error} />}
+    >
       <div className="card">
-        <div className="field"><label>1. Modelo da galeria</label>
+        <div className="field"><label>Modelo da galeria</label>
           {templates.length === 0 ? <p className="muted">Nenhum modelo cadastrado. Adicione imagens em <code>templates/moodboards/</code> ou envie um print abaixo.</p> :
             <div className="thumbs">{templates.map((t) => (
               <img key={t.file} className={tpl === t.file && !custom ? "sel" : ""} style={{ height: 140 }} src={`/api/templates?img=${encodeURIComponent(t.file)}`} alt={t.name} title={t.name} onClick={() => { setTpl(t.file); setCustom(null); }} />
             ))}</div>}
           <ImageInput label="…ou envie um print do Pinterest como modelo" value={custom} onChange={setCustom} history={false} />
         </div>
-        <div className="field"><label>2. Ambiente</label>
-          <div className="chips">{Object.entries(AMBIENTES).map(([k, v]) => <span key={k} className={`chip ${amb === k ? "on" : ""}`} onClick={() => setAmb(k)}>{v.label}</span>)}</div></div>
-        <ImageInput label="3. Imagem da casa de referência (render do projeto)" value={house} onChange={setHouse} />
-        <p className="small muted">Custo: {COSTS.moodboard} créditos.</p>
-        <button disabled={busy} onClick={() => submit({ type: "moodboard", ambiente: amb, house, template })}>Gerar moodboard</button>
+        <ImageInput label="Imagem da casa de referência (render do projeto)" value={house} onChange={setHouse} />
       </div>
-      <Run gen={gen} error={error} />
-    </>
+    </ToolShell>
   );
 }

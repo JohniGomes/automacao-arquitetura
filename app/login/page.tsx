@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Entrar — ArqIA" };
 
 export default async function Login({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
-  if (await currentUser()) redirect("/app/mapa");
+  if (await currentUser()) redirect("/app");
   const { erro } = await searchParams;
   return (
     <main className="auth">

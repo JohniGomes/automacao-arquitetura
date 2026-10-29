@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { env } from "./config";
-import { DATA_DIR, db, Generation, save, Tx, uid, User } from "./db";
+import { DATA_DIR, db, Generation, Project, save, Tx, uid, User } from "./db";
 
 /** Camada de dados. Produção = Supabase (Postgres + Storage). Desenvolvimento sem Supabase = arquivos locais (data/). */
 export interface Store {
@@ -19,6 +19,14 @@ export interface Store {
   listGens(userId: string): Promise<Generation[]>;
   listTxs(userId: string, limit: number): Promise<Tx[]>;
   staleGens(): Promise<Generation[]>;
+  listProjects(userId: string): Promise<Project[]>;
+  getProject(id: string, userId: string): Promise<Project | null>;
+  createProject(userId: string, name: string): Promise<Project>;
+  renameProject(id: string, userId: string, name: string): Promise<Project | null>;
+  /** apaga o projeto; as gerações dele ficam sem projeto */
+  deleteProject(id: string, userId: string): Promise<void>;
+  /** favorito e/ou projeto de uma geração (projectId null = sem projeto) */
+  setGenMeta(id: string, userId: string, meta: { favorite?: boolean; projectId?: string | null }): Promise<Generation | null>;
   putFile(userId: string, name: string, data: Buffer): Promise<void>;
   getFile(userId: string, name: string): Promise<Buffer | null>;
   /** URL temporária para o navegador baixar/streamar direto do Storage; null no modo local */
@@ -66,6 +74,32 @@ const localStore: Store = {
   async listGens(userId) { return db().generations.filter((g) => g.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
   async listTxs(userId, limit) { return db().txs.filter((t) => t.userId === userId).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit); },
   async staleGens() { return db().generations.filter((g) => g.status === "queued" || g.status === "running"); },
+  async listProjects(userId) { return db().projects.filter((p) => p.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
+  async getProject(id, userId) { return db().projects.find((p) => p.id === id && p.userId === userId) ?? null; },
+  async createProject(userId, name) {
+    const p: Project = { id: uid(), userId, name, createdAt: new Date().toISOString() };
+    db().projects.push(p); save();
+    return p;
+  },
+  async renameProject(id, userId, name) {
+    const p = db().projects.find((x) => x.id === id && x.userId === userId);
+    if (!p) return null;
+    p.name = name; save();
+    return p;
+  },
+  async deleteProject(id, userId) {
+    db().projects = db().projects.filter((p) => !(p.id === id && p.userId === userId));
+    for (const g of db().generations) if (g.userId === userId && g.projectId === id) g.projectId = null;
+    save();
+  },
+  async setGenMeta(id, userId, meta) {
+    const g = db().generations.find((x) => x.id === id && x.userId === userId);
+    if (!g) return null;
+    if (meta.favorite !== undefined) g.favorite = meta.favorite;
+    if (meta.projectId !== undefined) g.projectId = meta.projectId;
+    save();
+    return g;
+  },
   async putFile(userId, name, data) { fs.mkdirSync(fdir(userId), { recursive: true }); fs.writeFileSync(path.join(fdir(userId), path.basename(name)), data); },
   async getFile(userId, name) { const p = path.join(fdir(userId), path.basename(name)); return fs.existsSync(p) ? fs.readFileSync(p) : null; },
   async fileUrl() { return null; },
@@ -82,7 +116,11 @@ const toGen = (r: any): Generation => ({
   id: r.id, userId: r.user_id, type: r.type, status: r.status, progress: r.progress, message: r.message ?? "", createdAt: r.created_at,
   finishedAt: r.finished_at ?? undefined, summary: r.summary, prompt: r.prompt ?? undefined, outputs: r.outputs ?? [], cost: r.cost,
   mock: r.mock, error: r.error ?? undefined, usage: r.usage ?? { images: 0, videoClips: 0 },
+  projectId: r.project_id ?? null, favorite: r.favorite ?? false,
 });
+const toProject = (r: any): Project => ({ id: r.id, userId: r.user_id, name: r.name, createdAt: r.created_at });
+/** erro de coluna/tabela inexistente: o SQL novo (supabase/schema.sql) ainda não foi executado */
+const missingSchema = (e: { message: string } | null) => !!e && /project_id|favorite|projects|schema cache|does not exist/i.test(e.message);
 
 const supabaseStore: Store = {
   kind: "supabase",
@@ -126,7 +164,12 @@ const supabaseStore: Store = {
       prompt: x.prompt ?? null, outputs: x.outputs, cost: x.cost, mock: x.mock, error: x.error ?? null, usage: x.usage,
       created_at: x.createdAt, finished_at: x.finishedAt ?? null,
     };
-    check((await sb().from("generations").upsert(row)).error, "saveGen");
+    let { error } = await sb().from("generations").upsert({ ...row, project_id: x.projectId ?? null, favorite: x.favorite ?? false });
+    if (error && missingSchema(error)) {
+      console.warn("Colunas project_id/favorite ausentes no Supabase; execute o SQL novo de supabase/schema.sql.");
+      ({ error } = await sb().from("generations").upsert(row));
+    }
+    check(error, "saveGen");
   },
   async getGen(id, userId) {
     const { data, error } = await sb().from("generations").select("*").eq("id", id).eq("user_id", userId).maybeSingle();
@@ -147,6 +190,43 @@ const supabaseStore: Store = {
     const { data, error } = await sb().from("generations").select("*").in("status", ["queued", "running"]);
     check(error, "staleGens");
     return (data ?? []).map(toGen);
+  },
+  async listProjects(userId) {
+    const { data, error } = await sb().from("projects").select("*").eq("user_id", userId).order("created_at", { ascending: false });
+    if (missingSchema(error)) return [];
+    check(error, "listProjects");
+    return (data ?? []).map(toProject);
+  },
+  async getProject(id, userId) {
+    const { data, error } = await sb().from("projects").select("*").eq("id", id).eq("user_id", userId).maybeSingle();
+    if (missingSchema(error)) return null;
+    check(error, "getProject");
+    return data ? toProject(data) : null;
+  },
+  async createProject(userId, name) {
+    const { data, error } = await sb().from("projects").insert({ id: uid(), user_id: userId, name }).select("*").single();
+    if (missingSchema(error)) throw new Error("Projetos ainda não estão disponíveis: execute o SQL novo (supabase/schema.sql) no Supabase.");
+    check(error, "createProject");
+    return toProject(data);
+  },
+  async renameProject(id, userId, name) {
+    const { data, error } = await sb().from("projects").update({ name }).eq("id", id).eq("user_id", userId).select("*").maybeSingle();
+    check(error, "renameProject");
+    return data ? toProject(data) : null;
+  },
+  async deleteProject(id, userId) {
+    // as gerações ficam sem projeto (FK on delete set null; o update explícito cobre bancos sem a FK)
+    await sb().from("generations").update({ project_id: null }).eq("project_id", id).eq("user_id", userId);
+    check((await sb().from("projects").delete().eq("id", id).eq("user_id", userId)).error, "deleteProject");
+  },
+  async setGenMeta(id, userId, meta) {
+    const patch: Record<string, unknown> = {};
+    if (meta.favorite !== undefined) patch.favorite = meta.favorite;
+    if (meta.projectId !== undefined) patch.project_id = meta.projectId;
+    const { data, error } = await sb().from("generations").update(patch).eq("id", id).eq("user_id", userId).select("*").maybeSingle();
+    if (missingSchema(error)) throw new Error("Favoritos e projetos ainda não estão disponíveis: execute o SQL novo (supabase/schema.sql) no Supabase.");
+    check(error, "setGenMeta");
+    return data ? toGen(data) : null;
   },
   async putFile(userId, name, data) {
     const { error } = await sb().storage.from(BUCKET).upload(`${userId}/${path.basename(name)}`, data, { contentType: contentType(name), upsert: true });

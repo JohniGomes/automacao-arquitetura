@@ -22,7 +22,7 @@ export default async function Landing() {
           <Link href="/" className="brand" style={{ padding: 0 }}><Logo />ArqIA</Link>
           <div className="links">
             <a className="txt" href="#etapas">Como funciona</a>
-            {u ? <Link className="btn" href="/app/mapa">Abrir o app</Link> : (<>
+            {u ? <Link className="btn" href="/app">Abrir o app</Link> : (<>
               <Link className="btn ghost" href="/login">Fazer login</Link>
               <Link className="btn" href="/cadastro">Assinar</Link>
             </>)}

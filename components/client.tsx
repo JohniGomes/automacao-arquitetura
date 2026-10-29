@@ -5,6 +5,7 @@ export type Gen = {
   id: string; type: string; status: "queued" | "running" | "done" | "error"; progress: number; message: string;
   summary: string; prompt?: string; outputs: { file: string; kind: "image" | "video"; label?: string }[];
   cost: number; mock: boolean; error?: string; createdAt: string; usage: { images: number; videoClips: number };
+  projectId?: string | null; favorite?: boolean;
 };
 export type Val = File | string | null;
 
@@ -21,6 +22,7 @@ export function useJob() {
     setError(""); setGen(null); setBusy(true);
     const fd = new FormData();
     for (const [k, v] of Object.entries(fields)) if (v != null && v !== "") fd.append(k, v);
+    try { const pid = localStorage.getItem("arqia.project"); if (pid) fd.append("projectId", pid); } catch { /* sem projeto */ }
     const r = await fetch("/api/jobs", { method: "POST", body: fd });
     const j = await r.json();
     if (!r.ok) { setError(j.error || "Erro ao enviar."); setBusy(false); return; }

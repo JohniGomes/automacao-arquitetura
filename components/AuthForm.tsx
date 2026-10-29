@@ -20,7 +20,7 @@ export default function AuthForm({ mode, erro }: { mode: "login" | "register"; e
     setBusy(true);
     const r = await fetch(`/api/auth/${mode}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...f, aceite }) });
     const j = await r.json().catch(() => ({}));
-    if (r.ok) location.href = "/app/mapa"; else { setErr(j.error || "Erro ao entrar. Tente novamente."); setBusy(false); }
+    if (r.ok) location.href = "/app"; else { setErr(j.error || "Erro ao entrar. Tente novamente."); setBusy(false); }
   }
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
   const googleOff = reg && !aceite;

@@ -104,11 +104,15 @@ export async function POST(req: NextRequest) {
     return bad(e.message);
   }
 
+  // projeto opcional: só vale se pertencer ao usuário
+  const pid = str("projectId");
+  const projectId = pid && (await store.getProject(pid, u.id)) ? pid : null;
+
   const id = uid();
   if (!(await charge(u.id, cost, summary, id))) return bad(`Créditos insuficientes: precisa de ${cost}, você tem ${u.credits}.`, 402);
   const gen: Generation = {
     id, userId: u.id, type, status: "queued", progress: 0, message: "Na fila…", createdAt: new Date().toISOString(),
-    summary, outputs: [], cost, usage: { images: 0, videoClips: 0 },
+    summary, outputs: [], cost, usage: { images: 0, videoClips: 0 }, projectId, favorite: false,
     mock: mockGemini() || (type === "mapa" && mockMaps() && !images.upload),
   };
   await store.saveGen(gen);

@@ -18,9 +18,20 @@ create table if not exists public.users (
 alter table public.users add column if not exists terms_accepted_at timestamptz;
 alter table public.users add column if not exists terms_version text;
 
+create table if not exists public.projects (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  name text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists projects_user_created on public.projects (user_id, created_at desc);
+alter table public.projects enable row level security;
+
 create table if not exists public.generations (
   id uuid primary key,
   user_id uuid not null references public.users(id) on delete cascade,
+  project_id uuid references public.projects(id) on delete set null,
+  favorite boolean not null default false,
   type text not null,
   status text not null,
   progress integer not null default 0,
@@ -35,6 +46,10 @@ create table if not exists public.generations (
   created_at timestamptz not null default now(),
   finished_at timestamptz
 );
+-- Bancos criados antes dos projetos: as duas linhas abaixo (ver também supabase/migracao-projetos.sql).
+alter table public.generations add column if not exists project_id uuid references public.projects(id) on delete set null;
+alter table public.generations add column if not exists favorite boolean not null default false;
+create index if not exists generations_project on public.generations (project_id);
 create index if not exists generations_user_created on public.generations (user_id, created_at desc);
 create index if not exists generations_status on public.generations (status);
 

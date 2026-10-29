@@ -111,3 +111,11 @@ Páginas `/termos` e `/privacidade` (texto em `app/termos/page.tsx` e `app/priva
 - **No Supabase já existente:** rode no SQL Editor as duas linhas `alter table public.users add column if not exists ...` que estão em `supabase/schema.sql`. Até rodar, o cadastro continua funcionando, mas o aceite não é gravado (aparece um aviso no log).
 - Defina `NEXT_PUBLIC_CONTACT_EMAIL` para mostrar o e-mail de contato nos documentos.
 - Os textos são um modelo geral baseado na LGPD e no CDC e **precisam de revisão por advogado** antes do lançamento comercial (identificação do controlador, prazos de retenção, política de reembolso, foro).
+
+## Navegação, projetos e gerações (Fase 1)
+
+Menu lateral com ícones (Início, Projetos, Gerações, Ferramentas e atalhos fixados), gaveta de ferramentas com busca, início com busca e atalhos personalizáveis, projetos (cada geração pode pertencer a um projeto) e a tela de gerações com favoritos, busca e filtros. Cada ferramenta usa o mesmo padrão: área de trabalho à esquerda e painel de opções à direita, com o projeto, o custo em tempo real e o botão de gerar. No celular o menu vira uma barra inferior.
+
+- **Supabase:** rode `supabase/migracao-projetos.sql` no SQL Editor (cria `projects` e as colunas `project_id` e `favorite`; pode repetir sem problema). Até rodar, as gerações continuam funcionando, mas projetos e favoritos mostram um aviso pedindo o SQL.
+- Atalhos e o projeto escolhido por último ficam guardados só no navegador do usuário.
+- A antiga rota `/app/historico` agora redireciona para `/app/geracoes`.

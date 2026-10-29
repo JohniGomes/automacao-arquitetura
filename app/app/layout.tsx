@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { mockGemini, mockMaps } from "@/lib/config";
-import Sidebar from "@/components/Sidebar";
+import Rail from "@/components/Rail";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!u) redirect("/login");
   return (
     <div className="shell">
-      <Sidebar name={u.name} credits={u.credits} />
+      <Rail name={u.name} credits={u.credits} />
       <div className="main">
         <div className="wrap">
           {(mockGemini() || mockMaps()) && (
