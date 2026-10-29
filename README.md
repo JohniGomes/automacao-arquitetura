@@ -103,3 +103,11 @@ Usuários, créditos, extrato, histórico e arquivos (imagens/vídeos) ficam no 
 
 Login atual (e-mail/senha com scrypt + Google) continua próprio do app, com os usuários na tabela `users`. Migrar para o Supabase Auth é possível depois.
 Não testado: a integração real com o Supabase (sem projeto não há como validar aqui); o modo local foi testado.
+
+## Termos de Uso e Política de Privacidade
+
+Páginas `/termos` e `/privacidade` (texto em `app/termos/page.tsx` e `app/privacidade/page.tsx`; versão em `lib/legal.ts`). O cadastro por e-mail exige marcar o aceite (validado também na API), e o cadastro pelo Google só cria conta nova vindo da tela de cadastro com o aceite marcado. A data e a versão do aceite ficam em `users.terms_accepted_at` e `users.terms_version`.
+
+- **No Supabase já existente:** rode no SQL Editor as duas linhas `alter table public.users add column if not exists ...` que estão em `supabase/schema.sql`. Até rodar, o cadastro continua funcionando, mas o aceite não é gravado (aparece um aviso no log).
+- Defina `NEXT_PUBLIC_CONTACT_EMAIL` para mostrar o e-mail de contato nos documentos.
+- Os textos são um modelo geral baseado na LGPD e no CDC e **precisam de revisão por advogado** antes do lançamento comercial (identificação do controlador, prazos de retenção, política de reembolso, foro).

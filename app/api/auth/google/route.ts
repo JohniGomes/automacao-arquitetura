@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { env } from "@/lib/config";
 
-export async function GET() {
+export async function GET(req: Request) {
+  const aceite = new URL(req.url).searchParams.get("aceite") === "1";
   if (!process.env.GOOGLE_CLIENT_ID) return NextResponse.redirect(`${env.appUrl}/login?erro=google-nao-configurado`);
   const p = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID,
@@ -9,6 +10,7 @@ export async function GET() {
     response_type: "code",
     scope: "openid email profile",
     prompt: "select_account",
+    state: aceite ? "aceite" : "sem-aceite",
   });
   return NextResponse.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${p}`);
 }

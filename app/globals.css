@@ -206,3 +206,55 @@ details summary { cursor: pointer; }
   .auth .view { order: -1; padding: 16px; height: 290px; }
   .auth .formside { padding: 20px 16px 36px; }
 }
+
+/* ---------- app: escala de fonte menor ---------- */
+.shell { font-size: 14px; }
+.shell h1 { font-size: 26px; margin-bottom: 14px; }
+.shell h2 { font-size: 17px; } .shell h3 { font-size: 15px; }
+.shell label { font-size: 11px; margin-bottom: 6px; }
+.shell input[type=text], .shell input[type=email], .shell input[type=password], .shell textarea, .shell select { padding: 10px 14px; font-size: 14px; }
+.shell textarea { min-height: 130px; }
+.shell button, .shell .btn { font-size: 14px; padding: 9px 22px; }
+.shell button.ghost, .shell .btn.ghost { font-size: 13px; padding: 6px 14px; }
+.shell .chip { font-size: 13px; padding: 6px 15px; }
+.shell .small { font-size: 12px; }
+.shell .tag { font-size: 11px; padding: 3px 10px; }
+.shell .warn { font-size: 13px; padding: 10px 16px; }
+.shell figcaption { font-size: 13px; padding: 10px 14px; }
+.shell .card { padding: 20px; }
+.shell input[type=file] { font-size: 13px; }
+.shell input[type=file]::file-selector-button { font-size: 13px; padding: 5px 14px; }
+.shell .side nav a { font-size: 14px; padding: 9px 13px; }
+.shell .side nav a svg { width: 18px; height: 18px; }
+.shell .side .group { font-size: 10px; }
+.shell .brand { font-size: 20px; }
+.shell .credits { font-size: 13px; } .shell .credits b { font-size: 18px; }
+.shell .who { font-size: 12px; }
+@media (max-width: 860px) { .shell h1 { font-size: 24px; } }
+
+/* ---------- links de documentos ---------- */
+.flinks { display: flex; gap: 18px; flex-wrap: wrap; }
+.flinks a { color: var(--muted); text-decoration: none; font-size: 13px; }
+.flinks a:hover { color: var(--deep); text-decoration: underline; }
+.flinks.mini { gap: 12px; padding: 0 6px; } .flinks.mini a { font-size: 11px; }
+.lfoot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
+
+/* ---------- aceite no cadastro ---------- */
+.accept { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.45; color: var(--ink); margin: 14px 0 16px; cursor: pointer; font-weight: 400; letter-spacing: 0; text-transform: none; }
+.accept input { appearance: none; -webkit-appearance: none; flex: none; width: 20px; height: 20px; margin: 1px 0 0; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--field); box-shadow: var(--inset); cursor: pointer; display: grid; place-content: center; }
+.accept input:checked { background: var(--sage); border-color: rgba(255, 255, 255, .5); }
+.accept input:checked::after { content: ""; width: 5px; height: 10px; border: solid var(--ivory); border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); }
+.accept a { color: var(--deep); font-weight: 500; }
+.auth .box .btn[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+
+/* ---------- documentos legais (termos e privacidade) ---------- */
+.doc { max-width: 780px; margin: 0 auto; padding: 24px 20px 72px; }
+.doc .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0 28px; }
+.doc .top .brand { padding: 0; }
+.doc article { background: var(--surface); border: 1px solid var(--rim); border-radius: 28px; padding: 40px 44px; box-shadow: var(--raise); }
+.doc h1 { font-size: 34px; font-weight: 300; letter-spacing: -0.03em; margin-bottom: 6px; }
+.doc .ver { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+.doc h2 { font-size: 17px; font-weight: 600; margin: 28px 0 8px; letter-spacing: -0.01em; }
+.doc p, .doc li { font-size: 15px; line-height: 1.65; color: var(--ink); }
+.doc ul { padding-left: 20px; margin: 6px 0 12px; } .doc li { margin: 4px 0; }
+@media (max-width: 640px) { .doc article { padding: 26px 20px; border-radius: 22px; } .doc h1 { font-size: 28px; } }

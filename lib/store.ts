@@ -9,7 +9,7 @@ export interface Store {
   kind: "supabase" | "local";
   getUser(id: string): Promise<User | null>;
   getUserByEmail(email: string): Promise<User | null>;
-  createUser(d: { email: string; name: string; passHash?: string; googleId?: string }): Promise<User>;
+  createUser(d: { email: string; name: string; passHash?: string; googleId?: string; termsAcceptedAt: string; termsVersion: string }): Promise<User>;
   setGoogleId(id: string, googleId: string): Promise<void>;
   /** débito atômico: false se saldo insuficiente */
   charge(userId: string, amount: number, reason: string, genId?: string): Promise<boolean>;
@@ -77,7 +77,7 @@ const g = globalThis as unknown as { __sb?: SupabaseClient };
 const sb = () => (g.__sb ??= createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } }));
 const check = (error: { message: string } | null, what: string) => { if (error) throw new Error(`Supabase (${what}): ${error.message}`); };
 
-const toUser = (r: any): User => ({ id: r.id, email: r.email, name: r.name, passHash: r.pass_hash ?? undefined, googleId: r.google_id ?? undefined, credits: r.credits, createdAt: r.created_at });
+const toUser = (r: any): User => ({ id: r.id, email: r.email, name: r.name, passHash: r.pass_hash ?? undefined, googleId: r.google_id ?? undefined, credits: r.credits, createdAt: r.created_at, termsAcceptedAt: r.terms_accepted_at ?? undefined, termsVersion: r.terms_version ?? undefined });
 const toGen = (r: any): Generation => ({
   id: r.id, userId: r.user_id, type: r.type, status: r.status, progress: r.progress, message: r.message ?? "", createdAt: r.created_at,
   finishedAt: r.finished_at ?? undefined, summary: r.summary, prompt: r.prompt ?? undefined, outputs: r.outputs ?? [], cost: r.cost,
@@ -98,7 +98,12 @@ const supabaseStore: Store = {
   },
   async createUser(d) {
     const row = { id: uid(), email: d.email, name: d.name, pass_hash: d.passHash ?? null, google_id: d.googleId ?? null, credits: env.signupCredits };
-    const { data, error } = await sb().from("users").insert(row).select("*").single();
+    let { data, error } = await sb().from("users").insert({ ...row, terms_accepted_at: d.termsAcceptedAt, terms_version: d.termsVersion }).select("*").single();
+    if (error && /terms_(accepted_at|version)/.test(error.message)) {
+      // colunas do aceite ainda não criadas no Supabase (rodar supabase/schema.sql): cadastra sem elas para não derrubar o serviço
+      console.warn("Colunas terms_accepted_at/terms_version ausentes no Supabase; aceite não gravado. Execute o ALTER do supabase/schema.sql.");
+      ({ data, error } = await sb().from("users").insert(row).select("*").single());
+    }
     check(error, "createUser");
     if (env.signupCredits > 0) {
       const t = await sb().from("credit_txs").insert({ user_id: row.id, delta: env.signupCredits, reason: "Créditos de boas-vindas" });

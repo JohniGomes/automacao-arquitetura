@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/config";
 import { startSession } from "@/lib/auth";
 import { store } from "@/lib/store";
+import { LEGAL_VERSION } from "@/lib/legal";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
@@ -22,7 +23,11 @@ export async function GET(req: NextRequest) {
   if (!info.email || info.email_verified === false) return fail();
   const email = String(info.email).toLowerCase();
   let u = await store.getUserByEmail(email);
-  if (!u) u = await store.createUser({ email, name: info.name || email, googleId: info.sub });
+  if (!u) {
+    // conta nova só nasce com o aceite dos Termos e da Política de Privacidade
+    if (req.nextUrl.searchParams.get("state") !== "aceite") return NextResponse.redirect(`${env.appUrl}/cadastro?erro=aceite`);
+    u = await store.createUser({ email, name: info.name || email, googleId: info.sub, termsAcceptedAt: new Date().toISOString(), termsVersion: LEGAL_VERSION });
+  }
   else if (!u.googleId) await store.setGoogleId(u.id, info.sub);
   await startSession(u.id);
   return NextResponse.redirect(`${env.appUrl}/app`);

@@ -119,6 +119,3 @@ export function ImageInput({ label, value, onChange, history = true, hint }: {
   );
 }
 
-export function Disclaimer() {
-  return <p className="muted small">A IA gera imagens ilustrativas e não substitui a responsabilidade técnica do arquiteto: confira geometria, medidas e conformidade antes de apresentar ao cliente.</p>;
-}

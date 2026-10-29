@@ -60,7 +60,6 @@ export default async function Landing() {
             <div><h3>Histórico e download</h3><p>Tudo o que você gera fica salvo na sua conta, com download de imagens e do filme em MP4.</p></div>
             <div><h3>Créditos com custo à vista</h3><p>Cada ferramenta mostra quantos créditos vai consumir antes de gerar, e gerações que falham são estornadas.</p></div>
           </div>
-          <p className="sub" style={{ marginTop: 32 }}>A IA ilustra e acelera, mas não substitui a responsabilidade técnica do arquiteto. Confira geometria, medidas e normas antes de apresentar.</p>
         </section>
 
         <section className="final">
@@ -72,7 +71,8 @@ export default async function Landing() {
         </section>
 
         <footer className="lfoot">
-          <p>Imagens de satélite da Google Maps Platform, sujeitas aos <a href="https://cloud.google.com/maps-platform/terms" target="_blank" rel="noreferrer">Termos de Serviço da Google Maps Platform</a>. Imagens geradas por IA são ilustrativas.</p>
+          <span>ArqIA</span>
+          <nav className="flinks"><Link href="/termos">Termos de Uso</Link><Link href="/privacidade">Política de Privacidade</Link></nav>
         </footer>
       </div>
     </div>

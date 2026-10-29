@@ -49,6 +49,7 @@ export default function Sidebar({ name, credits }: { name: string; credits: numb
         <div className="foot">
           <Link href="/app/creditos" className="credits"><span>Saldo</span><b>{c}</b></Link>
           <div className="who" title={name}>{name}</div>
+          <div className="flinks mini"><Link href="/termos">Termos</Link><Link href="/privacidade">Privacidade</Link></div>
           <button className="ghost" onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); location.href = "/"; }}>Sair</button>
         </div>
       </aside>

@@ -9,8 +9,14 @@ create table if not exists public.users (
   pass_hash text,
   google_id text,
   credits integer not null default 0 check (credits >= 0),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  terms_accepted_at timestamptz,
+  terms_version text
 );
+
+-- Projetos que já rodaram a versão anterior deste arquivo: execute também estas duas linhas.
+alter table public.users add column if not exists terms_accepted_at timestamptz;
+alter table public.users add column if not exists terms_version text;
 
 create table if not exists public.generations (
   id uuid primary key,

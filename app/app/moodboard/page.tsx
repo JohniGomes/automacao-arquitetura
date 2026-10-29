@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Disclaimer, ImageInput, Run, useJob, Val } from "@/components/client";
+import { ImageInput, Run, useJob, Val } from "@/components/client";
 import { AMBIENTES } from "@/lib/prompts";
 import { COSTS } from "@/lib/costs";
 
@@ -18,7 +18,6 @@ export default function Moodboard() {
   return (
     <>
       <h1>Moodboard por ambiente</h1>
-      <p className="muted">O modelo define só o formato (flat lay vertical com 4 cores em pílula); o conteúdo é gerado a partir do ambiente e da casa de referência.</p>
       <div className="card">
         <div className="field"><label>1. Modelo da galeria</label>
           {templates.length === 0 ? <p className="muted">Nenhum modelo cadastrado. Adicione imagens em <code>templates/moodboards/</code> ou envie um print abaixo.</p> :
@@ -32,7 +31,6 @@ export default function Moodboard() {
         <ImageInput label="3. Imagem da casa de referência (render do projeto)" value={house} onChange={setHouse} />
         <p className="small muted">Custo: {COSTS.moodboard} créditos.</p>
         <button disabled={busy} onClick={() => submit({ type: "moodboard", ambiente: amb, house, template })}>Gerar moodboard</button>
-        <Disclaimer />
       </div>
       <Run gen={gen} error={error} />
     </>
