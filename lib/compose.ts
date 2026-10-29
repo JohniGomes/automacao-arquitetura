@@ -49,7 +49,7 @@ Improve material realism, lighting and visible furnishings while preserving the 
 export const CENAS_LUZ = [
   { id: "meiodia", kind: "luz", label: "Meio-dia", text: "bright overhead sunlight, short defined shadows, neutral daylight", swatch: "linear-gradient(160deg,#f6e7a8,#9fc7d9)" },
   { id: "manha", kind: "luz", label: "Manhã", text: "soft morning daylight, gentle short shadows, neutral-to-warm color temperature", swatch: "linear-gradient(160deg,#fbe9d0,#b9d6dd)" },
-  { id: "poente", kind: "luz", label: "Pôr do sol", text: "low warm sunlight, longer warm shadows, controlled highlights", swatch: "linear-gradient(160deg,#f2b57a,#8d5b78)" },
+  { id: "poente", kind: "luz", label: "Pôr do sol", text: "SUNSET light: the sun is very low near the horizon, strongly warm orange-golden light, long dramatic warm shadows cast across the ground and facades, a warm glow on all lit surfaces and a subtle orange-pink color grade that clearly differs from midday or neutral daylight", swatch: "linear-gradient(160deg,#f2b57a,#8d5b78)" },
   { id: "blue", kind: "luz", label: "Blue hour", text: "cool blue ambient dusk light; existing interior lights may glow softly", swatch: "linear-gradient(160deg,#4a6fa5,#1f2f55)" },
   { id: "noite", kind: "luz", label: "Noite", text: "nighttime ambient lighting using existing visible fixtures only", swatch: "linear-gradient(160deg,#2c3550,#0e1424)" },
   { id: "nublado", kind: "clima", label: "Nublado", text: "soft diffuse overcast illumination, low contrast, subdued shadows", swatch: "linear-gradient(160deg,#cfd6d8,#98a4a8)" },
@@ -59,9 +59,9 @@ export type CenaLuzId = (typeof CENAS_LUZ)[number]["id"];
 
 /** Elementos opcionais: só entram no prompt quando selecionados. */
 export const ELEMENTOS = [
-  { id: "pessoas", label: "Pessoas", text: "a few correctly scaled people, placed only in unoccupied areas and not obscuring architecture" },
-  { id: "carros", label: "Carros", text: "appropriately scaled parked cars in existing driveways or parking areas only" },
-  { id: "vegetacao", label: "Vegetação", text: "vegetation and trees placed only in available landscape areas, without covering or moving the building" },
+  { id: "pessoas", label: "Pessoas", text: "PEOPLE: at least 4 clearly visible, correctly scaled people (for example walking on the terrace, standing near the pool, on the lawn), large enough to be recognizable at this viewing distance" },
+  { id: "carros", label: "Carros", text: "CARS: at least 2 clearly visible, correctly scaled parked cars on a driveway or parking area at the edge of the plot, outside the building footprint (if no driveway is drawn, add a simple paved driveway and parking area outside the house)" },
+  { id: "vegetacao", label: "Vegetação", text: "VEGETATION: abundant, clearly visible trees, shrubs and grass in all available landscape areas, without covering or moving the building" },
   { id: "plantas", label: "Plantas e vasos", text: "potted plants only in plausible unoccupied areas, without blocking doors, windows or circulation" },
   { id: "decoracao", label: "Decoração", text: "restrained decorative objects only where appropriate and without changing built-in elements" },
   { id: "ceu", label: "Nuvens no céu", text: "soft clouds only if sky is visible in the original view; do not add a horizon or change the camera" },
@@ -82,7 +82,7 @@ Replace only unfinished/flat viewport appearance with realistic surface material
 const REFERENCIA_RENDER = "Use the second attached image ONLY as a reference for lighting, atmosphere and mood. Do not copy its architecture, camera, composition, objects, geometry, openings, landscaping layout or materials unless a material/lighting attribute is explicitly requested and is compatible with the first image. The first image remains the authority for geometry and camera.";
 
 const FECHO_RENDER = `FINAL CHECK:
-Same camera, same viewpoint, same framing, same building geometry and same positions of all visible architectural elements. No added, removed, moved or resized building volumes or openings. Realistic materials, physically plausible global illumination and natural shadows only. If realism conflicts with source fidelity, source fidelity wins.`;
+Same camera, same viewpoint, same framing, same building geometry and same positions of all visible architectural elements. No added, removed, moved or resized building volumes or openings. Realistic materials, physically plausible global illumination and natural shadows only. If realism conflicts with source fidelity, source fidelity wins for the architecture and camera. Every lighting, atmosphere and addition explicitly requested above is mandatory and must be clearly visible.`;
 
 export type RenderOpts = { style: EstiloKey; level: number; env: Env; guidance: string; scene: string; elements: string[]; sceneFree?: string; reference: boolean };
 
@@ -96,7 +96,7 @@ export function composeRender(o: RenderOpts): string {
     INTRO_RENDER,
     AMBIENTES_TEXT[o.env],
     light,
-    els.length > 0 && `OPTIONAL ADDITIONS, ONLY IF SELECTED:\nAdd only the following requested elements: ${els.join("; ")}. Place them in plausible, unoccupied areas, at a scale consistent with the scene. Do not cover, replace, move or alter any existing architectural element. Do not add unselected categories of objects. If an item cannot be placed without changing or obscuring the architecture, omit that item.`,
+    els.length > 0 && `REQUIRED ADDITIONS (the user explicitly selected these; every one of them MUST be clearly visible in the final image, never omitted):\n${els.join("\n")}.\nPlace them in plausible areas at a scale consistent with the scene. They must not cover, replace, move or alter any building volume, wall, opening or roof. Do not add categories of objects that were not requested.`,
     o.reference && REFERENCIA_RENDER,
     ESTILOS[o.style].text,
     NIVEIS[Math.min(2, Math.max(0, o.level))].text,

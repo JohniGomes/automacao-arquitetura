@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 export type Gen = {
   id: string; type: string; status: "queued" | "running" | "done" | "error"; progress: number; message: string;
-  summary: string; prompt?: string; outputs: { file: string; kind: "image" | "video"; label?: string }[];
+  summary: string; outputs: { file: string; kind: "image" | "video"; label?: string }[];
   cost: number; mock: boolean; error?: string; createdAt: string; usage: { images: number; videoClips: number };
   projectId?: string | null; favorite?: boolean;
 };

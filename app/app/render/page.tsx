@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ImageInput, Run, useJob, Val } from "@/components/client";
 import { Fold, Seg, Slider, useSavedScenes, Versions } from "@/components/controls";
 import ToolShell from "@/components/ToolShell";
-import { CENAS_LUZ, composeRender, ELEMENTOS, EstiloKey, ESTILOS, Env, NIVEIS } from "@/lib/compose";
+import { CENAS_LUZ, ELEMENTOS, EstiloKey, ESTILOS, Env, NIVEIS } from "@/lib/compose";
 import { renderCost } from "@/lib/costs";
 
 export default function Render() {
@@ -19,13 +19,10 @@ export default function Render() {
   const [scene, setScene] = useState("");
   const [sceneFree, setSceneFree] = useState("");
   const [elements, setElements] = useState<string[]>([]);
-  const [custom, setCustom] = useState<string | null>(null);
   const [saveName, setSaveName] = useState("");
   const saved = useSavedScenes();
   const { gen, error, busy, submit } = useJob();
 
-  const composed = composeRender({ style, level, env, guidance, scene, sceneFree, elements, reference: !!reference });
-  const prompt = custom ?? composed;
   const toggleEl = (id: string) => setElements((e) => (e.includes(id) ? e.filter((x) => x !== id) : [...e, id]));
 
   return (
@@ -35,7 +32,7 @@ export default function Render() {
       cost={renderCost(mode, versions)}
       busy={busy}
       canGenerate={!!model}
-      onGenerate={() => submit({ type: "render", model, reference, mode, versions: String(versions), prompt })}
+      onGenerate={() => submit({ type: "render", model, reference, mode, versions: String(versions), style, level: String(level), env, guidance, scene, sceneFree, elements: elements.join(",") })}
       panel={
         <>
           <Seg label="Resultado" value={style} onChange={setStyle} options={(Object.keys(ESTILOS) as EstiloKey[]).map((k) => ({ v: k, label: ESTILOS[k].label, desc: ESTILOS[k].desc }))} />
@@ -71,9 +68,6 @@ export default function Render() {
                 <input id="sn" type="text" value={saveName} onChange={(e) => setSaveName(e.target.value)} placeholder="Nome da cena" />
                 <button type="button" className="ghost" disabled={!saveName.trim() || (!scene && !sceneFree && elements.length === 0)} onClick={() => { saved.add({ name: saveName.trim().slice(0, 30), scene, sceneFree, elements }); setSaveName(""); }}>Salvar</button>
               </div></div>
-            <div className="field"><label htmlFor="pp">Prompt completo (editável)</label>
-              <textarea id="pp" value={prompt} onChange={(e) => setCustom(e.target.value)} />
-              {custom !== null && <button type="button" className="ghost" style={{ marginTop: 8 }} onClick={() => setCustom(null)}>Restaurar prompt automático</button>}</div>
           </Fold>
         </>
       }

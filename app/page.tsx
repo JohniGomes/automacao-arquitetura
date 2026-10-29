@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 const ETAPAS = [
   ["Mapa de situação", "Digite o endereço e receba o entorno em uma vista aérea realista, fiel às ruas e quadras do satélite. Se preferir, envie o seu próprio print."],
   ["Moodboard", "Escolha o modelo de composição e o ambiente (cozinha, sala, banheiro ou quarto). Cores e materiais saem da casa de referência do seu projeto."],
-  ["Render", "Envie o print do modelo 3D e receba quatro versões fotorrealistas. O prompt padrão pede para preservar geometria, aberturas e enquadramento, e você pode editá-lo."],
+  ["Render", "Envie o print do modelo 3D e receba quatro versões fotorrealistas. A geometria, as aberturas e o enquadramento do seu modelo são preservados."],
   ["Variação de luz", "Manhã, golden hour, blue hour, noite ou uma luz descrita por você. A casa, a câmera e a composição ficam como estão."],
   ["Filme do projeto", "De uma a cinco cenas (aérea, fachada, acesso, interior, materiais, entardecer) viram um único MP4 Full HD, pronto para apresentar ao cliente."],
 ];
@@ -56,7 +56,7 @@ export default async function Landing() {
         <section className="sec">
           <h2>Pensado para quem assina o projeto.</h2>
           <div className="trio">
-            <div><h3>Você controla o prompt</h3><p>Os prompts padrão já preservam a geometria. Edite quando quiser mudar materiais, paisagismo ou clima.</p></div>
+            <div><h3>Fiel ao seu projeto</h3><p>Você escolhe luz, clima e elementos, e o sistema mantém a geometria do seu modelo.</p></div>
             <div><h3>Histórico e download</h3><p>Tudo o que você gera fica salvo na sua conta, com download de imagens e do filme em MP4.</p></div>
             <div><h3>Créditos com custo à vista</h3><p>Cada ferramenta mostra quantos créditos vai consumir antes de gerar, e gerações que falham são estornadas.</p></div>
           </div>

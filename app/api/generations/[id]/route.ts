@@ -1,3 +1,4 @@
+import { pub } from "@/lib/public";
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { live } from "@/lib/jobs";
@@ -23,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!g) return bad("Geração não encontrada.", 404);
     const mem = live.get(id);
     if (mem && mem.userId === u.id) Object.assign(mem, meta); // geração em andamento neste processo
-    return NextResponse.json({ generation: g });
+    return NextResponse.json({ generation: pub(g) });
   } catch (e: any) {
     return bad(e.message || "Não foi possível atualizar.", 500);
   }

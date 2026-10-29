@@ -11,6 +11,7 @@ import { enqueue, live, recoverStale } from "@/lib/jobs";
 import { Img } from "@/lib/gemini";
 import { env, mockGemini, mockMaps, mockVideo } from "@/lib/config";
 import { store } from "@/lib/store";
+import { pub } from "@/lib/public";
 import { AMBIENTES, AmbienteKey, CENAS, CenaKey, LUZES, LuzKey } from "@/lib/prompts";
 
 export const runtime = "nodejs";
@@ -22,7 +23,7 @@ export async function GET() {
   if (!u) return bad("Não autenticado.", 401);
   await recoverStale();
   const list = (await store.listGens(u.id)).map((g) => live.get(g.id) ?? g);
-  return NextResponse.json({ credits: u.credits, generations: list });
+  return NextResponse.json({ credits: u.credits, generations: list.map(pub) });
 }
 
 /** Lê imagem enviada (arquivo), referência a uma geração anterior ("ref:<arquivo>") ou modelo da galeria ("tpl:<arquivo>"). */
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
       if (ref) images.reference = ref;
       const versions = int("versions", 1, 4, 1);
       const mode = str("mode") === "precisao" ? "precisao" : "rapido";
-      const prompt = str("prompt").slice(0, 4000) || composeRender({
+      const prompt = composeRender({
         style: (str("style") in ESTILOS ? str("style") : "realista") as EstiloKey, level: int("level", 0, 2, 1), env: envOf(),
         guidance: str("guidance").slice(0, 500), scene: str("scene"), sceneFree: str("sceneFree").slice(0, 200),
         elements: str("elements").split(",").filter(Boolean), reference: !!ref,
@@ -100,14 +101,14 @@ export async function POST(req: NextRequest) {
       await need("render", "Envie o render que você quer melhorar.");
       const preset = (str("preset") in MELHORIAS ? str("preset") : "fidelidade") as MelhoriaKey;
       const versions = int("versions", 1, 4, 1);
-      const prompt = str("prompt").slice(0, 4000) || composeMelhorar({ preset, creativity: int("creativity", 0, 100, 30), guidance: str("guidance").slice(0, 500) });
+      const prompt = composeMelhorar({ preset, creativity: int("creativity", 0, 100, 30), guidance: str("guidance").slice(0, 500) });
       params = { prompt, versions };
       cost = versions * COSTS.melhorarPorImagem;
       summary = `Melhorar render — ${MELHORIAS[preset].label}`;
     } else if (type === "esboco") {
       await need("sketch", "Envie o esboço ou desenho.");
       const versions = int("versions", 1, 4, 1);
-      const prompt = str("prompt").slice(0, 4000) || composeEsboco({ env: envOf(), estilo: str("estilo"), detalhes: str("detalhes").slice(0, 240) });
+      const prompt = composeEsboco({ env: envOf(), estilo: str("estilo"), detalhes: str("detalhes").slice(0, 240) });
       params = { prompt, versions };
       cost = versions * COSTS.esbocoPorImagem;
       summary = `Render de esboço (${versions} ${versions === 1 ? "versão" : "versões"})`;
@@ -119,7 +120,7 @@ export async function POST(req: NextRequest) {
       const tipo = TIPOS_IDEIA[env].includes(str("tipo")) ? str("tipo") : TIPOS_IDEIA[env][0];
       const estilo = (ESTILOS_ARQ as readonly string[]).includes(str("estilo")) ? str("estilo") : ESTILOS_ARQ[0];
       const versions = int("versions", 1, 4, 2);
-      const prompt = str("prompt").slice(0, 4000) || composeIdeia({ env, tipo, estilo, detalhes: str("detalhes").slice(0, 240), reference: !!ref });
+      const prompt = composeIdeia({ env, tipo, estilo, detalhes: str("detalhes").slice(0, 240), reference: !!ref });
       params = { prompt, versions };
       cost = versions * COSTS.ideiasPorImagem;
       summary = `Gerar ideias — ${tipo}, ${estilo}`;

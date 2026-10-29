@@ -14,7 +14,7 @@ export default function Privacidade() {
       <h2>2. Dados que coletamos</h2>
       <ul>
         <li><strong>Cadastro:</strong> nome, e-mail e senha (guardada apenas em forma de hash, nunca em texto). No login com Google, recebemos nome, e-mail e identificador da conta Google.</li>
-        <li><strong>Conteúdo que você envia e recebe:</strong> imagens (prints de modelos 3D, renders, referências, moodboards), endereços digitados, prompts e as imagens e vídeos gerados.</li>
+        <li><strong>Conteúdo que você envia e recebe:</strong> imagens (prints de modelos 3D, renders, referências, moodboards), endereços digitados, instruções de texto e as imagens e vídeos gerados.</li>
         <li><strong>Uso do serviço:</strong> histórico de gerações, saldo e extrato de créditos, e registros de aceite destes documentos (data e versão).</li>
         <li><strong>Dados técnicos:</strong> cookie de sessão e registros técnicos de funcionamento e segurança do servidor.</li>
       </ul>
