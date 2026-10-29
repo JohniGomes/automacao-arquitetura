@@ -182,7 +182,7 @@ details summary { cursor: pointer; }
     linear-gradient(90deg, var(--p5) 0, var(--p5) 330px, var(--p4) 560px, var(--p3) 760px, var(--p1) 58%, var(--p0) 100%);
 }
 .auth .formside { background: transparent; display: flex; align-items: center; justify-content: center; padding: 32px; }
-.auth .box { width: min(400px, 100%); background: color-mix(in srgb, var(--p5) 78%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid color-mix(in srgb, white 55%, transparent); border-radius: 22px; padding: 30px; box-shadow: 0 30px 70px -30px color-mix(in srgb, var(--p0) 70%, transparent); }
+.auth .box { --door: var(--p1); width: min(400px, 100%); background: color-mix(in srgb, var(--p1) 90%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--line-strong); border-radius: 22px; padding: 30px; box-shadow: 0 34px 80px -28px rgba(5, 31, 32, .85); }
 .auth .box h1 { font-size: 30px; margin-bottom: 6px; }
 .auth .brand { padding: 0 0 22px; }
 .auth .sw { font-size: 14px; color: var(--muted); margin-top: 18px; }

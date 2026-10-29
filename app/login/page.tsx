@@ -11,7 +11,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
   const { erro } = await searchParams;
   return (
     <main className="auth">
-      <div className="formside light"><AuthForm mode="login" erro={erro} /></div>
+      <div className="formside"><AuthForm mode="login" erro={erro} /></div>
       <div className="view"><HouseSplit /></div>
     </main>
   );
