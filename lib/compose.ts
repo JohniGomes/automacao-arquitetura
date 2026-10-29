@@ -21,7 +21,7 @@ export const NIVEIS = [
 ] as const;
 
 export const AMBIENTES_TEXT: Record<Env, string> = {
-  exterior: "Exterior view: realistic facade materials such as exposed architectural concrete, natural wood and glass with realistic reflections, tropical Brazilian landscaping, and a realistic sky and surroundings.",
+  exterior: "Exterior view: realistic facade materials such as exposed architectural concrete, natural wood and glass with realistic reflections, tropical Brazilian landscaping and realistic surroundings (lawn, trees, paving) that fit the same camera viewpoint.",
   interior: "Interior view: realistic furniture, finishes and materials, balanced natural and artificial light, coherent decoration, and no change to the room layout.",
 };
 
@@ -47,8 +47,15 @@ export const ELEMENTOS = [
 ] as const;
 export type ElementoId = (typeof ELEMENTOS)[number]["id"];
 
-const INTRO_RENDER = "Transform the supplied architectural model screenshot into a photorealistic architectural visualization. Preserve the original building geometry, rooflines, window positions, proportions, camera angle and composition.";
+/**
+ * Prompt rígido de fidelidade. Validado com Grok em 29/10/2026: com "preserve o ângulo da câmera" o modelo trocou a
+ * isométrica por uma perspectiva baixa e reorganizou os volumes; com a câmera, a vista e os elementos descritos como
+ * "exatamente no mesmo lugar" o resultado ficou alinhado com o print.
+ */
+const INTRO_RENDER = "Render this exact architectural model screenshot as a photograph, keeping it perfectly aligned with the input image. The camera, the viewpoint (for example isometric, axonometric or bird's-eye), the framing, the silhouette of every volume, the plan layout, and the position and size of every window, door, roof edge and pool must stay in EXACTLY the same place as in the input. Do not change the perspective to a ground-level view. Do not add, remove or move any building volume. Only replace the flat grey surfaces and the plain background with realistic materials and a realistic surrounding, keeping the same camera.";
 const CLOSING = "Physically plausible materials, realistic global illumination, natural shadows, professional architectural photography, high detail, no structural modifications.";
+/** Fecho do render a partir de print: sem "fotografia profissional" nem céu, que empurram o modelo para uma vista na altura dos olhos. */
+const CLOSING_RENDER = "Keep the same camera and viewpoint as the input. Physically plausible materials, realistic global illumination, natural shadows, high detail, no structural modifications.";
 
 export type RenderOpts = { style: EstiloKey; level: number; env: Env; guidance: string; scene: string; elements: string[]; sceneFree?: string; reference: boolean };
 
@@ -67,7 +74,7 @@ export function composeRender(o: RenderOpts): string {
     ESTILOS[o.style].text,
     NIVEIS[Math.min(2, Math.max(0, o.level))].text,
     o.guidance.trim() ? `Additional guidance: ${o.guidance.trim()}` : "",
-    CLOSING,
+    CLOSING_RENDER,
   ].filter(Boolean).join(" ");
 }
 
