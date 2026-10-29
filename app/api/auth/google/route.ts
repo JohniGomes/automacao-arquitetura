@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { env } from "@/lib/config";
 
 export async function GET() {
-  if (!process.env.GOOGLE_CLIENT_ID) return NextResponse.redirect(`${env.appUrl}/?erro=google-nao-configurado`);
+  if (!process.env.GOOGLE_CLIENT_ID) return NextResponse.redirect(`${env.appUrl}/login?erro=google-nao-configurado`);
   const p = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID,
     redirect_uri: `${env.appUrl}/api/auth/google/callback`,

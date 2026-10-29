@@ -5,7 +5,7 @@ import { store } from "@/lib/store";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
-  const fail = () => NextResponse.redirect(`${env.appUrl}/?erro=google`);
+  const fail = () => NextResponse.redirect(`${env.appUrl}/login?erro=google`);
   if (!code || !process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) return fail();
   const tok = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
