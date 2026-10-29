@@ -80,7 +80,9 @@ async function moodboard(c: Ctx) {
     const [bw, bh] = best.split(":").map(Number);
     return Math.abs(w / h - ratio) < Math.abs(bw / bh - ratio) ? a : best;
   }, "2:3");
-  const out = await makeImage(c, `Moodboard — ${AMBIENTES[amb].label}`, prompt, [c.input.images.house, c.input.images.template], aspect);
+  // o modelo vai em tons de cinza: assim ele só define a estrutura e nenhuma cor dele pode vazar para o resultado
+  const gray: Img = { data: await sharp(c.input.images.template.data).grayscale().jpeg({ quality: 92 }).toBuffer(), mime: "image/jpeg" };
+  const out = await makeImage(c, `Moodboard — ${AMBIENTES[amb].label}`, prompt, [c.input.images.house, gray], aspect);
   await addOutput(c, out, ext(out), "image", `Moodboard — ${AMBIENTES[amb].label}`);
 }
 
