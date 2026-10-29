@@ -168,8 +168,9 @@ async function recompose(orig: Img, edited: Buffer, mask: Img): Promise<Buffer |
   const em = await sharp(edited).metadata();
   const W = om.width!, H = om.height!;
   if (!em.width || !em.height || Math.abs(W / H - em.width / em.height) / (W / H) > 0.03) return null;
-  const base = await sharp(orig.data).removeAlpha().toBuffer();
-  const e = await sharp(edited).resize(W, H, { fit: "fill" }).removeAlpha().toBuffer();
+  // PNG nas etapas intermediárias: sem formato explícito o sharp reencoda JPEG com perdas e mudaria pixels fora da máscara
+  const base = await sharp(orig.data).removeAlpha().png().toBuffer();
+  const e = await sharp(edited).resize(W, H, { fit: "fill" }).removeAlpha().png().toBuffer();
   const alpha = await sharp(mask.data).resize(W, H, { fit: "fill" }).greyscale().blur(1.2).raw().toBuffer();
   const eAlpha = await sharp(e).joinChannel(alpha, { raw: { width: W, height: H, channels: 1 } }).png().toBuffer();
   return sharp(base).composite([{ input: eAlpha }]).png().toBuffer();
@@ -191,7 +192,7 @@ async function editor(c: Ctx) {
     if (mockGemini()) { await new Promise((r) => setTimeout(r, 900)); out = await mockEdit(current.data, mask.data, i); }
     else {
       out = await generateImage(composeEdit(regions[i].text), [current, mask]);
-      const fixed = await recompose(current, out, mask).catch(() => null);
+      const fixed = await recompose(current, out, mask).catch((e) => { console.warn("recompose falhou:", e?.message || e); return null; });
       if (fixed) out = fixed; else semRecorte = true;
     }
     current = asImg(out);

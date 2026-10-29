@@ -47,7 +47,7 @@ export function enqueue(gen: Generation, input: JobInput) {
       await runPipeline(gen, input);
       gen.status = "done";
       gen.progress = 100;
-      if (!gen.message.includes("falharam")) gen.message = "Concluído";
+      if (!/falharam|Concluído./.test(gen.message)) gen.message = "Concluído";
     } catch (e: any) {
       gen.status = "error";
       gen.error = String(e?.message || e);
