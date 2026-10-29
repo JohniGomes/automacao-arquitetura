@@ -22,3 +22,10 @@ export const PACOTES = [
   { id: "p2", creditos: 400, rotulo: "Escritório" },
   { id: "p3", creditos: 1000, rotulo: "Estúdio" },
 ];
+
+export const COSTS_EDICAO = {
+  /** cada região editada é uma geração */
+  editorPorRegiao: 3,
+  /** cada ângulo gerado */
+  anguloPorImagem: 2,
+};

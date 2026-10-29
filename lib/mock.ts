@@ -30,3 +30,16 @@ export async function mockSatellite(address: string): Promise<Buffer> {
   <text x="50%" y="1240" font-family="sans-serif" font-size="30" fill="#fff" text-anchor="middle">${esc(address.slice(0, 60))}</text></svg>`;
   return sharp(Buffer.from(svg)).png().toBuffer();
 }
+
+const TINTS: [number, number, number][] = [[214, 90, 120], [60, 140, 200], [240, 170, 50], [90, 170, 110], [150, 100, 200]];
+
+/** Edição de exemplo (modo mock): pinta a região da máscara sobre a imagem para mostrar onde a IA mexeria. */
+export async function mockEdit(base: Buffer, mask: Buffer, index: number): Promise<Buffer> {
+  const meta = await sharp(base).metadata();
+  const w = meta.width!, h = meta.height!;
+  const [r, g, b] = TINTS[index % TINTS.length];
+  const alpha = await sharp(mask).resize(w, h, { fit: "fill" }).greyscale().linear(0.55, 0).raw().toBuffer();
+  const tint = await sharp({ create: { width: w, height: h, channels: 3, background: { r, g, b } } })
+    .joinChannel(alpha, { raw: { width: w, height: h, channels: 1 } }).png().toBuffer();
+  return sharp(base).composite([{ input: tint }]).png().toBuffer();
+}

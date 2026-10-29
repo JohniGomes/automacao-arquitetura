@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { currentUser } from "@/lib/auth";
 import { charge, COSTS } from "@/lib/credits";
-import { renderCost } from "@/lib/costs";
-import { composeEsboco, composeIdeia, composeMelhorar, composeRender, ESTILOS, ESTILOS_ARQ, EstiloKey, Env, MELHORIAS, MelhoriaKey, TIPOS_IDEIA } from "@/lib/compose";
+import { renderCost, COSTS_EDICAO } from "@/lib/costs";
+import { ANGULOS, angleLabel, composeAngle, LENTES, LenteKey, MAX_REGIOES, composeEsboco, composeIdeia, composeMelhorar, composeRender, ESTILOS, ESTILOS_ARQ, EstiloKey, Env, MELHORIAS, MelhoriaKey, TIPOS_IDEIA } from "@/lib/compose";
 import { Generation, GenType, uid } from "@/lib/db";
 import { enqueue, live, recoverStale } from "@/lib/jobs";
 import { Img } from "@/lib/gemini";
@@ -123,6 +123,43 @@ export async function POST(req: NextRequest) {
       params = { prompt, versions };
       cost = versions * COSTS.ideiasPorImagem;
       summary = `Gerar ideias — ${tipo}, ${estilo}`;
+    } else if (type === "editor") {
+      await need("base", "Envie a imagem que você quer editar.");
+      const meta = await sharp(images.base.data).metadata();
+      const regions: { text: string }[] = [];
+      for (let i = 1; i <= MAX_REGIOES; i++) {
+        const f = form.get(`mask${i}`);
+        if (!(f instanceof File) || f.size === 0) continue;
+        if (f.size > 8 * 1024 * 1024) throw new Error("Máscara acima de 8 MB.");
+        const text = str(`text${i}`).slice(0, 300);
+        if (!text) throw new Error(`Escreva a instrução da região ${regions.length + 1}.`);
+        const buf = await sharp(Buffer.from(await f.arrayBuffer())).resize(meta.width!, meta.height!, { fit: "fill" }).greyscale().threshold(128).png().toBuffer();
+        if ((await sharp(buf).stats()).channels[0].max < 128) throw new Error(`A região ${regions.length + 1} está vazia: desenhe sobre a imagem.`);
+        regions.push({ text });
+        images[`mask${regions.length}`] = { data: buf, mime: "image/png" };
+      }
+      if (!regions.length) throw new Error("Marque ao menos uma região na imagem.");
+      params = { regions };
+      cost = regions.length * COSTS_EDICAO.editorPorRegiao;
+      summary = `Edição por regiões (${regions.length} ${regions.length === 1 ? "região" : "regiões"})`;
+    } else if (type === "angulos") {
+      await need("base", "Envie a imagem de partida.");
+      const lens = (str("lens") in LENTES ? str("lens") : "normal") as LenteKey;
+      const mosaic = str("mode") === "mosaico";
+      let angles: { label: string; prompt: string }[] = [];
+      if (!mosaic && str("az") !== "") {
+        const az = Math.max(-180, Math.min(180, Number(str("az")) || 0));
+        const el = Math.max(-60, Math.min(90, Number(str("el")) || 0));
+        angles = [{ label: angleLabel(az, el), prompt: composeAngle({ az, el, lens }) }];
+      } else {
+        const sel = ANGULOS.filter((a) => str("angles").split(",").includes(a.id)).slice(0, 6);
+        if (mosaic && sel.length < 2) throw new Error("No mosaico, escolha ao menos 2 ângulos.");
+        if (!sel.length) throw new Error("Escolha o ângulo.");
+        angles = sel.map((a) => ({ label: a.label, prompt: composeAngle({ az: a.az, el: a.el, lens }) }));
+      }
+      params = { angles, mosaic };
+      cost = angles.length * COSTS_EDICAO.anguloPorImagem;
+      summary = mosaic ? `Multi-ângulo — mosaico de ${angles.length}` : `Multi-ângulo — ${angles[0].label}`;
     } else if (type === "luz") {
       await need("base", "Escolha um render ou envie uma imagem.");
       const k = str("luz");

@@ -80,8 +80,8 @@ export function Run({ gen, error }: { gen: Gen | null; error: string }) {
 }
 
 /** Seletor de imagem: upload, ou reaproveitar uma imagem do histórico (e, opcionalmente, modelos da galeria). */
-export function ImageInput({ label, value, onChange, history = true, hint }: {
-  label: string; value: Val; onChange: (v: Val) => void; history?: boolean; hint?: string;
+export function ImageInput({ label, value, onChange, history = true, hint, showPreview = true }: {
+  label: string; value: Val; onChange: (v: Val) => void; history?: boolean; hint?: string; showPreview?: boolean;
 }) {
   const [files, setFiles] = useState<{ file: string; label?: string }[]>([]);
   const [open, setOpen] = useState(false);
@@ -116,7 +116,7 @@ export function ImageInput({ label, value, onChange, history = true, hint }: {
           {files.map((f) => <img key={f.file} src={`/api/files/${f.file}`} alt={f.label} title={f.label} onClick={() => { onChange("ref:" + f.file); setOpen(false); }} />)}
         </div>
       )}
-      {preview && <img className="preview" src={preview} alt="prévia" />}
+      {showPreview && preview && <img className="preview" src={preview} alt="prévia" />}
     </div>
   );
 }

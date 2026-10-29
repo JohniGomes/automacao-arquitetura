@@ -125,3 +125,55 @@ export function composeIdeia(o: { env: Env; tipo: string; estilo: string; detalh
     "Photorealistic architectural photography, natural lighting, high detail.",
   ].filter(Boolean).join(" ");
 }
+
+// ------------------------------------------------------------ editor por regiões
+export const MAX_REGIOES = 5;
+
+/** Instrução de edição de UMA região. A segunda imagem enviada ao modelo é a máscara (branco = pode mudar). */
+export function composeEdit(text: string): string {
+  return [
+    "Edit the first image. The second image is a mask: white pixels mark the ONLY area you are allowed to change; black pixels must stay exactly as they are.",
+    `Change in the white area: ${text.trim()}.`,
+    "Blend the change seamlessly: keep perspective, scale, lighting, shadows, reflections and style consistent with the rest of the image. Do not alter anything outside the white area.",
+  ].join(" ");
+}
+
+// ------------------------------------------------------------------ multi-ângulo
+export const ANGULOS = [
+  { id: "e90", label: "Girar 90° à esquerda", az: -90, el: 0 },
+  { id: "e45", label: "Girar 45° à esquerda", az: -45, el: 0 },
+  { id: "d45", label: "Girar 45° à direita", az: 45, el: 0 },
+  { id: "d90", label: "Girar 90° à direita", az: 90, el: 0 },
+  { id: "topo", label: "Vista de cima", az: 0, el: 85 },
+  { id: "baixo", label: "Vista de baixo", az: 0, el: -35 },
+] as const;
+export type AnguloId = (typeof ANGULOS)[number]["id"];
+
+export const LENTES = {
+  grande: { label: "Grande-angular", text: "wide-angle lens (about 24mm)" },
+  normal: { label: "Normal", text: "standard lens (about 35mm)" },
+  tele: { label: "Teleobjetiva", text: "telephoto lens (about 85mm), compressed perspective" },
+} as const;
+export type LenteKey = keyof typeof LENTES;
+
+/** Descrição curta do ponto de vista, usada no rótulo do resultado. */
+export function angleLabel(az: number, el: number): string {
+  const partes: string[] = [];
+  if (Math.abs(az) >= 5) partes.push(`${Math.abs(Math.round(az))}° ${az < 0 ? "à esquerda" : "à direita"}`);
+  if (el >= 60) partes.push("vista de cima"); else if (el >= 10) partes.push("de cima"); else if (el <= -10) partes.push("de baixo");
+  return partes.length ? partes.join(", ") : "mesmo ângulo";
+}
+
+export function composeAngle(o: { az: number; el: number; lens: LenteKey }): string {
+  const mov: string[] = [];
+  if (Math.abs(o.az) >= 5) mov.push(`orbit the camera ${Math.abs(Math.round(o.az))} degrees to the ${o.az < 0 ? "left" : "right"} around the subject`);
+  if (o.el >= 60) mov.push("raise the camera to a top-down aerial view looking straight down");
+  else if (o.el >= 10) mov.push(`raise the camera to a high angle (about ${Math.round(o.el)} degrees above the horizon)`);
+  else if (o.el <= -10) mov.push(`lower the camera to a low angle looking up (about ${Math.abs(Math.round(o.el))} degrees below the horizon)`);
+  return [
+    "Show the exact same building or scene from a different camera position.",
+    mov.length ? `Move the camera: ${mov.join(" and ")}.` : "Keep the same camera position.",
+    `Use a ${LENTES[o.lens].text}.`,
+    "Keep the architecture, proportions, materials, colors, landscaping and lighting identical to the supplied image; invent unseen sides in a way that is coherent with what is visible. Photorealistic architectural photography.",
+  ].join(" ");
+}

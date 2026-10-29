@@ -128,3 +128,9 @@ Menu lateral com ícones (Início, Projetos, Gerações, Ferramentas e atalhos f
 - **Gerar ideias:** variações de estilo e fachada (ou de ambientes internos) a partir de uma imagem, com inspiração opcional.
 - **Custos em créditos (provisórios, em `lib/costs.ts`):** render 4 por imagem (6 no modo Precisão), melhorar 3, esboço 4 e ideias 3 por versão. O modo Precisão só muda o tamanho da imagem pedida ao modelo.
 - **Não testado com IA real:** o efeito de cada opção (estilo, nível, cenas, elementos) depende de como o modelo responde ao prompt. Foi validado só em modo mock: montagem do prompt, limites das opções no servidor, custos e entrega dos resultados.
+
+## Edição (Fase 3)
+
+- **Editar por regiões** (`/app/editor`): a imagem recebe até 5 regiões desenhadas com retângulo ou pincel; cada região tem sua própria instrução. O navegador gera uma máscara PNG por região (branco = área editável) e o servidor edita região por região, usando o resultado da anterior. Cada região custa 3 créditos (provisório). O prompt de cada edição está em `composeEdit` (`lib/compose.ts`).
+- **Multi-ângulo** (`/app/angulos`): imagem única (ângulo predefinido ou manual, com giro e altura da câmera) ou mosaico de 2 a 6 ângulos, com escolha de lente. No mosaico, cada ângulo é gerado e uma imagem-contato junta todos (montada com sharp). 2 créditos por ângulo (provisório).
+- **Beta, não validado com IA real:** se o modelo respeita a máscara (altera só a área branca) e se mantém a geometria ao girar a câmera só aparece no teste com chave. Os lados da construção que não aparecem na imagem são inventados pela IA. Em modo mock, o editor pinta cada região com uma cor sobre a imagem para mostrar onde a IA mexeria.

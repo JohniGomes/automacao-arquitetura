@@ -4,7 +4,9 @@ import { persist } from "./persist";
 import { store } from "./store";
 import { generateImage, generateVideo, Img } from "./gemini";
 import { concatClips, imageToClip } from "./ffmpeg";
-import { mockImage } from "./mock";
+import sharp from "sharp";
+import { mockEdit, mockImage } from "./mock";
+import { composeEdit } from "./compose";
 import { satellite } from "./maps";
 
 import { AMBIENTES, AmbienteKey, CENAS, CenaKey, PROMPT_MAPA, promptLuz, promptMoodboard } from "./prompts";
@@ -118,7 +120,57 @@ async function filme(c: Ctx) {
   c.gen.outputs.sort((a) => (a.kind === "video" ? -1 : 1));
 }
 
-const handlers = { mapa, moodboard, render, luz, filme, melhorar, esboco, ideias };
+/** Edita região por região: cada região usa o resultado da anterior e sua própria máscara. */
+async function editor(c: Ctx) {
+  const regions: { text: string }[] = c.input.params.regions;
+  const n = regions.length;
+  let current = c.input.images.base;
+  c.gen.prompt = regions.map((r, i) => `Região ${i + 1}: ${r.text}`).join("\n");
+  for (let i = 0; i < n; i++) {
+    progress(c, (i / n) * 95 + 3, `Editando a região ${i + 1} de ${n}…`);
+    const mask = c.input.images[`mask${i + 1}`];
+    c.gen.usage.images++;
+    let out: Buffer;
+    if (mockGemini()) { await new Promise((r) => setTimeout(r, 900)); out = await mockEdit(current.data, mask.data, i); }
+    else out = await generateImage(composeEdit(regions[i].text), [current, mask]);
+    current = asImg(out);
+  }
+  await addOutput(c, current.data, ext(current.data), "image", n > 1 ? `Editada (${n} regiões)` : "Editada");
+}
+
+/** Gera cada ângulo em paralelo e, no modo mosaico, junta tudo em uma imagem. */
+async function angulos(c: Ctx) {
+  const list: { label: string; prompt: string }[] = c.input.params.angles;
+  const n = list.length;
+  c.gen.prompt = list.map((a) => `${a.label}: ${a.prompt}`).join("\n");
+  const got: { label: string; buf: Buffer }[] = [];
+  let done = 0;
+  const res = await Promise.allSettled(list.map((a, i) =>
+    makeImage(c, `Ângulo ${i + 1}`, a.prompt, [c.input.images.base]).then(async (b) => {
+      got[i] = { label: a.label, buf: b };
+      await addOutput(c, b, ext(b), "image", a.label);
+      progress(c, (++done / n) * 90, `${done} de ${n} ângulos prontos`);
+    })));
+  const failed = res.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
+  if (failed.length === n) throw failed[0].reason;
+  if (failed.length) c.gen.message = `${n - failed.length} de ${n} ângulos gerados (alguns falharam).`;
+  const ok = got.filter(Boolean);
+  if (c.input.params.mosaic && ok.length >= 2) {
+    progress(c, 94, "Montando o mosaico…");
+    const meta = await sharp(ok[0].buf).metadata();
+    const cw = 640, ch = Math.round((cw * (meta.height || 720)) / (meta.width || 1280)), gap = 12;
+    const cols = ok.length <= 4 ? 2 : 3, rows = Math.ceil(ok.length / cols);
+    const cells = await Promise.all(ok.map(async (o, i) => ({
+      input: await sharp(o.buf).resize(cw, ch, { fit: "cover" }).png().toBuffer(),
+      left: gap + (i % cols) * (cw + gap), top: gap + Math.floor(i / cols) * (ch + gap),
+    })));
+    const mosaic = await sharp({ create: { width: gap + cols * (cw + gap), height: gap + rows * (ch + gap), channels: 3, background: "#F4EFE8" } }).composite(cells).png().toBuffer();
+    await addOutput(c, mosaic, "png", "image", "Mosaico");
+    c.gen.outputs.unshift(c.gen.outputs.pop()!);
+  }
+}
+
+const handlers = { mapa, moodboard, render, luz, filme, melhorar, esboco, ideias, editor, angulos };
 
 export async function runPipeline(gen: Generation, input: JobInput) {
   await handlers[input.type]({ gen, input });

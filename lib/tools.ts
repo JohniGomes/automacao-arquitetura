@@ -1,6 +1,6 @@
 /** Registro das ferramentas (usado pela gaveta, pela busca da home e pelos atalhos). Seguro para o cliente. */
-export type ToolId = "mapa" | "moodboard" | "render" | "luz" | "filme" | "melhorar" | "esboco" | "ideias";
-export type Tool = { id: ToolId; href: string; label: string; group: "Apresentação" | "Imagem"; icon: string; tone: number; hint: string };
+export type ToolId = "mapa" | "moodboard" | "render" | "luz" | "filme" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos";
+export type Tool = { id: ToolId; href: string; label: string; group: "Apresentação" | "Imagem" | "Edição"; icon: string; tone: number; hint: string };
 
 export const TOOLS: Tool[] = [
   { id: "mapa", href: "/app/mapa", label: "Mapa de situação", group: "Apresentação", tone: 1, hint: "satélite entorno endereço localização",
@@ -17,14 +17,18 @@ export const TOOLS: Tool[] = [
     icon: "M4 20l4-1 11-11-3-3L5 16zM14 6l3 3" },
   { id: "ideias", href: "/app/ideias", label: "Gerar ideias", group: "Imagem", tone: 1, hint: "variações estilo fachada interior inspiração",
     icon: "M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" },
+  { id: "editor", href: "/app/editor", label: "Editar por regiões", group: "Edição", tone: 4, hint: "pincel máscara trocar objeto material editar parte",
+    icon: "M4 20l4-1 11-11-3-3L5 16zM14 6l3 3M3 22h18" },
+  { id: "angulos", href: "/app/angulos", label: "Multi-ângulo", group: "Edição", tone: 5, hint: "câmera girar vista de cima perspectiva ângulos mosaico",
+    icon: "M12 3a9 9 0 1 0 9 9M12 3v4M12 3l3 2M7 12a5 5 0 1 0 10 0 5 5 0 0 0-10 0z" },
   { id: "luz", href: "/app/luz", label: "Variação de luz", group: "Imagem", tone: 5, hint: "iluminação manhã golden hour noite blue hour",
     icon: "M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" },
 ];
-export const GROUPS: Tool["group"][] = ["Apresentação", "Imagem"];
+export const GROUPS: Tool["group"][] = ["Apresentação", "Imagem", "Edição"];
 export const DEFAULT_PINS: ToolId[] = ["mapa", "render"];
 export const toolById = (id: string) => TOOLS.find((t) => t.id === id);
 
-export const TYPE_LABEL: Record<string, string> = { mapa: "Mapa de situação", moodboard: "Moodboard", render: "Render", luz: "Variação de luz", filme: "Filme", melhorar: "Melhorar render", esboco: "Render de esboço", ideias: "Gerar ideias" };
+export const TYPE_LABEL: Record<string, string> = { mapa: "Mapa de situação", moodboard: "Moodboard", render: "Render", luz: "Variação de luz", filme: "Filme", melhorar: "Melhorar render", esboco: "Render de esboço", ideias: "Gerar ideias", editor: "Editar por regiões", angulos: "Multi-ângulo" };
 
 const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 export function searchTools(q: string): Tool[] {

@@ -160,3 +160,25 @@
 .shell .tpfoot { padding: 4px 20px 20px; }
 .shell .tpfoot .tcost { margin-top: 0; }
 @media (max-width: 860px) { .shell .tpanel { max-height: none; } .shell .tpbody { overflow: visible; } }
+
+/* ---------- editor por regiões ---------- */
+.ecanvas { position: relative; margin-top: 14px; line-height: 0; border-radius: 18px; overflow: hidden; box-shadow: var(--raise-sm); touch-action: none; user-select: none; -webkit-user-select: none; }
+.ecanvas img { width: 100%; height: auto; display: block; max-height: 640px; object-fit: contain; background: var(--field); }
+.ecanvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; }
+.regions { display: flex; flex-direction: column; gap: 8px; }
+.region { padding: 10px; border-radius: 16px; border: 1px solid var(--rim); background: var(--field); box-shadow: var(--inset); }
+.region.on { box-shadow: inset 0 0 0 2px var(--sage); }
+.region textarea { min-height: 62px; }
+.rnum { width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; flex: none; }
+.region .row { flex-wrap: nowrap; gap: 8px; justify-content: flex-start; }
+.region .row .ghost { margin-left: auto; }
+
+/* ---------- multi-ângulo ---------- */
+.dial { width: 170px; height: 170px; display: block; margin: 6px auto 0; cursor: grab; touch-action: none; }
+.dial .dring { fill: var(--field); stroke: var(--line-strong); stroke-width: 1.5; }
+.dial .dhouse { fill: var(--surface); stroke: var(--sage); stroke-width: 2; }
+.dial .dnorth { fill: var(--sage); opacity: .5; }
+.dial .dline { stroke: var(--sage); stroke-width: 2; stroke-dasharray: 4 4; }
+.dial .dcam { fill: var(--sage); stroke: var(--ivory); stroke-width: 3; }
+.dial .dtxt { font-size: 9px; fill: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.dial:focus-visible { outline: 2px solid var(--sage); outline-offset: 4px; border-radius: 50%; }
