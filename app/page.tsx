@@ -40,7 +40,6 @@ export default async function Landing() {
           </div>
           <div>
             <HouseSplit />
-            <div className="caption"><span>Estrutura</span><span>Render</span></div>
           </div>
         </section>
 
