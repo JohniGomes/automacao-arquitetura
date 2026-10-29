@@ -54,13 +54,14 @@
 
 /* ---------- padrão de ferramenta ---------- */
 .tool { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; }
-.tmain { min-width: 0; } .tmain .card:first-child { margin-top: 0; }
-.tpanel { position: sticky; top: 14px; background: var(--surface); border: 1px solid var(--rim); border-radius: 26px; padding: 20px; box-shadow: var(--raise); }
+.tmain { min-width: 0; grid-column: 1; grid-row: 1; }
+.tresult { min-width: 0; grid-column: 1; grid-row: 2; } .tmain .card:first-child { margin-top: 0; }
+.tpanel { grid-column: 2; grid-row: 1 / span 2; position: sticky; top: 14px; background: var(--surface); border: 1px solid var(--rim); border-radius: 26px; padding: 20px; box-shadow: var(--raise); }
 .tpanel .field:first-child { margin-top: 0; }
 .tpanel .full { width: 100%; }
 .tcost { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0 14px; margin-top: 6px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
 .tcost b { font-size: 20px; font-weight: 600; color: var(--deep); font-variant-numeric: tabular-nums; }
-.tresult { grid-column: 1 / -1; min-width: 0; }
+.tresult { min-width: 0; }
 .tip { font-size: 13px; color: var(--muted); margin: 10px 4px 0; }
 
 /* ---------- início ---------- */
@@ -116,7 +117,8 @@
   .drawer { inset: auto 10px 88px 10px; width: auto; max-height: 62vh; }
   .pop { left: auto; right: 10px; bottom: 88px; }
   .tool { grid-template-columns: minmax(0, 1fr); }
-  .tpanel { position: static; }
+  .tpanel { position: static; grid-column: 1; grid-row: auto; }
+  .tmain, .tresult { grid-column: 1; grid-row: auto; }
   .homehead h1 { font-size: 28px; }
   .gthumbs img:nth-child(n+3) { display: none; }
 }
