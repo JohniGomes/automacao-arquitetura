@@ -5,8 +5,7 @@ import { useEffect, useState } from "react";
 import Logo from "./Logo";
 import ToolIcon from "./ToolIcon";
 import { useCredits } from "./useCredits";
-import { usePins } from "@/lib/usePins";
-import { GROUPS, TOOLS, searchTools, toolById } from "@/lib/tools";
+import { GROUPS, TOOLS, searchTools } from "@/lib/tools";
 
 const Ic = ({ d }: { d: string }) => (
   <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
@@ -22,7 +21,6 @@ const I = {
 export default function Rail({ name, credits }: { name: string; credits: number }) {
   const path = usePathname();
   const c = useCredits(credits);
-  const { pins } = usePins();
   const [drawer, setDrawer] = useState(false);
   const [pop, setPop] = useState(false);
   const [q, setQ] = useState("");
@@ -51,11 +49,6 @@ export default function Rail({ name, credits }: { name: string; credits: number 
           <Item href="/app/projetos" label="Projetos" icon={I.folder} active={on("/app/projetos")} />
           <Item href="/app/geracoes" label="Gerações" icon={I.image} active={on("/app/geracoes")} />
           <button className={`ritem ${drawer || inTool ? "on" : ""}`} aria-expanded={drawer} onClick={() => { setDrawer(!drawer); setPop(false); }}><Ic d={I.tools} /><span>Ferramentas</span></button>
-        </div>
-        <div className="rpins" aria-label="Atalhos">
-          {pins.map((id) => { const t = toolById(id); return t ? (
-            <Link key={id} href={t.href} className={`ritem ${on(t.href) ? "on" : ""}`} title={t.label}><Ic d={t.icon} /><span>{t.label.split(" ")[0]}</span></Link>
-          ) : null; })}
         </div>
         <div className="rfoot">
           <Link href="/app/creditos" className="rcredits" title="Créditos"><b>{c}</b><span>créditos</span></Link>

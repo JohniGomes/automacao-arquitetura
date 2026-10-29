@@ -48,7 +48,8 @@ input[type=text], input[type=email], input[type=password], textarea, select {
 }
 input::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
 input[type=file] { color: var(--muted); font-size: 14px; max-width: 100%; }
-input[type=file]::file-selector-button { background: var(--surface); color: var(--deep); border: 1px solid var(--rim); border-radius: 99px; padding: 7px 16px; margin-right: 10px; cursor: pointer; font: inherit; font-size: 14px; box-shadow: var(--raise-sm); }
+input[type=file]::file-selector-button { background: color-mix(in srgb, var(--sage) 14%, var(--ivory)); color: var(--deep); border: 1px solid color-mix(in srgb, var(--deep) 28%, transparent); border-radius: 10px; padding: 7px 16px; margin-right: 12px; cursor: pointer; font: inherit; font-size: 14px; font-weight: 500; box-shadow: none; transition: background .15s, border-color .15s; }
+input[type=file]:hover::file-selector-button { background: color-mix(in srgb, var(--sage) 26%, var(--ivory)); border-color: color-mix(in srgb, var(--deep) 45%, transparent); }
 input[type=range] { width: 100%; accent-color: var(--deep); }
 textarea { min-height: 160px; line-height: 1.5; border-radius: 20px; }
 label { display: block; font-weight: 500; margin-bottom: 7px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }

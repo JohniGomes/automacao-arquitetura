@@ -75,7 +75,7 @@ export default function HomeView({ firstName }: { firstName: string }) {
         </div>
         {edit && (
           <div className="card pins">
-            <p className="small muted" style={{ marginTop: 0 }}>Escolha os atalhos do início e do menu lateral.</p>
+            <p className="small muted" style={{ marginTop: 0 }}>Escolha os atalhos da tela inicial.</p>
             <div className="chips">
               {TOOLS.map((t) => <button key={t.id} type="button" className={`chip ${pins.includes(t.id) ? "on" : ""}`} aria-pressed={pins.includes(t.id)} onClick={() => toggle(t.id)}>{t.label}</button>)}
             </div>

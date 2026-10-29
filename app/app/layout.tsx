@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
-import { env, keyName, mockGemini, mockMaps, mockVideo } from "@/lib/config";
 import Rail from "@/components/Rail";
 
 export const dynamic = "force-dynamic";
@@ -13,9 +12,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Rail name={u.name} credits={u.credits} />
       <div className="main">
         <div className="wrap">
-          {(mockGemini() || mockVideo() || mockMaps()) && (
-            <p className="warn" style={{ marginBottom: 18 }}>Modo de teste (mock): {(mockGemini() || mockVideo()) && `sem ${keyName(mockGemini() ? env.imageProvider : env.videoProvider)}`}{(mockGemini() || mockVideo()) && mockMaps() && " e "}{mockMaps() && "sem GOOGLE_MAPS_API_KEY"}. Os resultados são exemplos, não IA real.</p>
-          )}
           {children}
         </div>
       </div>
