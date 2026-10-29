@@ -30,7 +30,7 @@ export default async function Landing() {
         </header>
 
         <section className="hero">
-          <div>
+          <div className="txt">
             <h1>Do print do 3D ao <em>filme do projeto</em>.</h1>
             <p className="lead">O ArqIA reúne em um só lugar o fluxo que você faz à mão: mapa de situação, moodboard, render, variações de luz e filme, com a geometria da sua casa como ponto de partida.</p>
             <div className="cta">

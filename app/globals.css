@@ -106,16 +106,13 @@ details summary { cursor: pointer; }
   .topbar .brand { padding: 0; }
 }
 
-/* ---------- casa: modelo 3D (esquerda) e render (direita), mesma foto em dois estados ---------- */
+/* ---------- casa: modelo 3D (esquerda) e render (direita), mesma foto em dois estados, divisão fixa ---------- */
 .house { position: relative; overflow: hidden; background: var(--p5); isolation: isolate; }
 .house .layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; }
-.house .real { clip-path: inset(0 0 0 50%); animation: sweep 16s ease-in-out infinite; }
-.house .seam { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: var(--p5); box-shadow: 0 0 0 1px color-mix(in srgb, var(--p1) 25%, transparent), 0 0 16px 2px color-mix(in srgb, var(--p1) 35%, transparent); animation: seam 16s ease-in-out infinite; }
+.house .real { clip-path: inset(0 0 0 50%); }
+.house .seam { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: var(--p5); box-shadow: 0 0 0 1px color-mix(in srgb, var(--p1) 25%, transparent), 0 0 16px 2px color-mix(in srgb, var(--p1) 35%, transparent); }
 .house .tg { position: absolute; bottom: 12px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; background: color-mix(in srgb, var(--p5) 88%, transparent); color: var(--p1); padding: 4px 10px; border-radius: 99px; }
 .house .tg.l { left: 12px; } .house .tg.r { right: 12px; }
-@keyframes sweep { 0%, 100% { clip-path: inset(0 0 0 34%); } 50% { clip-path: inset(0 0 0 66%); } }
-@keyframes seam { 0%, 100% { left: 34%; } 50% { left: 66%; } }
-@media (prefers-reduced-motion: reduce) { .house .real, .house .seam { animation: none; } }
 
 /* ---------- landing ---------- */
 .land { background: radial-gradient(1100px 620px at 82% -8%, color-mix(in srgb, var(--p4) 70%, transparent), transparent 62%), var(--bg); }
@@ -123,12 +120,13 @@ details summary { cursor: pointer; }
 .lnav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 20px; padding-bottom: 20px; }
 .lnav .links { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .lnav .links a.txt { color: var(--p2); text-decoration: none; font-size: 15px; padding: 8px 10px; }
-.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 48px; align-items: center; padding-top: 40px; padding-bottom: 72px; }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 44px; padding-top: 32px; padding-bottom: 72px; }
+.hero .txt { max-width: 780px; }
 .hero h1 { font-size: clamp(36px, 5.2vw, 62px); line-height: 1.03; letter-spacing: -0.035em; }
 .hero h1 em { font-style: normal; color: var(--p3); }
 .hero p.lead { font-size: 18px; color: var(--muted); max-width: 46ch; margin: 22px 0 28px; }
 .hero .cta { display: flex; gap: 12px; flex-wrap: wrap; }
-.hero .house { aspect-ratio: 1920 / 1072; border-radius: 22px; border: 1px solid var(--line-strong); box-shadow: 0 30px 70px -30px color-mix(in srgb, var(--p1) 55%, transparent); }
+.hero .house { aspect-ratio: 1920 / 1072; border-radius: 26px; width: 100%; border: 1px solid var(--line-strong); box-shadow: 0 30px 70px -30px color-mix(in srgb, var(--p1) 55%, transparent); }
 .sec { padding-top: 64px; padding-bottom: 64px; border-top: 1px solid var(--line-strong); }
 .sec h2 { font-size: clamp(26px, 3.4vw, 40px); max-width: 20ch; }
 .sec .sub { color: var(--muted); max-width: 56ch; margin-top: 14px; }
@@ -147,7 +145,7 @@ details summary { cursor: pointer; }
 .final .btn.ghost { background: transparent; color: var(--p5); border-color: color-mix(in srgb, var(--p4) 55%, transparent); } .final .btn.ghost:hover { background: color-mix(in srgb, var(--p5) 12%, transparent); }
 .lfoot { border-top: 1px solid var(--line-strong); padding-top: 24px; padding-bottom: 36px; font-size: 12.5px; color: var(--muted); }
 @media (max-width: 900px) {
-  .hero { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-top: 24px; padding-bottom: 48px; }
+  .hero { gap: 28px; padding-top: 16px; padding-bottom: 48px; }
   .steps li { grid-template-columns: 44px minmax(0, 1fr); } .steps li p { grid-column: 2; }
   .trio { grid-template-columns: minmax(0, 1fr); gap: 24px; }
 }
