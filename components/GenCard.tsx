@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useLang, useT } from "./I18nProvider";
 import { Gen, Results } from "./client";
 import { TYPE_LABEL } from "@/lib/tools";
 
@@ -13,6 +14,8 @@ const Heart = ({ on }: { on: boolean }) => (
 
 /** Cartão de uma geração: miniaturas, favorito, projeto e resultado completo ao abrir. */
 export default function GenCard({ gen, projects, onChange }: { gen: Gen; projects: Proj[]; onChange: (g: Gen) => void }) {
+  const t = useT();
+  const lang = useLang();
   const [err, setErr] = useState("");
   const thumbs = gen.outputs.filter((o) => o.kind === "image").slice(0, 4);
 
@@ -20,7 +23,7 @@ export default function GenCard({ gen, projects, onChange }: { gen: Gen; project
     setErr("");
     const r = await fetch(`/api/generations/${gen.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const j = await r.json();
-    if (!r.ok) { setErr(j.error || "Não foi possível salvar."); return; }
+    if (!r.ok) { setErr(t(j.error || "Não foi possível salvar.")); return; }
     onChange({ ...gen, ...body });
   }
 
@@ -28,28 +31,28 @@ export default function GenCard({ gen, projects, onChange }: { gen: Gen; project
     <details className="card gcard" id={`g-${gen.id}`}>
       <summary>
         <div className="gthumbs">
-          {thumbs.length ? thumbs.map((o) => <img key={o.file} src={`/api/files/${o.file}`} alt="" loading="lazy" />) : <span className="gempty">{gen.status === "error" ? "Erro" : "…"}</span>}
+          {thumbs.length ? thumbs.map((o) => <img key={o.file} src={`/api/files/${o.file}`} alt="" loading="lazy" />) : <span className="gempty">{gen.status === "error" ? t("Erro") : "…"}</span>}
         </div>
         <div className="ginfo">
-          <strong>{gen.summary}</strong>
+          <strong>{t(gen.summary)}</strong>
           <span className="muted small">
-            {TYPE_LABEL[gen.type] || gen.type} · {new Date(gen.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })} · {gen.cost} créditos
-            {gen.status !== "done" && ` · ${gen.status === "error" ? "erro" : "em andamento"}`}{gen.mock ? " · mock" : ""}
+            {t(TYPE_LABEL[gen.type] || gen.type)} · {new Date(gen.createdAt).toLocaleString(lang === "en" ? "en-US" : "pt-BR", { dateStyle: "short", timeStyle: "short" })} · {gen.cost} {t("créditos")}
+            {gen.status !== "done" && ` · ${gen.status === "error" ? t("erro") : t("em andamento")}`}{gen.mock ? " · mock" : ""}
           </span>
         </div>
-        <button type="button" className={`ghost fav ${gen.favorite ? "on" : ""}`} aria-pressed={!!gen.favorite} aria-label={gen.favorite ? "Remover dos favoritos" : "Favoritar"}
+        <button type="button" className={`ghost fav ${gen.favorite ? "on" : ""}`} aria-pressed={!!gen.favorite} aria-label={gen.favorite ? t("Remover dos favoritos") : t("Favoritar")}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); patch({ favorite: !gen.favorite }); }}><Heart on={!!gen.favorite} /></button>
       </summary>
       <div className="gbody">
         <div className="row gap">
-          <label htmlFor={`pj-${gen.id}`} style={{ margin: 0 }}>Projeto</label>
+          <label htmlFor={`pj-${gen.id}`} style={{ margin: 0 }}>{t("Projeto")}</label>
           <select id={`pj-${gen.id}`} style={{ width: "auto", minWidth: 180 }} value={gen.projectId || ""} onChange={(e) => patch({ projectId: e.target.value || null })}>
-            <option value="">Sem projeto</option>
+            <option value="">{t("Sem projeto")}</option>
             {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </div>
         {err && <p className="err small">{err}</p>}
-        {gen.error && <p className="err">{gen.error}</p>}
+        {gen.error && <p className="err">{t(gen.error)}</p>}
         <Results gen={gen} />
       </div>
     </details>

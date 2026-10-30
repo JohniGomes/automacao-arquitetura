@@ -1,28 +1,31 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useT } from "./I18nProvider";
 
 /** Controle segmentado (opções lado a lado) com descrição da opção escolhida. */
 export function Seg<T extends string>({ label, value, onChange, options }: {
   label: string; value: T; onChange: (v: T) => void; options: { v: T; label: string; desc?: string }[];
 }) {
+  const t = useT();
   const cur = options.find((o) => o.v === value);
   return (
     <div className="field">
-      <label>{label}</label>
-      <div className="seg" role="group" aria-label={label}>
-        {options.map((o) => <button key={o.v} type="button" className={value === o.v ? "on" : ""} aria-pressed={value === o.v} onClick={() => onChange(o.v)}>{o.label}</button>)}
+      <label>{t(label)}</label>
+      <div className="seg" role="group" aria-label={t(label)}>
+        {options.map((o) => <button key={o.v} type="button" className={value === o.v ? "on" : ""} aria-pressed={value === o.v} onClick={() => onChange(o.v)}>{t(o.label)}</button>)}
       </div>
-      {cur?.desc && <p className="small muted" style={{ margin: "6px 2px 0" }}>{cur.desc}</p>}
+      {cur?.desc && <p className="small muted" style={{ margin: "6px 2px 0" }}>{t(cur.desc)}</p>}
     </div>
   );
 }
 
 /** Número de versões (1 a 4). */
 export function Versions({ value, onChange, max = 4 }: { value: number; onChange: (n: number) => void; max?: number }) {
+  const t = useT();
   return (
     <div className="field">
-      <label>Quantas versões</label>
-      <div className="seg" role="group" aria-label="Quantas versões">
+      <label>{t("Quantas versões")}</label>
+      <div className="seg" role="group" aria-label={t("Quantas versões")}>
         {Array.from({ length: max }, (_, i) => i + 1).map((n) => <button key={n} type="button" className={value === n ? "on" : ""} aria-pressed={value === n} onClick={() => onChange(n)}>{n}</button>)}
       </div>
     </div>
@@ -33,20 +36,22 @@ export function Versions({ value, onChange, max = 4 }: { value: number; onChange
 export function Slider({ label, value, onChange, min, max, step = 1, left, right, valueLabel }: {
   label: string; value: number; onChange: (n: number) => void; min: number; max: number; step?: number; left: string; right: string; valueLabel?: string;
 }) {
+  const t = useT();
   return (
     <div className="field">
-      <label htmlFor={`sl-${label}`}>{label}{valueLabel ? `: ${valueLabel}` : ""}</label>
+      <label htmlFor={`sl-${label}`}>{t(label)}{valueLabel ? `: ${t(valueLabel)}` : ""}</label>
       <input id={`sl-${label}`} type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(+e.target.value)} />
-      <div className="row small muted" style={{ margin: 0 }}><span>{left}</span><span>{right}</span></div>
+      <div className="row small muted" style={{ margin: 0 }}><span>{t(left)}</span><span>{t(right)}</span></div>
     </div>
   );
 }
 
 /** Seção que abre e fecha (opções avançadas). */
 export function Fold({ title, open, onToggle, children }: { title: string; open: boolean; onToggle: () => void; children: React.ReactNode }) {
+  const t = useT();
   return (
     <div className="fold">
-      <button type="button" className="ghost foldbtn" aria-expanded={open} onClick={onToggle}><span>{title}</span><span aria-hidden="true">{open ? "−" : "+"}</span></button>
+      <button type="button" className="ghost foldbtn" aria-expanded={open} onClick={onToggle}><span>{t(title)}</span><span aria-hidden="true">{open ? "−" : "+"}</span></button>
       {open && <div className="foldbody">{children}</div>}
     </div>
   );

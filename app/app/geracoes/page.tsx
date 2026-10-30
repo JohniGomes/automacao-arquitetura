@@ -2,11 +2,13 @@
 import { useEffect, useState } from "react";
 import { Gen } from "@/components/client";
 import GenCard, { Proj } from "@/components/GenCard";
+import { useT } from "@/components/I18nProvider";
 import { TYPE_LABEL } from "@/lib/tools";
 
 const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
 export default function Geracoes() {
+  const t = useT();
   const [gens, setGens] = useState<Gen[] | null>(null);
   const [projects, setProjects] = useState<Proj[]>([]);
   const [tab, setTab] = useState<"todas" | "fav">("todas");
@@ -35,25 +37,25 @@ export default function Geracoes() {
 
   return (
     <>
-      <div className="thead"><h1>Gerações</h1></div>
+      <div className="thead"><h1>{t("Gerações")}</h1></div>
       <div className="row gap" style={{ marginBottom: 12 }}>
         <div className="chips">
-          <button type="button" className={`chip ${tab === "todas" ? "on" : ""}`} aria-pressed={tab === "todas"} onClick={() => setTab("todas")}>Todas</button>
-          <button type="button" className={`chip ${tab === "fav" ? "on" : ""}`} aria-pressed={tab === "fav"} onClick={() => setTab("fav")}>Favoritas</button>
+          <button type="button" className={`chip ${tab === "todas" ? "on" : ""}`} aria-pressed={tab === "todas"} onClick={() => setTab("todas")}>{t("Todas")}</button>
+          <button type="button" className={`chip ${tab === "fav" ? "on" : ""}`} aria-pressed={tab === "fav"} onClick={() => setTab("fav")}>{t("Favoritas")}</button>
         </div>
-        <input type="text" placeholder="Buscar por tipo ou nome" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar gerações" style={{ maxWidth: 280 }} />
-        <select value={tipo} onChange={(e) => setTipo(e.target.value)} aria-label="Filtrar por tipo" style={{ width: "auto" }}>
-          <option value="">Todos os tipos</option>
-          {Object.entries(TYPE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        <input type="text" placeholder={t("Buscar por tipo ou nome")} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t("Buscar gerações")} style={{ maxWidth: 280 }} />
+        <select value={tipo} onChange={(e) => setTipo(e.target.value)} aria-label={t("Filtrar por tipo")} style={{ width: "auto" }}>
+          <option value="">{t("Todos os tipos")}</option>
+          {Object.entries(TYPE_LABEL).map(([k, v]) => <option key={k} value={k}>{t(v)}</option>)}
         </select>
-        <select value={proj} onChange={(e) => setProj(e.target.value)} aria-label="Filtrar por projeto" style={{ width: "auto" }}>
-          <option value="">Todos os projetos</option>
-          <option value="__none">Sem projeto</option>
+        <select value={proj} onChange={(e) => setProj(e.target.value)} aria-label={t("Filtrar por projeto")} style={{ width: "auto" }}>
+          <option value="">{t("Todos os projetos")}</option>
+          <option value="__none">{t("Sem projeto")}</option>
           {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
       </div>
-      {gens === null ? <p className="muted">Carregando…</p> : shown.length === 0 ? (
-        <p className="muted">{gens.length === 0 ? "Nada gerado ainda. Escolha uma ferramenta no menu." : tab === "fav" ? "Nenhuma geração favorita." : "Nenhuma geração encontrada."}</p>
+      {gens === null ? <p className="muted">{t("Carregando…")}</p> : shown.length === 0 ? (
+        <p className="muted">{gens.length === 0 ? t("Nada gerado ainda. Escolha uma ferramenta no menu.") : tab === "fav" ? t("Nenhuma geração favorita.") : t("Nenhuma geração encontrada.")}</p>
       ) : shown.map((g) => <GenCard key={g.id} gen={g} projects={projects} onChange={(u) => setGens((a) => (a || []).map((x) => (x.id === u.id ? u : x)))} />)}
     </>
   );

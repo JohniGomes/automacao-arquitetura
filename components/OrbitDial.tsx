@@ -1,11 +1,13 @@
 "use client";
 import { useRef } from "react";
+import { useT } from "./I18nProvider";
 
 /**
  * Vista de cima da órbita da câmera: arraste a câmera ao redor da casa (0° = frente).
  * Valores de -180 a 180; negativo = esquerda, positivo = direita.
  */
 export default function OrbitDial({ value, onChange }: { value: number; onChange: (deg: number) => void }) {
+  const t = useT();
   const box = useRef<SVGSVGElement>(null);
   const drag = useRef(false);
   const R = 62, C = 80;
@@ -19,7 +21,7 @@ export default function OrbitDial({ value, onChange }: { value: number; onChange
   };
 
   return (
-    <svg ref={box} viewBox="0 0 160 160" className="dial" role="slider" tabIndex={0} aria-label="Giro da câmera" aria-valuemin={-180} aria-valuemax={180} aria-valuenow={value}
+    <svg ref={box} viewBox="0 0 160 160" className="dial" role="slider" tabIndex={0} aria-label={t("Giro da câmera")} aria-valuemin={-180} aria-valuemax={180} aria-valuenow={value}
       onPointerDown={(e) => { drag.current = true; e.currentTarget.setPointerCapture(e.pointerId); set(e); }}
       onPointerMove={(e) => drag.current && set(e)} onPointerUp={() => (drag.current = false)} onPointerCancel={() => (drag.current = false)}
       onKeyDown={(e) => {

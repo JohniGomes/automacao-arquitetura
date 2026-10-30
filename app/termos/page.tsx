@@ -1,7 +1,6 @@
 import LegalPage from "@/components/LegalPage";
 import { CONTACT_EMAIL } from "@/lib/legal";
 
-export const metadata = { title: "Termos de Uso — ArqIA" };
 
 export default function Termos() {
   return (

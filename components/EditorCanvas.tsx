@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useT } from "./I18nProvider";
 
 export type Stroke = { pts: [number, number][]; size: number };
 export type Region = { id: string; kind: "rect" | "brush"; rect?: { x: number; y: number; w: number; h: number }; strokes: Stroke[]; text: string };
@@ -44,6 +45,7 @@ export default function EditorCanvas({ src, regions, active, tool, brush, onChan
   src: string; regions: Region[]; active: string | null; tool: "rect" | "brush"; brush: number; max: number;
   onChange: (regions: Region[], active: string | null) => void; onSize: (w: number, h: number) => void;
 }) {
+  const t = useT();
   const img = useRef<HTMLImageElement>(null);
   const cv = useRef<HTMLCanvasElement>(null);
   const draft = useRef<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
@@ -121,9 +123,9 @@ export default function EditorCanvas({ src, regions, active, tool, brush, onChan
 
   return (
     <div className="ecanvas">
-      <img ref={img} src={src} alt="Imagem a editar" draggable={false}
+      <img ref={img} src={src} alt={t("Imagem a editar")} draggable={false}
         onLoad={(e) => { onSize(e.currentTarget.naturalWidth, e.currentTarget.naturalHeight); setTick((t) => t + 1); }} />
-      <canvas ref={cv} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} aria-label="Desenhe sobre a imagem para marcar as regiões" />
+      <canvas ref={cv} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} aria-label={t("Desenhe sobre a imagem para marcar as regiões")} />
     </div>
   );
 }

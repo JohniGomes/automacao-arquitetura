@@ -6,6 +6,7 @@ import { Seg } from "@/components/controls";
 import ToolShell from "@/components/ToolShell";
 import { MAX_REGIOES } from "@/lib/compose";
 import { COSTS_EDICAO } from "@/lib/costs";
+import { useT } from "@/components/I18nProvider";
 
 function useImageUrl(v: Val) {
   const [u, setU] = useState("");
@@ -17,6 +18,7 @@ function useImageUrl(v: Val) {
 }
 
 export default function Editor() {
+  const t = useT();
   const [base, setBase] = useState<Val>(null);
   const [regions, setRegions] = useState<Region[]>([]);
   const [active, setActive] = useState<string | null>(null);
@@ -45,7 +47,7 @@ export default function Editor() {
       }
       await submit(fields);
     } catch (e: any) {
-      setErro(e.message || "Não foi possível preparar as regiões.");
+      setErro(t(e.message || "Não foi possível preparar as regiões."));
     } finally { setPreparing(false); }
   }
 
@@ -62,28 +64,28 @@ export default function Editor() {
           <Seg label="Ferramenta" value={tool} onChange={setTool} options={[{ v: "rect", label: "Retângulo" }, { v: "brush", label: "Pincel" }]} />
           {tool === "brush" && (
             <div className="field">
-              <label htmlFor="bs">Tamanho do pincel</label>
+              <label htmlFor="bs">{t("Tamanho do pincel")}</label>
               <input id="bs" type="range" min={0.01} max={0.08} step={0.005} value={brush} onChange={(e) => setBrush(+e.target.value)} />
-              <button type="button" className="ghost" style={{ marginTop: 8 }} onClick={() => setActive(null)}>Nova região</button>
+              <button type="button" className="ghost" style={{ marginTop: 8 }} onClick={() => setActive(null)}>{t("Nova região")}</button>
             </div>
           )}
           <div className="field">
-            <label>Regiões ({regions.length}/{MAX_REGIOES})</label>
-            {regions.length === 0 && <p className="small muted" style={{ margin: 0 }}>Desenhe sobre a imagem e descreva o que mudar em cada região.</p>}
+            <label>{t("Regiões")} ({regions.length}/{MAX_REGIOES})</label>
+            {regions.length === 0 && <p className="small muted" style={{ margin: 0 }}>{t("Desenhe sobre a imagem e descreva o que mudar em cada região.")}</p>}
             <div className="regions">
               {regions.map((r, i) => (
                 <div key={r.id} className={`region ${active === r.id ? "on" : ""}`} onClick={() => setActive(r.id)}>
                   <div className="row" style={{ marginBottom: 6 }}>
                     <span className="rnum" style={{ background: REGION_COLORS[i % REGION_COLORS.length] }}>{i + 1}</span>
-                    <span className="small muted" style={{ margin: 0 }}>{r.kind === "rect" ? "Retângulo" : `Pincel · ${r.strokes.length} ${r.strokes.length === 1 ? "traço" : "traços"}`}</span>
-                    <button type="button" className="ghost" aria-label={`Remover região ${i + 1}`} onClick={(e) => { e.stopPropagation(); remove(r.id); }}>Remover</button>
+                    <span className="small muted" style={{ margin: 0 }}>{r.kind === "rect" ? t("Retângulo") : `${t("Pincel")} · ${r.strokes.length} ${r.strokes.length === 1 ? t("traço") : t("traços")}`}</span>
+                    <button type="button" className="ghost" aria-label={t("Remover região {n}", { n: i + 1 })} onClick={(e) => { e.stopPropagation(); remove(r.id); }}>{t("Remover")}</button>
                   </div>
                   <textarea className="short" maxLength={300} value={r.text} onChange={(e) => setText(r.id, e.target.value)} onFocus={() => setActive(r.id)}
-                    placeholder="O que mudar aqui? Ex.: trocar o piso por madeira clara" aria-label={`Instrução da região ${i + 1}`} />
+                    placeholder={t("O que mudar aqui? Ex.: trocar o piso por madeira clara")} aria-label={t("Instrução da região {n}", { n: i + 1 })} />
                 </div>
               ))}
             </div>
-            {regions.length > 0 && <button type="button" className="ghost" style={{ marginTop: 10 }} onClick={() => { setRegions([]); setActive(null); }}>Limpar tudo</button>}
+            {regions.length > 0 && <button type="button" className="ghost" style={{ marginTop: 10 }} onClick={() => { setRegions([]); setActive(null); }}>{t("Limpar tudo")}</button>}
           </div>
           {erro && <p className="err small">{erro}</p>}
         </>

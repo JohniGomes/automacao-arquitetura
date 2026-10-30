@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useT } from "./I18nProvider";
 
 export type Gen = {
   id: string; type: string; status: "queued" | "running" | "done" | "error"; progress: number; message: string;
@@ -43,28 +44,30 @@ export function useJob() {
 }
 
 export function Progress({ gen }: { gen: Gen }) {
+  const t = useT();
   return (
     <div className="card">
-      <div className="row"><strong>{gen.summary}</strong><span className={`tag ${gen.status}`}>{{ queued: "Na fila", running: "Gerando", done: "Pronto", error: "Erro" }[gen.status]}</span></div>
+      <div className="row"><strong>{t(gen.summary)}</strong><span className={`tag ${gen.status}`}>{t({ queued: "Na fila", running: "Gerando", done: "Pronto", error: "Erro" }[gen.status])}</span></div>
       {(gen.status === "queued" || gen.status === "running") && (
-        <><div className="bar"><div style={{ width: `${gen.progress}%` }} /></div><p className="muted">{gen.progress}% — {gen.message}</p></>
+        <><div className="bar"><div style={{ width: `${gen.progress}%` }} /></div><p className="muted">{gen.progress}% — {t(gen.message)}</p></>
       )}
-      {gen.status === "error" && <p className="err">{gen.error} {gen.message}</p>}
+      {gen.status === "error" && <p className="err">{t(gen.error || "")} {t(gen.message)}</p>}
     </div>
   );
 }
 
 export function Results({ gen }: { gen: Gen }) {
+  const t = useT();
   if (!gen.outputs.length) return null;
   return (
     <div className="results">
-      {gen.mock && <p className="warn">Modo mock: estas são imagens/vídeos de exemplo, não saídas reais de IA.</p>}
-      {gen.type === "mapa" && <p className="attr">Imagens de satélite © Google · Dados do mapa © Google e provedores. Uso sujeito aos Termos da Google Maps Platform.</p>}
+      {gen.mock && <p className="warn">{t("Modo mock: estas são imagens/vídeos de exemplo, não saídas reais de IA.")}</p>}
+      {gen.type === "mapa" && <p className="attr">{t("Imagens de satélite © Google · Dados do mapa © Google e provedores. Uso sujeito aos Termos da Google Maps Platform.")}</p>}
       <div className="grid">
         {gen.outputs.map((o) => (
           <figure key={o.file}>
             {o.kind === "video" ? <video src={`/api/files/${o.file}`} controls /> : <img src={`/api/files/${o.file}`} alt={o.label || ""} />}
-            <figcaption><span>{o.label}</span><a href={`/api/files/${o.file}?dl=1`}>Baixar</a></figcaption>
+            <figcaption><span>{t(o.label || "")}</span><a href={`/api/files/${o.file}?dl=1`}>{t("Baixar")}</a></figcaption>
           </figure>
         ))}
       </div>
@@ -73,8 +76,9 @@ export function Results({ gen }: { gen: Gen }) {
 }
 
 export function Run({ gen, error }: { gen: Gen | null; error: string }) {
+  const t = useT();
   return (<>
-    {error && <p className="err">{error}</p>}
+    {error && <p className="err">{t(error)}</p>}
     {gen && <><Progress gen={gen} /><Results gen={gen} /></>}
   </>);
 }
@@ -83,9 +87,11 @@ export function Run({ gen, error }: { gen: Gen | null; error: string }) {
 export function ImageInput({ label, value, onChange, history = true, hint, showPreview = true }: {
   label: string; value: Val; onChange: (v: Val) => void; history?: boolean; hint?: string; showPreview?: boolean;
 }) {
+  const t = useT();
   const [files, setFiles] = useState<{ file: string; label?: string }[]>([]);
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (value instanceof File) { const u = URL.createObjectURL(value); setPreview(u); return () => URL.revokeObjectURL(u); }
@@ -103,20 +109,23 @@ export function ImageInput({ label, value, onChange, history = true, hint, showP
   }
   return (
     <div className="field">
-      <label>{label}</label>
-      {hint && <p className="muted small">{hint}</p>}
+      <label>{t(label)}</label>
+      {hint && <p className="muted small">{t(hint)}</p>}
       <div className="row gap">
-        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => onChange(e.target.files?.[0] ?? null)} />
-        {history && <button type="button" className="ghost" onClick={loadHistory}>Usar do histórico</button>}
-        {value && <button type="button" className="ghost" onClick={() => onChange(null)}>Limpar</button>}
+        {/* botão próprio: o texto do seletor nativo segue o idioma do navegador, não o do app */}
+        <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" style={{ display: "none" }} onChange={(e) => onChange(e.target.files?.[0] ?? null)} />
+        <button type="button" className="ghost" onClick={() => fileRef.current?.click()}>{t("Escolher arquivo")}</button>
+        <span className="small muted filename" style={{ margin: 0 }}>{value instanceof File ? value.name : t("Nenhum arquivo escolhido")}</span>
+        {history && <button type="button" className="ghost" onClick={loadHistory}>{t("Usar do histórico")}</button>}
+        {value && <button type="button" className="ghost" onClick={() => onChange(null)}>{t("Limpar")}</button>}
       </div>
       {open && (
         <div className="thumbs">
-          {files.length === 0 && <p className="muted">Nenhuma imagem no histórico ainda.</p>}
+          {files.length === 0 && <p className="muted">{t("Nenhuma imagem no histórico ainda.")}</p>}
           {files.map((f) => <img key={f.file} src={`/api/files/${f.file}`} alt={f.label} title={f.label} onClick={() => { onChange("ref:" + f.file); setOpen(false); }} />)}
         </div>
       )}
-      {showPreview && preview && <img className="preview" src={preview} alt="prévia" />}
+      {showPreview && preview && <img className="preview" src={preview} alt={t("prévia")} />}
     </div>
   );
 }

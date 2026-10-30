@@ -4,8 +4,10 @@ import { ImageInput, Run, useJob, Val } from "@/components/client";
 import ToolShell from "@/components/ToolShell";
 import { LUZES } from "@/lib/prompts";
 import { COSTS } from "@/lib/costs";
+import { useT } from "@/components/I18nProvider";
 
 export default function Luz() {
+  const t = useT();
   const [base, setBase] = useState<Val>(null);
   const [luz, setLuz] = useState("golden");
   const [livre, setLivre] = useState("");
@@ -20,9 +22,9 @@ export default function Luz() {
       onGenerate={() => submit({ type: "luz", base, luz, luzLivre: livre })}
       panel={
         <>
-          <div className="field"><label>Iluminação</label>
-            <div className="chips">{Object.entries(LUZES).map(([k, v]) => <button key={k} type="button" className={`chip ${!livre && luz === k ? "on" : ""}`} aria-pressed={!livre && luz === k} onClick={() => { setLuz(k); setLivre(""); }}>{v.label}</button>)}</div></div>
-          <div className="field"><label htmlFor="lv">Ou descreva uma luz</label><input id="lv" type="text" value={livre} onChange={(e) => setLivre(e.target.value)} placeholder="Ex.: luz amarela quente nos ambientes" /></div>
+          <div className="field"><label>{t("Iluminação")}</label>
+            <div className="chips">{Object.entries(LUZES).map(([k, v]) => <button key={k} type="button" className={`chip ${!livre && luz === k ? "on" : ""}`} aria-pressed={!livre && luz === k} onClick={() => { setLuz(k); setLivre(""); }}>{t(v.label)}</button>)}</div></div>
+          <div className="field"><label htmlFor="lv">{t("Ou descreva uma luz")}</label><input id="lv" type="text" value={livre} onChange={(e) => setLivre(e.target.value)} placeholder={t("Ex.: luz amarela quente nos ambientes")} /></div>
         </>
       }
       result={<Run gen={gen} error={error} />}

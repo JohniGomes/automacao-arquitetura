@@ -1,7 +1,6 @@
 import LegalPage from "@/components/LegalPage";
 import { CONTACT_EMAIL } from "@/lib/legal";
 
-export const metadata = { title: "Política de Privacidade — ArqIA" };
 
 export default function Privacidade() {
   return (

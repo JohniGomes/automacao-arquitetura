@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useCredits } from "./useCredits";
 import ProjectSelect from "./ProjectSelect";
+import { useT } from "./I18nProvider";
 
 /**
  * Padrão das ferramentas: área de trabalho à esquerda (envio da imagem e resultados) e,
@@ -12,25 +13,26 @@ export default function ToolShell({ title, tip, panel, cost, busy, canGenerate =
   onGenerate: () => void; children: React.ReactNode; result?: React.ReactNode;
 }) {
   const saldo = useCredits();
+  const t = useT();
   return (
     <>
       <div className="thead">
-        <h1>{title}</h1>
-        <Link href="/app/creditos" className="chipcredits" title="Créditos"><b>{saldo ?? "…"}</b> créditos</Link>
+        <h1>{t(title)}</h1>
+        <Link href="/app/creditos" className="chipcredits" title={t("Créditos")}><b>{saldo ?? "…"}</b> {t("créditos")}</Link>
       </div>
       <div className="tool">
         <div className="tmain">
           {children}
-          {tip && <p className="tip">{tip}</p>}
+          {tip && <p className="tip">{t(tip)}</p>}
         </div>
-        <aside className="tpanel" aria-label="Opções">
+        <aside className="tpanel" aria-label={t("Opções")}>
           <div className="tpbody">
             {panel}
             <ProjectSelect />
           </div>
           <div className="tpfoot">
-            <div className="tcost"><span>Custo total</span><b>{cost} créditos</b></div>
-            <button className="full" disabled={busy || !canGenerate} onClick={onGenerate}>{busy ? "Gerando…" : "Gerar"}</button>
+            <div className="tcost"><span>{t("Custo total")}</span><b>{cost} {t("créditos")}</b></div>
+            <button className="full" disabled={busy || !canGenerate} onClick={onGenerate}>{busy ? t("Gerando…") : t("Gerar")}</button>
           </div>
         </aside>
         {result && <div className="tresult">{result}</div>}

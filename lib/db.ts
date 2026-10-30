@@ -15,7 +15,8 @@ export type Generation = {
 };
 export type Project = { id: string; userId: string; name: string; createdAt: string };
 export type Tx = { id: string; userId: string; delta: number; reason: string; genId?: string; at: string };
-type DB = { users: User[]; generations: Generation[]; txs: Tx[]; projects: Project[] };
+export type SupportMsg = { id: string; userId: string; email: string; subject: string; message: string; createdAt: string };
+type DB = { users: User[]; generations: Generation[]; txs: Tx[]; projects: Project[]; support?: SupportMsg[] };
 
 export const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data"); // no Render: disco persistente, ex. /var/data
 const FILE = path.join(DATA_DIR, "db.json");
@@ -27,6 +28,7 @@ export function db(): DB {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   g.__db = fs.existsSync(FILE) ? JSON.parse(fs.readFileSync(FILE, "utf8")) : { users: [], generations: [], txs: [], projects: [] };
   g.__db!.projects ??= [];
+  g.__db!.support ??= [];
   return g.__db!;
 }
 export function save() {

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { env } from "./config";
-import { DATA_DIR, db, Generation, Project, save, Tx, uid, User } from "./db";
+import { DATA_DIR, db, Generation, Project, save, SupportMsg, Tx, uid, User } from "./db";
 
 /** Camada de dados. Produção = Supabase (Postgres + Storage). Desenvolvimento sem Supabase = arquivos locais (data/). */
 export interface Store {
@@ -27,6 +27,8 @@ export interface Store {
   deleteProject(id: string, userId: string): Promise<void>;
   /** favorito e/ou projeto de uma geração (projectId null = sem projeto) */
   setGenMeta(id: string, userId: string, meta: { favorite?: boolean; projectId?: string | null }): Promise<Generation | null>;
+  /** mensagem para o suporte (lida pelo dono do app no banco) */
+  addSupport(m: { userId: string; email: string; subject: string; message: string }): Promise<void>;
   putFile(userId: string, name: string, data: Buffer): Promise<void>;
   getFile(userId: string, name: string): Promise<Buffer | null>;
   /** URL temporária para o navegador baixar/streamar direto do Storage; null no modo local */
@@ -99,6 +101,11 @@ const localStore: Store = {
     if (meta.projectId !== undefined) g.projectId = meta.projectId;
     save();
     return g;
+  },
+  async addSupport(m) {
+    const row: SupportMsg = { id: uid(), ...m, createdAt: new Date().toISOString() };
+    (db().support ??= []).push(row);
+    save();
   },
   async putFile(userId, name, data) { fs.mkdirSync(fdir(userId), { recursive: true }); fs.writeFileSync(path.join(fdir(userId), path.basename(name)), data); },
   async getFile(userId, name) { const p = path.join(fdir(userId), path.basename(name)); return fs.existsSync(p) ? fs.readFileSync(p) : null; },
@@ -227,6 +234,11 @@ const supabaseStore: Store = {
     if (missingSchema(error)) throw new Error("Favoritos e projetos ainda não estão disponíveis: execute o SQL novo (supabase/schema.sql) no Supabase.");
     check(error, "setGenMeta");
     return data ? toGen(data) : null;
+  },
+  async addSupport(m) {
+    const { error } = await sb().from("support_messages").insert({ id: uid(), user_id: m.userId, email: m.email, subject: m.subject, message: m.message });
+    if (error && /support_messages|schema cache|does not exist/i.test(error.message)) throw new Error("O suporte ainda não está disponível: execute o SQL novo (supabase/migracao-suporte.sql) no Supabase.");
+    check(error, "addSupport");
   },
   async putFile(userId, name, data) {
     const { error } = await sb().storage.from(BUCKET).upload(`${userId}/${path.basename(name)}`, data, { contentType: contentType(name), upsert: true });
