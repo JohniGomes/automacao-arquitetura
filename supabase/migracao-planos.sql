@@ -1,11 +1,10 @@
--- Planos, assinaturas e pagamentos (Mercado Pago). Cole no SQL Editor do Supabase e execute (pode repetir sem problema).
+-- Planos, assinaturas e pagamentos (Asaas). Cole no SQL Editor do Supabase e execute (pode repetir sem problema).
 
 alter table public.users add column if not exists plan text;                    -- essencial | profissional | max
-alter table public.users add column if not exists plan_interval text;           -- mensal | anual
 alter table public.users add column if not exists plan_until timestamptz;       -- o plano vale até esta data
 alter table public.users add column if not exists plan_status text;             -- ativo | cancelado
-alter table public.users add column if not exists next_credit_at timestamptz;   -- próxima liberação mensal (plano anual)
-alter table public.users add column if not exists mp_subscription_id text;      -- assinatura mensal no Mercado Pago
+alter table public.users add column if not exists asaas_customer_id text;        -- cliente no Asaas
+alter table public.users add column if not exists asaas_subscription_id text;    -- assinatura mensal no Asaas
 
 -- Um registro por pagamento recebido: a chave primária garante que o webhook não conceda créditos duas vezes.
 create table if not exists public.payments (

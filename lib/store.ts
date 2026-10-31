@@ -15,7 +15,9 @@ export interface Store {
   setPlan(userId: string, f: { [K in keyof PlanFields]?: PlanFields[K] | null }): Promise<void>;
   /** registra um pagamento; false se esse pagamento já tinha sido registrado (webhook repetido) */
   recordPayment(p: Payment): Promise<boolean>;
-  /** usuário pela assinatura do Mercado Pago */
+  /** pagamento já registrado (para estornos e dedupe) */
+  findPayment(provider: string, refId: string): Promise<Payment | null>;
+  /** usuário pela assinatura no Asaas */
   getUserBySubscription(subId: string): Promise<User | null>;
   /** débito atômico: false se saldo insuficiente */
   charge(userId: string, amount: number, reason: string, genId?: string): Promise<boolean>;
@@ -71,7 +73,8 @@ const localStore: Store = {
     save();
     return true;
   },
-  async getUserBySubscription(subId) { return db().users.find((u) => u.mpSubscriptionId === subId) ?? null; },
+  async findPayment(provider, refId) { return (db().payments ?? []).find((x) => x.provider === provider && x.refId === refId) ?? null; },
+  async getUserBySubscription(subId) { return db().users.find((u) => u.asaasSubscriptionId === subId) ?? null; },
   async charge(userId, amount, reason, genId) {
     const u = db().users.find((x) => x.id === userId);
     if (!u || u.credits < amount) return false;
@@ -139,7 +142,7 @@ const sb = () => (g.__sb ??= createClient(process.env.SUPABASE_URL!, process.env
 const check = (error: { message: string } | null, what: string) => { if (error) throw new Error(`Supabase (${what}): ${error.message}`); };
 
 const toUser = (r: any): User => ({ id: r.id, email: r.email, name: r.name, passHash: r.pass_hash ?? undefined, googleId: r.google_id ?? undefined, credits: r.credits, createdAt: r.created_at, termsAcceptedAt: r.terms_accepted_at ?? undefined, termsVersion: r.terms_version ?? undefined,
-  plan: r.plan ?? undefined, planInterval: r.plan_interval ?? undefined, planUntil: r.plan_until ?? undefined, planStatus: r.plan_status ?? undefined, nextCreditAt: r.next_credit_at ?? undefined, mpSubscriptionId: r.mp_subscription_id ?? undefined });
+  plan: r.plan ?? undefined, planUntil: r.plan_until ?? undefined, planStatus: r.plan_status ?? undefined, asaasCustomerId: r.asaas_customer_id ?? undefined, asaasSubscriptionId: r.asaas_subscription_id ?? undefined });
 const toGen = (r: any): Generation => ({
   id: r.id, userId: r.user_id, type: r.type, status: r.status, progress: r.progress, message: r.message ?? "", createdAt: r.created_at,
   finishedAt: r.finished_at ?? undefined, summary: r.summary, prompt: r.prompt ?? undefined, outputs: r.outputs ?? [], cost: r.cost,
@@ -179,7 +182,7 @@ const supabaseStore: Store = {
   },
   async setGoogleId(id, googleId) { check((await sb().from("users").update({ google_id: googleId }).eq("id", id)).error, "setGoogleId"); },
   async setPlan(userId, f) {
-    const col: Record<string, string> = { plan: "plan", planInterval: "plan_interval", planUntil: "plan_until", planStatus: "plan_status", nextCreditAt: "next_credit_at", mpSubscriptionId: "mp_subscription_id" };
+    const col: Record<string, string> = { plan: "plan", planUntil: "plan_until", planStatus: "plan_status", asaasCustomerId: "asaas_customer_id", asaasSubscriptionId: "asaas_subscription_id" };
     const row: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(f)) if (v !== undefined) row[col[k]] = v;
     if (!Object.keys(row).length) return;
@@ -194,8 +197,14 @@ const supabaseStore: Store = {
     check(error, "recordPayment");
     return true;
   },
+  async findPayment(provider, refId) {
+    const { data, error } = await sb().from("payments").select("*").eq("provider", provider).eq("ref_id", refId).maybeSingle();
+    if (error && /payments|schema cache|does not exist/i.test(error.message)) return null;
+    check(error, "findPayment");
+    return data ? { provider: data.provider, refId: data.ref_id, userId: data.user_id, kind: data.kind, item: data.item, amount: Number(data.amount), createdAt: data.created_at } : null;
+  },
   async getUserBySubscription(subId) {
-    const { data, error } = await sb().from("users").select("*").eq("mp_subscription_id", subId).maybeSingle();
+    const { data, error } = await sb().from("users").select("*").eq("asaas_subscription_id", subId).maybeSingle();
     check(error, "getUserBySubscription");
     return data ? toUser(data) : null;
   },

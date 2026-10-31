@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleNotification, verifySignature } from "@/lib/billing";
+import { handleEvent, verifyWebhookToken } from "@/lib/billing";
 
 export const runtime = "nodejs";
 
 /**
- * Notificações do Mercado Pago. A assinatura é conferida e o pagamento é consultado de novo na API do Mercado Pago
- * antes de qualquer crédito: o corpo recebido aqui só diz "olhe o pagamento X".
+ * Notificações do Asaas. O token (cabeçalho asaas-access-token) é conferido e o pagamento é consultado de novo na API
+ * do Asaas antes de qualquer crédito: o corpo recebido só diz "olhe o pagamento X". A entrega é "ao menos uma vez";
+ * o registro de pagamentos garante que o mesmo pagamento não conceda créditos duas vezes.
  */
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => ({}));
-  const type = String(req.nextUrl.searchParams.get("type") || req.nextUrl.searchParams.get("topic") || body.type || body.topic || "");
-  const dataId = String(req.nextUrl.searchParams.get("data.id") || req.nextUrl.searchParams.get("id") || body?.data?.id || "");
-  if (!verifySignature(req.headers, dataId)) return new NextResponse("assinatura inválida", { status: 401 });
+  if (!verifyWebhookToken(req.headers)) return new NextResponse("token inválido", { status: 401 });
+  const body = await req.json().catch(() => null);
+  if (!body) return NextResponse.json({ ok: true });
   try {
-    await handleNotification(type, dataId);
+    await handleEvent(body);
   } catch (e: any) {
-    // 500 faz o Mercado Pago tentar de novo mais tarde (o registro do pagamento garante que não concede em dobro)
+    // 500 faz o Asaas tentar de novo (depois de 15 falhas seguidas ele pausa a fila de envio: confira o painel)
     console.error("webhook de cobrança falhou:", e?.message);
     return new NextResponse("erro", { status: 500 });
   }

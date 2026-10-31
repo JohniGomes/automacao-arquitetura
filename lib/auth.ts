@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 import { User } from "./db";
 import { env } from "./config";
 import { store } from "./store";
-import { releaseDueCredits } from "./billing";
 
 const scrypt = promisify(crypto.scrypt) as (p: string, salt: string, len: number) => Promise<Buffer>;
 const sign = (v: string) => crypto.createHmac("sha256", env.sessionSecret).update(v).digest("hex");
@@ -37,7 +36,5 @@ export async function currentUser(): Promise<User | null> {
   if (!c) return null;
   const [id, exp, sig] = c.split(".");
   if (!id || !exp || !sig || !safeEq(sign(`${id}.${exp}`), sig) || Number(exp) < Date.now()) return null;
-  const u = await store.getUser(id);
-  // plano anual: libera os créditos dos meses que já chegaram
-  return u ? releaseDueCredits(u) : null;
+  return store.getUser(id);
 }

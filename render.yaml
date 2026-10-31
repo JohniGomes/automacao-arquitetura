@@ -18,10 +18,16 @@ services:
         value: auto   # sem GEMINI_API_KEY/GOOGLE_MAPS_API_KEY roda em mock
       - key: SIGNUP_CREDITS
         value: "15"   # cadastro é aberto: cada conta nova pode gastar API real se houver chave
-      - key: MP_ACCESS_TOKEN
-        sync: false   # token do Mercado Pago (Credenciais)
-      - key: MP_WEBHOOK_SECRET
-        sync: false   # segredo do webhook (Suas integrações > Webhooks)
+      - key: ASAAS_API_KEY
+        sync: false   # chave de API do Asaas da conta que recebe (você)
+      - key: ASAAS_ENV
+        value: sandbox   # troque para production quando for cobrar de verdade
+      - key: ASAAS_WEBHOOK_TOKEN
+        sync: false   # token que você cadastra no webhook do Asaas (32 a 255 caracteres)
+      - key: ASAAS_PARTNER_WALLET_ID
+        sync: false   # carteira (walletId) do sócio, que recebe o percentual abaixo
+      - key: ASAAS_PARTNER_PERCENT
+        value: "30"   # % do valor líquido que vai para o sócio; o resto fica na sua conta
       - key: CLIP_SECONDS
         value: "5"   # teto de cada clipe do filme (o excedente é cortado)
       - key: GEMINI_IMAGE_MODEL

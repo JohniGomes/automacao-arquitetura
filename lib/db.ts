@@ -4,9 +4,9 @@ import path from "node:path";
 export type GenType = "mapa" | "moodboard" | "render" | "luz" | "filme" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos";
 export type User = { id: string; email: string; name: string; passHash?: string; googleId?: string; credits: number; createdAt: string; termsAcceptedAt?: string; termsVersion?: string;
   /** plano ativo (essencial | profissional | max) e quando vale; ver lib/plans.ts */
-  plan?: string; planInterval?: "mensal" | "anual"; planUntil?: string; planStatus?: "ativo" | "cancelado"; nextCreditAt?: string; mpSubscriptionId?: string };
+  plan?: string; planUntil?: string; planStatus?: "ativo" | "cancelado"; asaasCustomerId?: string; asaasSubscriptionId?: string };
 export type Payment = { provider: string; refId: string; userId: string; kind: "pacote" | "plano"; item: string; amount: number; createdAt: string };
-export type PlanFields = Pick<User, "plan" | "planInterval" | "planUntil" | "planStatus" | "nextCreditAt" | "mpSubscriptionId">;
+export type PlanFields = Pick<User, "plan" | "planUntil" | "planStatus" | "asaasCustomerId" | "asaasSubscriptionId">;
 export type Output = { file: string; kind: "image" | "video"; label?: string };
 export type Generation = {
   id: string; userId: string; type: GenType; status: "queued" | "running" | "done" | "error";
