@@ -10,6 +10,9 @@
 export type Env = "exterior" | "interior";
 export const AMBIENTE_ENV: Record<Env, string> = { exterior: "Exterior", interior: "Interior" };
 
+/** Trava comum a todas as ferramentas: nada de texto, marcas ou pessoas reconhecíveis. */
+export const NO_TEXT = "NO TEXT AND NO IDENTITY: do not add any text, signage, labels, logos, watermarks or readable license plates. Any people must be generic and non-identifiable (no recognizable real persons).";
+
 const blocks = (...parts: (string | false | null | undefined)[]) => parts.filter((p): p is string => !!p && !!p.trim()).join("\n\n");
 
 // ------------------------------------------------------------------ render
@@ -64,7 +67,7 @@ export const ELEMENTOS = [
   { id: "vegetacao", label: "Vegetação", text: "VEGETATION: abundant, clearly visible trees, shrubs and grass in all available landscape areas, without covering or moving the building" },
   { id: "plantas", label: "Plantas e vasos", text: "potted plants only in plausible unoccupied areas, without blocking doors, windows or circulation" },
   { id: "decoracao", label: "Decoração", text: "restrained decorative objects only where appropriate and without changing built-in elements" },
-  { id: "ceu", label: "Nuvens no céu", text: "soft clouds only if sky is visible in the original view; do not add a horizon or change the camera" },
+  { id: "ceu", label: "Nuvens no céu", text: "CLOUDS: soft clouds in the sky (only applicable when a sky is visible in the view; if the view is top-down or has no sky, skip this item; never add a horizon or change the camera)" },
 ] as const;
 export type ElementoId = (typeof ELEMENTOS)[number]["id"];
 
@@ -77,12 +80,12 @@ GEOMETRY LOCK:
 Keep every building volume, floor level, roof plane, slab edge, wall, opening, door, window, stair, railing, balcony, pool, deck and visible site boundary in EXACTLY the same position, shape, size and proportion as in the input. Do not add, remove, move, resize, rotate, straighten, simplify or reinterpret any architectural element. Preserve the visible plan layout and all material-boundary lines.
 
 ALLOWED TRANSFORMATION:
-Replace only unfinished/flat viewport appearance with realistic surface materials, physically plausible lighting, shadows, reflections and compatible environmental context. If the input background is empty, white or flat, fill the entire frame edge to edge with realistic surroundings (natural ground, grass, vegetation, soil), with no blank or overexposed areas. Keep the paved areas, deck and plot outline exactly as drawn: do not extend paving or buildings beyond the visible plot. Do not use realism as permission to redesign the architecture. If a detail is unclear, preserve its visible shape instead of inventing a new one.`;
+Replace only unfinished/flat viewport appearance with realistic surface materials, physically plausible lighting, shadows, reflections and compatible environmental context. If the input background is empty, white or flat, fill the entire frame edge to edge with realistic surroundings (natural ground, grass, vegetation, soil), with no blank or overexposed areas. Keep the paved areas, deck and plot outline exactly as drawn: do not extend paving or buildings beyond the visible plot (the only exception is the minimal driveway needed for requested cars). Do not use realism as permission to redesign the architecture. If a detail is unclear, preserve its visible shape instead of inventing a new one.`;
 
 const REFERENCIA_RENDER = "Use the second attached image ONLY as a reference for lighting, atmosphere and mood. Do not copy its architecture, camera, composition, objects, geometry, openings, landscaping layout or materials unless a material/lighting attribute is explicitly requested and is compatible with the first image. The first image remains the authority for geometry and camera.";
 
 const FECHO_RENDER = `FINAL CHECK:
-Same camera, same viewpoint, same framing, same building geometry and same positions of all visible architectural elements. No added, removed, moved or resized building volumes or openings. Realistic materials, physically plausible global illumination and natural shadows only. If realism conflicts with source fidelity, source fidelity wins for the architecture and camera. Every lighting, atmosphere and addition explicitly requested above is mandatory and must be clearly visible.`;
+Same camera, same viewpoint, same framing, same building geometry and same positions of all visible architectural elements. No added, removed, moved or resized building volumes or openings. Realistic materials, physically plausible global illumination and natural shadows only. If realism conflicts with source fidelity, source fidelity wins for the architecture and camera. Every lighting, atmosphere and addition explicitly requested above is mandatory and must be clearly visible. NO TEXT AND NO IDENTITY: do not add any text, signage, labels, logos, watermarks or readable license plates. Any people must be generic and non-identifiable (no recognizable real persons).`;
 
 export type RenderOpts = { style: EstiloKey; level: number; env: Env; guidance: string; scene: string; elements: string[]; sceneFree?: string; reference: boolean };
 
@@ -90,13 +93,15 @@ export function composeRender(o: RenderOpts): string {
   const scene = CENAS_LUZ.find((s) => s.id === o.scene);
   const light = o.sceneFree?.trim() ? `Lighting and atmosphere: ${o.sceneFree.trim()}.`
     : scene ? `Lighting and atmosphere: ${scene.text}.`
+    // com imagem de referência (que já define luz e atmosfera) não se impõe uma luz padrão
+    : o.reference ? ""
     : o.env === "exterior" ? "Soft late-afternoon sunlight." : "Balanced natural daylight.";
   const els = ELEMENTOS.filter((e) => o.elements.includes(e.id)).map((e) => e.text);
   return blocks(
     INTRO_RENDER,
     AMBIENTES_TEXT[o.env],
     light,
-    els.length > 0 && `REQUIRED ADDITIONS (the user explicitly selected these; every one of them MUST be clearly visible in the final image, never omitted):\n${els.join("\n")}.\nPlace them in plausible areas at a scale consistent with the scene. They must not cover, replace, move or alter any building volume, wall, opening or roof. Do not add categories of objects that were not requested.`,
+    els.length > 0 && `REQUIRED ADDITIONS (the user explicitly selected these; every one of them MUST be clearly visible in the final image, never omitted):\n${els.join("\n")}.\nPlace them in plausible areas at a scale consistent with the scene. They must not cover, replace, move or alter any building volume, wall, opening or roof. Do not add categories of objects that were not requested. These additions and the requested lighting take priority over the style and level instructions that follow (for example over any instruction to avoid adding details), but never over the geometry and camera locks. An item marked "only applicable" may be skipped when the view makes it impossible.`,
     o.reference && REFERENCIA_RENDER,
     ESTILOS[o.style].text,
     NIVEIS[Math.min(2, Math.max(0, o.level))].text,
@@ -122,7 +127,8 @@ const LIBERDADE = [
 ] as const;
 
 export function composeMelhorar(o: { preset: MelhoriaKey; creativity: number; guidance: string }): string {
-  const c = o.creativity;
+  // o preset Fidelidade pede "manter o original": limita a liberdade a no máximo moderada
+  const c = o.preset === "fidelidade" ? Math.min(o.creativity, 66) : o.creativity;
   const liberdade = c < 34 ? LIBERDADE[0] : c < 67 ? LIBERDADE[1] : LIBERDADE[2];
   return blocks(
     "Improve the supplied architectural render while treating it as the fixed reference for architecture and camera.",
@@ -135,7 +141,7 @@ Keep the exact same camera position, camera orientation, projection, perspective
     `QUALITY:
 Improve material response, realistic shadows, exposure, reflections and fine details without introducing artificial depth of field that obscures architectural elements. Avoid excessive bloom, oversharpening, distorted straight lines, invented openings, warped edges and decorative clutter.`,
     `FINAL CHECK:
-The output must be recognizably the same image and the same design, with improved rendering quality rather than a redesigned project. If any improvement conflicts with preservation, preserve the original.`,
+The output must be recognizably the same image and the same design, with improved rendering quality rather than a redesigned project. If any improvement conflicts with preservation, preserve the original. NO TEXT AND NO IDENTITY: do not add any text, signage, labels, logos, watermarks or readable license plates. Any people must be generic and non-identifiable (no recognizable real persons).`,
   );
 }
 
@@ -152,12 +158,12 @@ export function composeEsboco(o: { env: Env; estilo: string; detalhes: string })
 Treat the visible lines, outlines and proportions as the primary design instructions. Preserve the drawing's viewpoint, perspective, framing, silhouette, relative dimensions, floor levels, rooflines, walls, openings and spatial layout. Do not add, remove, move or resize building volumes, floors, doors, windows, columns, stairs or structural elements. Do not invent new openings or hidden rooms. If a line or detail is ambiguous, preserve its visible shape and interpret it conservatively rather than inventing a new architectural feature.`,
     `CAMERA:
 Keep the exact viewpoint and projection implied by the sketch. Do not convert an axonometric or bird's-eye drawing into an eye-level photograph. Do not add a horizon or sky if it changes the intended view.`,
-    `ENVIRONMENT:\n${AMBIENTES_TEXT[o.env].split("\n").slice(1).join("\n")}`,
+    `ENVIRONMENT:\n${o.env === "interior" ? "Choose plausible, realistic finishes, furniture and lighting for the room the drawing shows; the drawing does not specify materials, so pick them to suit the style. Furnish only where the drawing indicates furniture." : "Choose plausible, realistic materials and site context that suit the style; the drawing does not specify materials. Add ground, grass, planting and paving only where the drawing indicates a site."}`,
     estilo && `ARCHITECTURAL STYLE:\n${estilo}`,
     o.detalhes.trim() && `USER DETAILS:\n${o.detalhes.trim()}`,
     `Use physically plausible materials, realistic global illumination, natural shadows and coherent scale. The selected architectural style may influence finishes, colors, textures and non-structural decoration only; it must not override the sketch geometry.`,
     `FINAL CHECK:
-The result must read as a realistic rendering of this drawing, not as a new design inspired by it. Preserve the camera and all visible architectural relationships.`,
+The result must read as a realistic rendering of this drawing, not as a new design inspired by it. Preserve the camera and all visible architectural relationships. NO TEXT AND NO IDENTITY: do not add any text, signage, labels, logos, watermarks or readable license plates. Any people must be generic and non-identifiable (no recognizable real persons).`,
   );
 }
 
@@ -188,7 +194,7 @@ Change only elements that belong to the selected category. Do not interpret this
 Keep the same camera position, projection, perspective, framing and composition. Keep all architectural volumes and openings in exactly the same locations. Do not convert the view to eye level or invent unseen parts of the project.`,
     `VISUAL QUALITY:
 Create a coherent, photorealistic variation with believable materials, natural lighting, accurate scale and restrained, purposeful design decisions. If a reference image conflicts with the base project, the base project wins for geometry and the reference may influence only mood/materials.`,
-    `FINAL CHECK:\nThis is a controlled design variation of the supplied project, not a replacement design.`,
+    `FINAL CHECK:\nThis is a controlled design variation of the supplied project, not a replacement design. NO TEXT AND NO IDENTITY: do not add any text, signage, labels, logos, watermarks or readable license plates. Any people must be generic and non-identifiable (no recognizable real persons).`,
   );
 }
 
@@ -263,6 +269,6 @@ Keep each known facade/material assignment consistent. Do not transfer a materia
     `CAMERA:
 Move the camera only as specified. Do not change the building dimensions or use camera movement as an excuse to alter the design. Use the requested lens character while avoiding exaggerated distortion.`,
     `OUTPUT:
-Create one coherent image of the requested view. Photorealistic materials and lighting are desirable, but visual realism must not be mistaken for verified geometric accuracy.`,
+Create one coherent image of the requested view. Photorealistic materials and lighting are desirable, but visual realism must not be mistaken for verified geometric accuracy. NO TEXT AND NO IDENTITY: do not add any text, signage, labels, logos, watermarks or readable license plates. Any people must be generic and non-identifiable (no recognizable real persons).`,
   );
 }

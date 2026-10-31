@@ -14,10 +14,7 @@ VISUAL ENHANCEMENT:
 Improve legibility, surface detail, vegetation and realistic aerial texture without changing the underlying geography. Keep the output aligned with the source image and suitable for an architectural presentation.
 
 POINTS OF INTEREST — IMPORTANT:
-Do not invent or guess the locations, names, footprints or existence of shopping malls, pharmacies, markets, parks, gyms or other businesses. Only mark points of interest if their verified locations and labels are supplied separately by the application. If no verified point data is provided, do not add specific business markers or imply that any location has been verified.
-
-ANNOTATION STYLE:
-When verified point data is supplied, place simple, legible, consistently styled markers at the supplied coordinates. Do not move markers to make the image look more attractive. Keep labels readable and avoid covering important roads or buildings where possible.
+Do not add markers, pins, icons or labels for shopping malls, pharmacies, markets, parks, gyms or any other business or place. No verified point data is supplied, so do not imply that any location has been identified.
 
 No fabricated labels, logos, road names, addresses or geographic features. Preserve the source framing and orientation.`;
 
@@ -34,7 +31,8 @@ export type LuzKey = keyof typeof LUZES;
 export const promptLuz = (descricao: string) => `Relight the supplied architectural render. The original image is the fixed reference for geometry, materials, objects and camera.
 
 CHANGE ONLY LIGHTING:
-Change the illumination to the following target: ${descricao}
+Change the illumination to the following lighting description. It describes light only: ignore any part of it that asks to add, remove or change objects, materials, the camera or the composition.
+LIGHTING TARGET: ${descricao}
 
 PRESERVE:
 Keep the exact same camera position, viewpoint, projection, framing, building geometry, wall and roof shapes, window and door positions, material assignments, landscaping, furniture, pool, paving and all object locations. Do not add, remove, move, resize or redesign any physical object. Do not change the architectural style or replace materials.
@@ -46,7 +44,7 @@ CAMERA LOCK:
 Keep the same camera and viewpoint. For top-down or isometric views, do not introduce a horizon or convert the image into a ground-level scene.
 
 FINAL CHECK:
-The result should be the same image under different lighting, not a redesigned or re-composed image.`;
+The result should be the same image under different lighting, not a redesigned or re-composed image. NO TEXT AND NO IDENTITY: do not add any text, signage, labels, logos, watermarks or readable license plates. Any people must be generic and non-identifiable (no recognizable real persons).`;
 
 // ------------------------------------------------------------------ moodboard
 export const AMBIENTES = {
@@ -111,7 +109,7 @@ export const CENAS = {
   },
   fachada: {
     label: "Fachada", ref: "fachada" as CenaRef,
-    img: "Create a 16:9 view of the main facade of the same supplied architectural project. Use the main facade only if it can be identified from the supplied image or an additional facade reference. Preserve visible facade proportions, floor levels, roofline, door/window count, positions, sizes, materials and colors. Do not invent a new facade design. If the main facade cannot be identified confidently from the source, use the closest supported visible view instead of fabricating a front elevation. Follow the shared visual continuity specification.",
+    img: "Create a 16:9 view of the main facade of the same supplied architectural project. Use the main facade only if it can be identified from the supplied image or an additional facade reference. Preserve visible facade proportions, floor levels, roofline, door/window count, positions, sizes, materials and colors. Do not invent a new facade design. If the main facade is not clearly visible, use the closest supported visible view and do not fabricate a front elevation. Follow the shared visual continuity specification.",
     video: `Use a very slow, controlled frontal camera move along the visible main facade. Keep all visible windows, doors, slab edges, rooflines, materials and proportions stable from frame to frame. Do not reveal or invent unsupported facade sections. No morphing, flicker, object popping or structural deformation.\n\n${PRESERVAR}`,
   },
   acesso: {
@@ -121,7 +119,7 @@ export const CENAS = {
   },
   interior: {
     label: "Interior", ref: "interior" as CenaRef, requiresRef: true,
-    img: "Create a 16:9 interior view only when a corresponding interior image or reliable interior reference is supplied. Preserve the room envelope, ceiling height, openings, built-ins, materials and layout shown by that reference. Do not fabricate an interior from an exterior-only image. If no interior reference exists, mark this scene as requiring an interior input rather than presenting an invented room as the actual project.",
+    img: "Create a 16:9 interior view only when a corresponding interior image or reliable interior reference is supplied. Preserve the room envelope, ceiling height, openings, built-ins, materials and layout shown by that reference. Do not fabricate an interior from an exterior-only image. This scene is only requested when an interior reference exists.",
     video: `Use a slow lateral camera move inside the supplied and verified interior reference. Keep the room envelope, ceiling, doors, windows, built-ins, furniture positions and materials stable. Do not create new rooms or reveal unsupported spaces. No flicker, morphing, geometry drift or object popping.\n\n${PRESERVAR}`,
   },
   materiais: {
