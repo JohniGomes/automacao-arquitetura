@@ -2,7 +2,11 @@ import fs from "node:fs";
 import path from "node:path";
 
 export type GenType = "mapa" | "moodboard" | "render" | "luz" | "filme" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos";
-export type User = { id: string; email: string; name: string; passHash?: string; googleId?: string; credits: number; createdAt: string; termsAcceptedAt?: string; termsVersion?: string };
+export type User = { id: string; email: string; name: string; passHash?: string; googleId?: string; credits: number; createdAt: string; termsAcceptedAt?: string; termsVersion?: string;
+  /** plano ativo (essencial | profissional | max) e quando vale; ver lib/plans.ts */
+  plan?: string; planInterval?: "mensal" | "anual"; planUntil?: string; planStatus?: "ativo" | "cancelado"; nextCreditAt?: string; mpSubscriptionId?: string };
+export type Payment = { provider: string; refId: string; userId: string; kind: "pacote" | "plano"; item: string; amount: number; createdAt: string };
+export type PlanFields = Pick<User, "plan" | "planInterval" | "planUntil" | "planStatus" | "nextCreditAt" | "mpSubscriptionId">;
 export type Output = { file: string; kind: "image" | "video"; label?: string };
 export type Generation = {
   id: string; userId: string; type: GenType; status: "queued" | "running" | "done" | "error";
@@ -20,7 +24,7 @@ export type Generation = {
 export type Project = { id: string; userId: string; name: string; createdAt: string };
 export type Tx = { id: string; userId: string; delta: number; reason: string; genId?: string; at: string };
 export type SupportMsg = { id: string; userId: string; email: string; subject: string; message: string; createdAt: string };
-type DB = { users: User[]; generations: Generation[]; txs: Tx[]; projects: Project[]; support?: SupportMsg[] };
+type DB = { users: User[]; generations: Generation[]; txs: Tx[]; projects: Project[]; support?: SupportMsg[]; payments?: Payment[] };
 
 export const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data"); // no Render: disco persistente, ex. /var/data
 const FILE = path.join(DATA_DIR, "db.json");
@@ -33,6 +37,7 @@ export function db(): DB {
   g.__db = fs.existsSync(FILE) ? JSON.parse(fs.readFileSync(FILE, "utf8")) : { users: [], generations: [], txs: [], projects: [] };
   g.__db!.projects ??= [];
   g.__db!.support ??= [];
+  g.__db!.payments ??= [];
   return g.__db!;
 }
 export function save() {

@@ -91,3 +91,18 @@ revoke all on function public.grant_credits(uuid, integer, text, uuid) from publ
 
 -- Bucket privado para imagens e vídeos (acesso por URL assinada gerada no servidor).
 insert into storage.buckets (id, name, public) values ('arqia', 'arqia', false) on conflict (id) do nothing;
+
+-- Planos e pagamentos (também em supabase/migracao-planos.sql, para bancos já criados)
+alter table public.users add column if not exists plan text;
+alter table public.users add column if not exists plan_interval text;
+alter table public.users add column if not exists plan_until timestamptz;
+alter table public.users add column if not exists plan_status text;
+alter table public.users add column if not exists next_credit_at timestamptz;
+alter table public.users add column if not exists mp_subscription_id text;
+create table if not exists public.payments (
+  provider text not null, ref_id text not null, user_id uuid not null references public.users(id) on delete cascade,
+  kind text not null, item text not null, amount numeric(10,2) not null, created_at timestamptz not null default now(),
+  primary key (provider, ref_id)
+);
+create index if not exists payments_user on public.payments (user_id, created_at desc);
+alter table public.payments enable row level security;

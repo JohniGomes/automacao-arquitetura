@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { env } from "./config";
-import { DATA_DIR, db, Generation, Project, save, SupportMsg, Tx, uid, User } from "./db";
+import { DATA_DIR, db, Generation, Payment, PlanFields, Project, save, SupportMsg, Tx, uid, User } from "./db";
 
 /** Camada de dados. Produção = Supabase (Postgres + Storage). Desenvolvimento sem Supabase = arquivos locais (data/). */
 export interface Store {
@@ -11,6 +11,12 @@ export interface Store {
   getUserByEmail(email: string): Promise<User | null>;
   createUser(d: { email: string; name: string; passHash?: string; googleId?: string; termsAcceptedAt: string; termsVersion: string }): Promise<User>;
   setGoogleId(id: string, googleId: string): Promise<void>;
+  /** grava campos do plano (undefined não altera; null limpa) */
+  setPlan(userId: string, f: { [K in keyof PlanFields]?: PlanFields[K] | null }): Promise<void>;
+  /** registra um pagamento; false se esse pagamento já tinha sido registrado (webhook repetido) */
+  recordPayment(p: Payment): Promise<boolean>;
+  /** usuário pela assinatura do Mercado Pago */
+  getUserBySubscription(subId: string): Promise<User | null>;
   /** débito atômico: false se saldo insuficiente */
   charge(userId: string, amount: number, reason: string, genId?: string): Promise<boolean>;
   grant(userId: string, amount: number, reason: string, genId?: string): Promise<void>;
@@ -52,6 +58,20 @@ const localStore: Store = {
     return u;
   },
   async setGoogleId(id, googleId) { const u = db().users.find((x) => x.id === id); if (u) { u.googleId = googleId; save(); } },
+  async setPlan(userId, f) {
+    const u = db().users.find((x) => x.id === userId);
+    if (!u) return;
+    for (const [k, v] of Object.entries(f)) { if (v === undefined) continue; if (v === null) delete (u as any)[k]; else (u as any)[k] = v; }
+    save();
+  },
+  async recordPayment(p) {
+    const all = (db().payments ??= []);
+    if (all.some((x) => x.provider === p.provider && x.refId === p.refId)) return false;
+    all.push(p);
+    save();
+    return true;
+  },
+  async getUserBySubscription(subId) { return db().users.find((u) => u.mpSubscriptionId === subId) ?? null; },
   async charge(userId, amount, reason, genId) {
     const u = db().users.find((x) => x.id === userId);
     if (!u || u.credits < amount) return false;
@@ -118,7 +138,8 @@ const g = globalThis as unknown as { __sb?: SupabaseClient };
 const sb = () => (g.__sb ??= createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } }));
 const check = (error: { message: string } | null, what: string) => { if (error) throw new Error(`Supabase (${what}): ${error.message}`); };
 
-const toUser = (r: any): User => ({ id: r.id, email: r.email, name: r.name, passHash: r.pass_hash ?? undefined, googleId: r.google_id ?? undefined, credits: r.credits, createdAt: r.created_at, termsAcceptedAt: r.terms_accepted_at ?? undefined, termsVersion: r.terms_version ?? undefined });
+const toUser = (r: any): User => ({ id: r.id, email: r.email, name: r.name, passHash: r.pass_hash ?? undefined, googleId: r.google_id ?? undefined, credits: r.credits, createdAt: r.created_at, termsAcceptedAt: r.terms_accepted_at ?? undefined, termsVersion: r.terms_version ?? undefined,
+  plan: r.plan ?? undefined, planInterval: r.plan_interval ?? undefined, planUntil: r.plan_until ?? undefined, planStatus: r.plan_status ?? undefined, nextCreditAt: r.next_credit_at ?? undefined, mpSubscriptionId: r.mp_subscription_id ?? undefined });
 const toGen = (r: any): Generation => ({
   id: r.id, userId: r.user_id, type: r.type, status: r.status, progress: r.progress, message: r.message ?? "", createdAt: r.created_at,
   finishedAt: r.finished_at ?? undefined, summary: r.summary, prompt: r.prompt ?? undefined, outputs: r.outputs ?? [], cost: r.cost,
@@ -157,6 +178,27 @@ const supabaseStore: Store = {
     return toUser(data);
   },
   async setGoogleId(id, googleId) { check((await sb().from("users").update({ google_id: googleId }).eq("id", id)).error, "setGoogleId"); },
+  async setPlan(userId, f) {
+    const col: Record<string, string> = { plan: "plan", planInterval: "plan_interval", planUntil: "plan_until", planStatus: "plan_status", nextCreditAt: "next_credit_at", mpSubscriptionId: "mp_subscription_id" };
+    const row: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(f)) if (v !== undefined) row[col[k]] = v;
+    if (!Object.keys(row).length) return;
+    const { error } = await sb().from("users").update(row).eq("id", userId);
+    if (error && /plan|schema cache|does not exist/i.test(error.message)) throw new Error("Planos ainda não estão disponíveis: execute o SQL novo (supabase/migracao-planos.sql) no Supabase.");
+    check(error, "setPlan");
+  },
+  async recordPayment(p) {
+    const { error } = await sb().from("payments").insert({ provider: p.provider, ref_id: p.refId, user_id: p.userId, kind: p.kind, item: p.item, amount: p.amount });
+    if (error && /duplicate key|23505/i.test(error.message)) return false;
+    if (error && /payments|schema cache|does not exist/i.test(error.message)) throw new Error("Pagamentos ainda não estão disponíveis: execute o SQL novo (supabase/migracao-planos.sql) no Supabase.");
+    check(error, "recordPayment");
+    return true;
+  },
+  async getUserBySubscription(subId) {
+    const { data, error } = await sb().from("users").select("*").eq("mp_subscription_id", subId).maybeSingle();
+    check(error, "getUserBySubscription");
+    return data ? toUser(data) : null;
+  },
   async charge(userId, amount, reason, genId) {
     const { data, error } = await sb().rpc("charge_credits", { p_user: userId, p_amount: amount, p_reason: reason, p_gen: genId ?? null });
     check(error, "charge");

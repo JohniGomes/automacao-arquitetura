@@ -9,6 +9,7 @@ import { ANGULOS, angleLabel, composeAngle, LENTES, LenteKey, MAX_REGIOES, compo
 import { Generation, GenType, uid } from "@/lib/db";
 import { activeJobs, enqueue, live, MAX_ACTIVE_PER_USER, recoverStale } from "@/lib/jobs";
 import { limited } from "@/lib/ratelimit";
+import { activePlan, rulesOf } from "@/lib/plans";
 import { refund } from "@/lib/credits";
 import { ELEMENTOS, CENAS_LUZ } from "@/lib/compose";
 import { Img } from "@/lib/gemini";
@@ -27,7 +28,10 @@ export async function GET() {
   const u = await currentUser();
   if (!u) return bad("Não autenticado.", 401);
   await recoverStale();
-  const list = (await store.listGens(u.id)).map((g) => live.get(g.id) ?? g);
+  // o histórico visível depende do plano (30 dias, 12 meses ou tudo); os arquivos continuam guardados
+  const keepDays = rulesOf(u).historicoDias;
+  const since = Number.isFinite(keepDays) ? Date.now() - keepDays * 86_400_000 : 0;
+  const list = (await store.listGens(u.id)).filter((g) => new Date(g.createdAt).getTime() >= since).map((g) => live.get(g.id) ?? g);
   return NextResponse.json({ credits: u.credits, generations: list.map(pub) });
 }
 
@@ -99,6 +103,7 @@ export async function POST(req: NextRequest) {
       if (ref) images.reference = ref;
       const versions = int("versions", 1, 4, 1);
       const mode = str("mode") === "precisao" ? "precisao" : "rapido";
+      if (mode === "precisao" && !rulesOf(u).render2k) throw new Error("O modo Precisão (2K) faz parte dos planos Profissional e Max.");
       const prompt = composeRender({
         style: (str("style") in ESTILOS ? str("style") : "realista") as EstiloKey, level: int("level", 0, 2, 1), env: envOf(),
         guidance: str("guidance").slice(0, 500), scene: CENAS_LUZ.some((s) => s.id === str("scene")) ? str("scene") : "", sceneFree: str("sceneFree").slice(0, 200),
@@ -181,11 +186,12 @@ export async function POST(req: NextRequest) {
       cost = COSTS.luz;
       summary = `Variação de luz — ${params.rotulo}`;
     } else if (type === "filme") {
-      if (env.filmeRequerCompra && !(await store.listTxs(u.id, 5000)).some((t) => /^(Compra|Plano)/.test(t.reason)))
+      if (env.filmeRequerCompra && !activePlan(u) && !(await store.listTxs(u.id, 5000)).some((t) => /^(Compra|Plano)/.test(t.reason)))
         throw new Error("O filme do projeto é liberado para quem tem plano ou já comprou créditos.");
       await need("project", "Envie a imagem do projeto.");
       const cenas = str("cenas").split(",").filter((c) => CENAS[c as CenaKey]) as CenaKey[];
       if (cenas.length < 1 || cenas.length > 5) throw new Error("Escolha de 1 a 5 cenas.");
+      if (cenas.length > rulesOf(u).cenasFilme) throw new Error(`Seu plano permite até ${rulesOf(u).cenasFilme} cenas por filme. O plano Max libera 5.`);
       // referências dedicadas (imagem 2 das cenas Interior, Fachada e Acesso)
       for (const k of ["interior", "fachada", "acesso"] as const) {
         const r = await readImage(u.id, form, k);
@@ -218,6 +224,6 @@ export async function POST(req: NextRequest) {
     await refund(u.id, cost, "Estorno: geração não registrada", id).catch((er) => console.error("estorno falhou:", er));
     return bad("Não foi possível iniciar a geração. Tente novamente.", 500);
   }
-  enqueue(gen, { type, params, images });
+  enqueue(gen, { type, params, images }, rulesOf(u).prioridade);
   return NextResponse.json({ id });
 }

@@ -12,7 +12,7 @@ const JOB_TIMEOUT = { filme: 35 * 60_000, default: 12 * 60_000 } as const;
 /** jobs ativos (na fila ou rodando) por usuário */
 export const MAX_ACTIVE_PER_USER = 3;
 const g = globalThis as unknown as {
-  __q?: { running: number; waiting: { id: string; run: () => Promise<void> }[] };
+  __q?: { running: number; waiting: { id: string; prio: boolean; run: () => Promise<void> }[] };
   __live?: Map<string, Generation>;
   __rec?: Promise<void>;
   __refunded?: Set<string>;
@@ -83,9 +83,10 @@ export async function cancelJob(userId: string, id: string): Promise<"cancelada"
 
 const timeoutAfter = (ms: number) => new Promise<never>((_, rej) => { const t = setTimeout(() => rej(new Error("Tempo máximo da geração excedido.")), ms); t.unref?.(); });
 
-export function enqueue(gen: Generation, input: JobInput) {
+/** `priority` (planos Profissional e Max): entra na frente dos pedidos normais que ainda esperam, sem interromper os que já rodam. */
+export function enqueue(gen: Generation, input: JobInput, priority = false) {
   live.set(gen.id, gen);
-  q.waiting.push({ id: gen.id, run: async () => {
+  const item = { id: gen.id, prio: priority, run: async () => {
     gen.status = "running";
     gen.message = "Iniciando…";
     void persist(gen);
@@ -108,6 +109,10 @@ export function enqueue(gen: Generation, input: JobInput) {
     gen.finishedAt = new Date().toISOString();
     await persist(gen);
     live.delete(gen.id);
-  } });
+  } };
+  if (priority) {
+    const at = q.waiting.findIndex((w) => !w.prio);
+    if (at < 0) q.waiting.push(item); else q.waiting.splice(at, 0, item);
+  } else q.waiting.push(item);
   pump();
 }

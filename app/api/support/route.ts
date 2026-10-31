@@ -3,6 +3,7 @@ import { currentUser } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { sendSupportMail } from "@/lib/mail";
 import { limited } from "@/lib/ratelimit";
+import { rulesOf } from "@/lib/plans";
 
 const SUBJECTS: Record<string, string> = { duvida: "Dúvida", problema: "Problema técnico", cobranca: "Cobrança e planos", sugestao: "Sugestão" };
 
@@ -22,6 +23,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Não foi possível enviar." }, { status: 500 });
   }
   // o e-mail é um aviso extra: se falhar, a mensagem já está salva
-  void sendSupportMail({ from: u.email, name: u.name, subject: SUBJECTS[subject], message }).catch((e) => console.error("e-mail de suporte falhou:", e?.message));
+  void sendSupportMail({ from: u.email, name: u.name, subject: `${rulesOf(u).suportePrioritario ? "PRIORITÁRIO · " : ""}${SUBJECTS[subject]}`, message }).catch((e) => console.error("e-mail de suporte falhou:", e?.message));
   return NextResponse.json({ ok: true });
 }

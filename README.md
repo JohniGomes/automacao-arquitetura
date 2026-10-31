@@ -64,9 +64,13 @@ Valores lidos da página de preços na data acima (podem mudar):
 
 A imagem de satélite vem da Static API e é exibida com a atribuição "Imagens © Google · Dados do mapa © Google e provedores" e link aos Termos. **Não validei juridicamente** se os termos da Google Maps Platform permitem reprocessar a imagem com IA generativa, armazená-la no histórico e entregá-la ao cliente final — isso precisa de revisão dos *Service Specific Terms* antes de lançar comercialmente. A opção de subir o próprio print continua disponível, mas o print do Google Earth/Maps tem as mesmas restrições de uso do Google.
 
-## Cobrança (a preparar)
+## Cobrança e planos (Mercado Pago)
 
-O sistema de créditos funciona (saldo, débito na criação, estorno em falha, extrato em `/app/creditos`). A compra **não cobra**: `POST /api/billing/checkout` devolve 501. Caminho previsto: Stripe Checkout / Mercado Pago (Pix) criando sessão por pacote + webhook assinado que credita o usuário. Variáveis reservadas no `.env.example`.
+- **Como funciona:** créditos avulsos e plano anual são pagamento único (Checkout Pro); o plano mensal é uma assinatura (preapproval). Os créditos só entram pelo webhook `/api/billing/webhook`, depois de conferir a assinatura (`MP_WEBHOOK_SECRET`) e consultar o pagamento na API do Mercado Pago. O valor pago precisa bater com o catálogo (`lib/costs.ts`) e cada pagamento só vale uma vez (tabela `payments`).
+- **Planos:** `lib/plans.ts` define o que cada plano libera: Precisão 2K (Profissional e Max), filme de 5 cenas (Max; os demais, até 3), fila prioritária, projetos (3 sem plano ou Essencial), histórico visível (30 dias, 12 meses ou tudo) e download de imagem sem marca d'água (Profissional e Max). Créditos do mês: saldo limitado a 2 meses; o anual libera mês a mês sem agendador (ao usar a conta).
+- **Para ligar:** rode `supabase/migracao-planos.sql`, defina `MP_ACCESS_TOKEN` e `MP_WEBHOOK_SECRET` no Render e cadastre `APP_URL/api/billing/webhook` no painel do Mercado Pago. Teste primeiro com credenciais de teste.
+- **Ainda não existe:** reembolso e troca de plano com crédito proporcional (tratados à mão no painel do Mercado Pago), assentos de equipe, nota fiscal e revisão jurídica das regras de cancelamento e arrependimento nos Termos.
+- **Teste local sem Mercado Pago:** aponte `MP_API_BASE` para um servidor simulado e envie o webhook com a assinatura correta (foi assim que o fluxo foi testado).
 
 ## O que foi validado e o que não foi
 

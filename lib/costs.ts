@@ -31,7 +31,7 @@ export const PLANOS = [
   { id: "profissional", nome: "Profissional", preco: 159, creditosMes: 800, anual: 1590, destaque: true,
     itens: ["Tudo do Essencial", "Projetos ilimitados", "Histórico de 12 meses", "Fila prioritária", "Render em 2K", "Download sem marca d'água", "Licença de uso comercial"] },
   { id: "max", nome: "Max", preco: 299, creditosMes: 1800, anual: 2990, destaque: false,
-    itens: ["Tudo do Profissional", "2 a 3 assentos de equipe", "Filme com até 5 cenas por pedido", "Suporte prioritário", "Acesso antecipado às ferramentas novas"] },
+    itens: ["Tudo do Profissional", "2 a 3 assentos de equipe (em breve)", "Filme com até 5 cenas por pedido", "Suporte prioritário", "Acesso antecipado às ferramentas novas"] },
 ] as const;
 
 export const COSTS_EDICAO = {
