@@ -23,7 +23,7 @@ export default function Render() {
   const [elements, setElements] = useState<string[]>([]);
   const [saveName, setSaveName] = useState("");
   const saved = useSavedScenes();
-  const { gen, error, busy, submit } = useJob();
+  const { gen, error, busy, submit, cancel } = useJob();
 
   const toggleEl = (id: string) => setElements((e) => (e.includes(id) ? e.filter((x) => x !== id) : [...e, id]));
 
@@ -73,7 +73,7 @@ export default function Render() {
           </Fold>
         </>
       }
-      result={<Run gen={gen} error={error} />}
+      result={<Run gen={gen} error={error} onCancel={cancel} />}
     >
       <div className="card"><ImageInput label="Print do modelo 3D" value={model} onChange={setModel} /></div>
     </ToolShell>

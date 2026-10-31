@@ -31,7 +31,7 @@ export default function GenCard({ gen, projects, onChange }: { gen: Gen; project
     <details className="card gcard" id={`g-${gen.id}`}>
       <summary>
         <div className="gthumbs">
-          {thumbs.length ? thumbs.map((o) => <img key={o.file} src={`/api/files/${o.file}`} alt="" loading="lazy" />) : <span className="gempty">{gen.status === "error" ? t("Erro") : "…"}</span>}
+          {thumbs.length ? thumbs.map((o) => <img key={o.file} src={`/api/files/${o.file}?w=480`} alt="" loading="lazy" decoding="async" />) : <span className="gempty">{gen.status === "error" ? t("Erro") : "…"}</span>}
         </div>
         <div className="ginfo">
           <strong>{t(gen.summary)}</strong>

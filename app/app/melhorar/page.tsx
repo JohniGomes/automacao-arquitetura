@@ -14,7 +14,7 @@ export default function Melhorar() {
   const [creativity, setCreativity] = useState(30);
   const [versions, setVersions] = useState(1);
   const [guidance, setGuidance] = useState("");
-  const { gen, error, busy, submit } = useJob();
+  const { gen, error, busy, submit, cancel } = useJob();
 
   return (
     <ToolShell
@@ -39,7 +39,7 @@ export default function Melhorar() {
           <div className="field"><label htmlFor="gd">{t("Orientação adicional")}</label><textarea id="gd" className="short" value={guidance} onChange={(e) => setGuidance(e.target.value)} placeholder={t("Opcional")} /></div>
         </>
       }
-      result={<Run gen={gen} error={error} />}
+      result={<Run gen={gen} error={error} onCancel={cancel} />}
     >
       <div className="card"><ImageInput label="Render a melhorar (de qualquer programa)" value={render} onChange={setRender} /></div>
     </ToolShell>

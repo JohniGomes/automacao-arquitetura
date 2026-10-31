@@ -154,6 +154,7 @@ async function filme(c: Ctx) {
   const n = cenas.length;
   const clips: Buffer[] = [];
   let skipped = 0, fallback = 0;
+  let note = ""; // aviso final (a barra de progresso sobrescreve a mensagem durante a montagem)
 
   progress(c, 3, "Analisando o projeto para manter a continuidade entre as cenas…");
   const bible = await visualBible(c);
@@ -171,6 +172,12 @@ async function filme(c: Ctx) {
     const imgPrompt = (ref ? REF_PREFIX : "") + cena.img + bibleBlock;
 
     const sceneCost = COSTS.filmeImagemPorCena + COSTS.filmeVideoPorCena;
+    if (c.gen.cancel) {
+      // cancelado pelo usuário: as cenas que não começaram são devolvidas e o filme sai com as que já estão prontas
+      await refundPart(c, sceneCost * (n - i), "Estorno: cenas canceladas");
+      note = "Concluído. Você cancelou a geração; as cenas que não começaram foram devolvidas.";
+      break;
+    }
 
     progress(c, base + slice * 0.05, `Cena ${i + 1}/${n} (${cena.label}): gerando imagem…`);
     let img: Buffer;
@@ -197,8 +204,12 @@ async function filme(c: Ctx) {
       fallback++;
     }
   }
-  if (!clips.length) throw new UserError("Não foi possível gerar nenhuma cena. Tente novamente.");
-  if (skipped || fallback) c.gen.message = `Concluído. ${skipped ? `${skipped} cena(s) não puderam ser geradas. ` : ""}${fallback ? `${fallback} cena(s) usam imagem animada no lugar do vídeo de IA. ` : ""}Os créditos dessas partes foram devolvidos.`;
+  if (!clips.length) throw new UserError(c.gen.cancel ? "Geração cancelada." : "Não foi possível gerar nenhuma cena. Tente novamente.");
+  if ((skipped || fallback) && !c.gen.cancel) {
+    note = skipped && fallback ? "Concluído. Algumas cenas não puderam ser geradas e outras usam imagem animada no lugar do vídeo de IA. Os créditos dessas partes foram devolvidos."
+      : skipped ? "Concluído. Algumas cenas não puderam ser geradas. Os créditos dessas cenas foram devolvidos."
+      : "Concluído. Algumas cenas usam imagem animada no lugar do vídeo de IA. Os créditos do vídeo dessas cenas foram devolvidos.";
+  }
   progress(c, 93, "Montando o filme final com ffmpeg…");
   let final: Buffer;
   try {
@@ -212,6 +223,7 @@ async function filme(c: Ctx) {
   }
   await addOutput(c, final, "mp4", "video", "Filme do projeto (1920x1080)");
   c.gen.outputs.sort((a) => (a.kind === "video" ? -1 : 1));
+  if (note) c.gen.message = note;
 }
 
 /**

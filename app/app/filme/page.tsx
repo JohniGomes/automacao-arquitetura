@@ -11,7 +11,7 @@ export default function Filme() {
   const [project, setProject] = useState<Val>(null);
   const [refs, setRefs] = useState<{ interior: Val; fachada: Val; acesso: Val }>({ interior: null, fachada: null, acesso: null });
   const [cenas, setCenas] = useState<string[]>(["aerea", "fachada", "entardecer"]);
-  const { gen, error, busy, submit } = useJob();
+  const { gen, error, busy, submit, cancel } = useJob();
   const toggle = (k: string) => setCenas((c) => (c.includes(k) ? c.filter((x) => x !== k) : c.length < 5 ? [...c, k] : c));
   const cost = cenas.length * (COSTS.filmeImagemPorCena + COSTS.filmeVideoPorCena);
   const faltaInterior = cenas.includes("interior") && !refs.interior;
@@ -28,7 +28,7 @@ export default function Filme() {
         <div className="field"><label>{t("Cenas (1 a 5, na ordem escolhida)")}</label>
           <div className="chips">{Object.entries(CENAS).map(([k, v]) => <button key={k} type="button" className={`chip ${cenas.includes(k) ? "on" : ""}`} aria-pressed={cenas.includes(k)} onClick={() => toggle(k)}>{cenas.includes(k) ? `${cenas.indexOf(k) + 1}. ` : ""}{t(v.label)}</button>)}</div></div>
       }
-      result={<Run gen={gen} error={error} />}
+      result={<Run gen={gen} error={error} onCancel={cancel} />}
     >
       <div className="card">
         <ImageInput label="Imagem do projeto" value={project} onChange={setProject} />

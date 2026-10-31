@@ -12,7 +12,7 @@ const JOB_TIMEOUT = { filme: 35 * 60_000, default: 12 * 60_000 } as const;
 /** jobs ativos (na fila ou rodando) por usuário */
 export const MAX_ACTIVE_PER_USER = 3;
 const g = globalThis as unknown as {
-  __q?: { running: number; waiting: (() => Promise<void>)[] };
+  __q?: { running: number; waiting: { id: string; run: () => Promise<void> }[] };
   __live?: Map<string, Generation>;
   __rec?: Promise<void>;
   __refunded?: Set<string>;
@@ -54,15 +54,38 @@ function pump() {
   while (q.running < MAX && q.waiting.length) {
     const job = q.waiting.shift()!;
     q.running++;
-    job().finally(() => { q.running--; pump(); });
+    job.run().finally(() => { q.running--; pump(); });
   }
+}
+
+/**
+ * Cancela uma geração do usuário. Na fila: sai dela e devolve tudo. Rodando: só o filme (que tem várias etapas) aceita;
+ * ele para antes da próxima cena e devolve as cenas que não começaram. Gerações de uma imagem não param no meio.
+ */
+export async function cancelJob(userId: string, id: string): Promise<"cancelada" | "parando" | "nao-cancelavel" | "nao-encontrada"> {
+  const gen = live.get(id);
+  if (!gen || gen.userId !== userId) return "nao-encontrada";
+  const i = q.waiting.findIndex((w) => w.id === id);
+  if (i >= 0) {
+    q.waiting.splice(i, 1);
+    await refundRest(gen, "Estorno: geração cancelada");
+    gen.status = "error";
+    gen.error = "Geração cancelada.";
+    gen.message = "Cancelada — créditos devolvidos";
+    gen.finishedAt = new Date().toISOString();
+    await persist(gen);
+    live.delete(id);
+    return "cancelada";
+  }
+  if (gen.status === "running" && gen.type === "filme") { gen.cancel = true; return "parando"; }
+  return "nao-cancelavel";
 }
 
 const timeoutAfter = (ms: number) => new Promise<never>((_, rej) => { const t = setTimeout(() => rej(new Error("Tempo máximo da geração excedido.")), ms); t.unref?.(); });
 
 export function enqueue(gen: Generation, input: JobInput) {
   live.set(gen.id, gen);
-  q.waiting.push(async () => {
+  q.waiting.push({ id: gen.id, run: async () => {
     gen.status = "running";
     gen.message = "Iniciando…";
     void persist(gen);
@@ -85,6 +108,6 @@ export function enqueue(gen: Generation, input: JobInput) {
     gen.finishedAt = new Date().toISOString();
     await persist(gen);
     live.delete(gen.id);
-  });
+  } });
   pump();
 }

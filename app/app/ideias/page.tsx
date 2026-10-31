@@ -16,7 +16,7 @@ export default function Ideias() {
   const [estilo, setEstilo] = useState<string>(ESTILOS_ARQ[0]);
   const [detalhes, setDetalhes] = useState("");
   const [versions, setVersions] = useState(2);
-  const { gen, error, busy, submit } = useJob();
+  const { gen, error, busy, submit, cancel } = useJob();
 
   const changeEnv = (e: Env) => { setEnv(e); setTipo(TIPOS_IDEIA[e][0]); };
 
@@ -41,7 +41,7 @@ export default function Ideias() {
           <ImageInput label="Imagem de inspiração (opcional)" value={reference} onChange={setReference} history={false} />
         </>
       }
-      result={<Run gen={gen} error={error} />}
+      result={<Run gen={gen} error={error} onCancel={cancel} />}
     >
       <div className="card"><ImageInput label="Imagem de partida" value={base} onChange={setBase} /></div>
     </ToolShell>

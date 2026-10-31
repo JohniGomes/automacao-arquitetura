@@ -14,7 +14,7 @@ export default function Esboco() {
   const [estilo, setEstilo] = useState("");
   const [detalhes, setDetalhes] = useState("");
   const [versions, setVersions] = useState(1);
-  const { gen, error, busy, submit } = useJob();
+  const { gen, error, busy, submit, cancel } = useJob();
 
   return (
     <ToolShell
@@ -34,7 +34,7 @@ export default function Esboco() {
             <p className="small muted" style={{ margin: "4px 2px 0", textAlign: "right" }}>{detalhes.length}/240</p></div>
         </>
       }
-      result={<Run gen={gen} error={error} />}
+      result={<Run gen={gen} error={error} onCancel={cancel} />}
     >
       <div className="card"><ImageInput label="Esboço ou desenho à mão" value={sketch} onChange={setSketch} /></div>
     </ToolShell>

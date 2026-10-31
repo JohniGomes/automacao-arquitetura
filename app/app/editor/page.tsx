@@ -28,7 +28,7 @@ export default function Editor() {
   const [erro, setErro] = useState("");
   const [preparing, setPreparing] = useState(false);
   const url = useImageUrl(base);
-  const { gen, error, busy, submit } = useJob();
+  const { gen, error, busy, submit, cancel } = useJob();
 
   const changeBase = (v: Val) => { setBase(v); setRegions([]); setActive(null); };
   const setText = (id: string, text: string) => setRegions((rs) => rs.map((r) => (r.id === id ? { ...r, text } : r)));
@@ -90,7 +90,7 @@ export default function Editor() {
           {erro && <p className="err small">{erro}</p>}
         </>
       }
-      result={<Run gen={gen} error={error} />}
+      result={<Run gen={gen} error={error} onCancel={cancel} />}
     >
       <div className="card">
         <ImageInput label="Imagem a editar" value={base} onChange={changeBase} showPreview={false} />

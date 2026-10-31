@@ -14,6 +14,8 @@ export type Generation = {
   favorite?: boolean;
   /** créditos já devolvidos durante o processamento (falha parcial); não vai para o banco */
   refunded?: number;
+  /** pedido de cancelamento (só o filme para no meio); não vai para o banco */
+  cancel?: boolean;
 };
 export type Project = { id: string; userId: string; name: string; createdAt: string };
 export type Tx = { id: string; userId: string; delta: number; reason: string; genId?: string; at: string };

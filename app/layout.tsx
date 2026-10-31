@@ -1,12 +1,14 @@
 import "./globals.css";
 import "./rail.css";
 import "./dark.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { I18nProvider } from "@/components/I18nProvider";
 import { getLang, getTheme } from "@/lib/i18n-server";
 
 const body = Inter({ subsets: ["latin"], variable: "--f-body", display: "swap" });
+
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export async function generateMetadata(): Promise<Metadata> {
   const en = (await getLang()) === "en";

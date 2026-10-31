@@ -32,7 +32,8 @@ export default function ToolShell({ title, tip, panel, cost, busy, canGenerate =
           </div>
           <div className="tpfoot">
             <div className="tcost"><span>{t("Custo total")}</span><b>{cost} {t("créditos")}</b></div>
-            <button className="full" disabled={busy || !canGenerate} onClick={onGenerate}>{busy ? t("Gerando…") : t("Gerar")}</button>
+            <button className="full" disabled={busy || !canGenerate} aria-busy={busy} onClick={onGenerate}>{busy ? t("Gerando…") : t("Gerar")}</button>
+            {!busy && !canGenerate && <p className="small muted" style={{ margin: "8px 2px 0", textAlign: "center" }}>{t("Preencha o que falta à esquerda para gerar.")}</p>}
           </div>
         </aside>
         {result && <div className="tresult">{result}</div>}

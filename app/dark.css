@@ -2,7 +2,7 @@
 
 :root[data-theme="dark"]{
   --sage: #5f7d69; --moss: #44584b; --mist: #2d3d34; --ivory: #222b26; --sand: #151b17;
-  --deep: #a9c8b3; --sage-d: #4e6a58;
+  --deep: #a9c8b3; --sage-d: #4e6a58; --btn-a: #4d6a58; --btn-b: #3d5748;
   --ink: #e6eee8; --head: #f4f8f5; --muted: #aebbb2;
   --accent-ink: #f4f8f5; --ok: #6cc08f; --bad: #ff8f84;
   --raise: 10px 10px 26px rgba(0, 0, 0, .5), -6px -6px 18px rgba(255, 255, 255, .035);
@@ -16,7 +16,7 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), var(--raise-sm);
 }
 :root[data-theme="dark"] button.ghost:hover:not(:disabled), :root[data-theme="dark"] .btn.ghost:hover, :root[data-theme="dark"] .chip:hover:not(:disabled) { background: linear-gradient(180deg, rgba(255, 255, 255, .15), rgba(127, 160, 138, .22)); }
-:root[data-theme="dark"] .chip.on { background: linear-gradient(180deg, color-mix(in srgb, var(--sage) 90%, transparent), color-mix(in srgb, var(--sage-d) 96%, transparent)); border-color: rgba(255, 255, 255, .28); }
+:root[data-theme="dark"] .chip.on { background: linear-gradient(180deg, var(--btn-a), var(--btn-b)); border-color: rgba(255, 255, 255, .28); }
 :root[data-theme="dark"] .warn { color: var(--ink); }
 :root[data-theme="dark"] .ticon { color: #f4f8f5; }
 :root[data-theme="dark"] .auth .box { background: rgba(34, 43, 38, .74); border-color: rgba(255, 255, 255, .1); box-shadow: var(--raise); }
@@ -33,7 +33,7 @@
 
 :root[data-theme="system"]{
   --sage: #5f7d69; --moss: #44584b; --mist: #2d3d34; --ivory: #222b26; --sand: #151b17;
-  --deep: #a9c8b3; --sage-d: #4e6a58;
+  --deep: #a9c8b3; --sage-d: #4e6a58; --btn-a: #4d6a58; --btn-b: #3d5748;
   --ink: #e6eee8; --head: #f4f8f5; --muted: #aebbb2;
   --accent-ink: #f4f8f5; --ok: #6cc08f; --bad: #ff8f84;
   --raise: 10px 10px 26px rgba(0, 0, 0, .5), -6px -6px 18px rgba(255, 255, 255, .035);
@@ -47,7 +47,7 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), var(--raise-sm);
 }
 :root[data-theme="system"] button.ghost:hover:not(:disabled), :root[data-theme="system"] .btn.ghost:hover, :root[data-theme="system"] .chip:hover:not(:disabled) { background: linear-gradient(180deg, rgba(255, 255, 255, .15), rgba(127, 160, 138, .22)); }
-:root[data-theme="system"] .chip.on { background: linear-gradient(180deg, color-mix(in srgb, var(--sage) 90%, transparent), color-mix(in srgb, var(--sage-d) 96%, transparent)); border-color: rgba(255, 255, 255, .28); }
+:root[data-theme="system"] .chip.on { background: linear-gradient(180deg, var(--btn-a), var(--btn-b)); border-color: rgba(255, 255, 255, .28); }
 :root[data-theme="system"] .warn { color: var(--ink); }
 :root[data-theme="system"] .ticon { color: #f4f8f5; }
 :root[data-theme="system"] .auth .box { background: rgba(34, 43, 38, .74); border-color: rgba(255, 255, 255, .1); box-shadow: var(--raise); }

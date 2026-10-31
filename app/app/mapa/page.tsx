@@ -11,7 +11,7 @@ export default function Mapa() {
   const [zoom, setZoom] = useState(18);
   const [upload, setUpload] = useState<Val>(null);
   const [previewSrc, setPreviewSrc] = useState("");
-  const { gen, error, busy, submit } = useJob();
+  const { gen, error, busy, submit, cancel } = useJob();
 
   return (
     <ToolShell
@@ -22,7 +22,7 @@ export default function Mapa() {
       canGenerate={!!address.trim() || !!upload}
       onGenerate={() => submit({ type: "mapa", address, zoom: String(zoom), upload })}
       panel={<div className="field"><label htmlFor="z">{t("Zoom")}: {zoom}</label><input id="z" type="range" min={15} max={20} value={zoom} onChange={(e) => setZoom(+e.target.value)} /></div>}
-      result={<Run gen={gen} error={error} />}
+      result={<Run gen={gen} error={error} onCancel={cancel} />}
     >
       <div className="card">
         <div className="field"><label htmlFor="addr">{t("Endereço ou localização")}</label>

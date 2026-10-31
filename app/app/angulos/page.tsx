@@ -18,7 +18,7 @@ export default function Angulos() {
   const [az, setAz] = useState(45);
   const [el, setEl] = useState(0);
   const [lens, setLens] = useState<LenteKey>("normal");
-  const { gen, error, busy, submit } = useJob();
+  const { gen, error, busy, submit, cancel } = useJob();
 
   const manual = mode === "unica" && how === "manual";
   const count = mode === "mosaico" ? multi.length : 1;
@@ -56,7 +56,7 @@ export default function Angulos() {
           <Seg label="Lente" value={lens} onChange={setLens} options={(Object.keys(LENTES) as LenteKey[]).map((k) => ({ v: k, label: LENTES[k].label }))} />
         </>
       }
-      result={<Run gen={gen} error={error} />}
+      result={<Run gen={gen} error={error} onCancel={cancel} />}
     >
       <div className="card"><ImageInput label="Imagem de partida (render ou foto)" value={base} onChange={setBase} /></div>
     </ToolShell>

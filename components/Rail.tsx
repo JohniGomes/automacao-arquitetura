@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Logo from "./Logo";
 import ToolIcon from "./ToolIcon";
 import { useCredits } from "./useCredits";
@@ -44,10 +44,13 @@ export default function Rail({ name, credits, theme: themeInit }: { name: string
   const [menu, setMenu] = useState<null | "acc" | "lang" | "theme">(null);
   const [theme, setTheme] = useState<Theme>(themeInit);
   const [q, setQ] = useState("");
+  // botão que abriu o painel: o foco volta para ele ao fechar com Esc
+  const opener = useRef<HTMLElement | null>(null);
+  const remember = (e: React.MouseEvent) => { opener.current = e.currentTarget as HTMLElement; };
 
   useEffect(() => { setDrawer(false); setMenu(null); setQ(""); }, [path]);
   useEffect(() => {
-    const k = (e: KeyboardEvent) => { if (e.key === "Escape") { setDrawer(false); setMenu(null); } };
+    const k = (e: KeyboardEvent) => { if (e.key === "Escape") { setDrawer(false); setMenu(null); opener.current?.focus(); } };
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
   }, []);
@@ -80,22 +83,22 @@ export default function Rail({ name, credits, theme: themeInit }: { name: string
           <Item href="/app" label={t("Início")} icon={I.home} active={on("/app", true)} />
           <Item href="/app/projetos" label={t("Projetos")} icon={I.folder} active={on("/app/projetos")} />
           <Item href="/app/geracoes" label={t("Gerações")} icon={I.image} active={on("/app/geracoes")} />
-          <button className={`ritem ${drawer || inTool ? "on" : ""}`} aria-expanded={drawer} onClick={() => { setDrawer(!drawer); setMenu(null); }}><Ic d={I.tools} /><span>{t("Ferramentas")}</span></button>
+          <button className={`ritem ${drawer || inTool ? "on" : ""}`} aria-expanded={drawer} onClick={(e) => { remember(e); setDrawer(!drawer); setMenu(null); }}><Ic d={I.tools} /><span>{t("Ferramentas")}</span></button>
         </div>
         <div className="rfoot">
           <Item href="/app/suporte" label={t("Suporte")} icon={I.support} active={on("/app/suporte")} cls="rextra" />
           <Item href="/app/ajuda" label={t("Ajuda")} icon={I.help} active={on("/app/ajuda")} cls="rextra" />
-          <button className={`ritem rextra ${menu === "lang" ? "on" : ""}`} aria-expanded={menu === "lang"} onClick={() => { setMenu(menu === "lang" ? null : "lang"); setDrawer(false); }}><Ic d={I.lang} /><span>{t("Idioma")}</span></button>
-          <button className={`ritem rextra ${menu === "theme" ? "on" : ""}`} aria-expanded={menu === "theme"} onClick={() => { setMenu(menu === "theme" ? null : "theme"); setDrawer(false); }}><Ic d={curTheme.icon} /><span>{t("Tema")}</span></button>
+          <button className={`ritem rextra ${menu === "lang" ? "on" : ""}`} aria-expanded={menu === "lang"} onClick={(e) => { remember(e); setMenu(menu === "lang" ? null : "lang"); setDrawer(false); }}><Ic d={I.lang} /><span>{t("Idioma")}</span></button>
+          <button className={`ritem rextra ${menu === "theme" ? "on" : ""}`} aria-expanded={menu === "theme"} onClick={(e) => { remember(e); setMenu(menu === "theme" ? null : "theme"); setDrawer(false); }}><Ic d={curTheme.icon} /><span>{t("Tema")}</span></button>
           <Link href="/app/creditos" className="rcredits" title={t("Créditos")}><b>{c}</b><span>{t("créditos")}</span></Link>
-          <button className="ritem racc" aria-expanded={menu === "acc"} aria-label={t("Conta")} onClick={() => { setMenu(menu === "acc" ? null : "acc"); setDrawer(false); }}><Ic d={I.user} /><span>{t("Conta")}</span></button>
+          <button className="ritem racc" aria-expanded={menu === "acc"} aria-label={t("Conta")} onClick={(e) => { remember(e); setMenu(menu === "acc" ? null : "acc"); setDrawer(false); }}><Ic d={I.user} /><span>{t("Conta")}</span></button>
         </div>
       </nav>
 
       {(drawer || menu) && <div className="dscrim" onClick={() => { setDrawer(false); setMenu(null); }} />}
 
       {drawer && (
-        <aside className="drawer" aria-label={t("Ferramentas")}>
+        <aside className="drawer" role="dialog" aria-label={t("Ferramentas")}>
           <h2>{t("Ferramentas")}</h2>
           <input type="text" placeholder={t("Buscar ferramenta")} value={q} onChange={(e) => setQ(e.target.value)} autoFocus aria-label={t("Buscar ferramenta")} />
           {GROUPS.map((g) => {
@@ -114,26 +117,26 @@ export default function Rail({ name, credits, theme: themeInit }: { name: string
       )}
 
       {menu === "lang" && (
-        <div className="pop pop-sm" role="menu">
+        <div className="pop pop-sm" role="dialog" aria-label={t("Menu")}>
           <div className="pgroup first">{t("Idioma")}</div>
           {LANGS.map((l) => <button key={l.id} type="button" className={`popopt ${lang === l.id ? "on" : ""}`} aria-pressed={lang === l.id} onClick={() => pickLang(l.id)}>{l.label}</button>)}
         </div>
       )}
       {menu === "theme" && (
-        <div className="pop pop-sm" role="menu">
+        <div className="pop pop-sm" role="dialog" aria-label={t("Menu")}>
           <div className="pgroup first">{t("Tema")}</div>
           {THEMES.map((x) => <button key={x.id} type="button" className={`popopt ${theme === x.id ? "on" : ""}`} aria-pressed={theme === x.id} onClick={() => pickTheme(x.id)}><Ic d={x.icon} />{t(x.label)}</button>)}
         </div>
       )}
       {menu === "acc" && (
-        <div className="pop" role="menu">
+        <div className="pop" role="dialog" aria-label={t("Menu")}>
           <div className="pname" title={name}>{name}</div>
-          <Link href="/app/creditos" role="menuitem">{t("Créditos e extrato")}</Link>
-          <Link href="/app/ajuda" role="menuitem" className="pmob">{t("Ajuda")}</Link>
-          <Link href="/app/suporte" role="menuitem" className="pmob">{t("Suporte")}</Link>
+          <Link href="/app/creditos">{t("Créditos e extrato")}</Link>
+          <Link href="/app/ajuda" className="pmob">{t("Ajuda")}</Link>
+          <Link href="/app/suporte" className="pmob">{t("Suporte")}</Link>
           <div className="pmob"><Prefs /></div>
-          <Link href="/termos" role="menuitem">{t("Termos de Uso")}</Link>
-          <Link href="/privacidade" role="menuitem">{t("Política de Privacidade")}</Link>
+          <Link href="/termos">{t("Termos de Uso")}</Link>
+          <Link href="/privacidade">{t("Política de Privacidade")}</Link>
           <button className="ghost" onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); location.href = "/"; }}>{t("Sair")}</button>
         </div>
       )}

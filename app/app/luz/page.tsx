@@ -12,7 +12,7 @@ export default function Luz() {
   const [luz, setLuz] = useState("golden");
   const [livre, setLivre] = useState("");
 
-  const { gen, error, busy, submit } = useJob();
+  const { gen, error, busy, submit, cancel } = useJob();
   return (
     <ToolShell
       title="Variação de iluminação"
@@ -27,7 +27,7 @@ export default function Luz() {
           <div className="field"><label htmlFor="lv">{t("Ou descreva uma luz")}</label><input id="lv" type="text" value={livre} onChange={(e) => setLivre(e.target.value)} placeholder={t("Ex.: luz amarela quente nos ambientes")} /></div>
         </>
       }
-      result={<Run gen={gen} error={error} />}
+      result={<Run gen={gen} error={error} onCancel={cancel} />}
     >
       <div className="card"><ImageInput label="Render de partida (envie ou escolha do histórico)" value={base} onChange={setBase} /></div>
     </ToolShell>

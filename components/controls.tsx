@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useT } from "./I18nProvider";
 
 /** Controle segmentado (opções lado a lado) com descrição da opção escolhida. */
@@ -7,11 +7,12 @@ export function Seg<T extends string>({ label, value, onChange, options }: {
   label: string; value: T; onChange: (v: T) => void; options: { v: T; label: string; desc?: string }[];
 }) {
   const t = useT();
+  const id = useId();
   const cur = options.find((o) => o.v === value);
   return (
     <div className="field">
-      <label>{t(label)}</label>
-      <div className="seg" role="group" aria-label={t(label)}>
+      <label id={`${id}-l`}>{t(label)}</label>
+      <div className="seg" role="group" aria-labelledby={`${id}-l`}>
         {options.map((o) => <button key={o.v} type="button" className={value === o.v ? "on" : ""} aria-pressed={value === o.v} onClick={() => onChange(o.v)}>{t(o.label)}</button>)}
       </div>
       {cur?.desc && <p className="small muted" style={{ margin: "6px 2px 0" }}>{t(cur.desc)}</p>}
@@ -37,10 +38,11 @@ export function Slider({ label, value, onChange, min, max, step = 1, left, right
   label: string; value: number; onChange: (n: number) => void; min: number; max: number; step?: number; left: string; right: string; valueLabel?: string;
 }) {
   const t = useT();
+  const id = useId();
   return (
     <div className="field">
-      <label htmlFor={`sl-${label}`}>{t(label)}{valueLabel ? `: ${t(valueLabel)}` : ""}</label>
-      <input id={`sl-${label}`} type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(+e.target.value)} />
+      <label htmlFor={id}>{t(label)}{valueLabel ? `: ${t(valueLabel)}` : ""}</label>
+      <input id={id} type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(+e.target.value)} />
       <div className="row small muted" style={{ margin: 0 }}><span>{t(left)}</span><span>{t(right)}</span></div>
     </div>
   );
@@ -49,10 +51,11 @@ export function Slider({ label, value, onChange, min, max, step = 1, left, right
 /** Seção que abre e fecha (opções avançadas). */
 export function Fold({ title, open, onToggle, children }: { title: string; open: boolean; onToggle: () => void; children: React.ReactNode }) {
   const t = useT();
+  const id = useId();
   return (
     <div className="fold">
-      <button type="button" className="ghost foldbtn" aria-expanded={open} onClick={onToggle}><span>{t(title)}</span><span aria-hidden="true">{open ? "−" : "+"}</span></button>
-      {open && <div className="foldbody">{children}</div>}
+      <button type="button" className="ghost foldbtn" aria-expanded={open} aria-controls={`${id}-b`} onClick={onToggle}><span>{t(title)}</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }}><path d="M6 9l6 6 6-6" /></svg></button>
+      {open && <div className="foldbody" id={`${id}-b`}>{children}</div>}
     </div>
   );
 }

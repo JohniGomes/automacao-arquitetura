@@ -13,7 +13,7 @@ export default function Moodboard() {
   const [custom, setCustom] = useState<Val>(null);
   const [amb, setAmb] = useState("cozinha");
   const [house, setHouse] = useState<Val>(null);
-  const { gen, error, busy, submit } = useJob();
+  const { gen, error, busy, submit, cancel } = useJob();
 
   useEffect(() => { fetch("/api/templates").then((r) => r.json()).then((j) => setTemplates(j.templates)); }, []);
   const template: Val = custom || (tpl ? "tpl:" + tpl : null);
@@ -26,7 +26,7 @@ export default function Moodboard() {
       canGenerate={!!template && !!house}
       onGenerate={() => submit({ type: "moodboard", ambiente: amb, house, template })}
       panel={<div className="field"><label>{t("Ambiente")}</label><div className="chips">{Object.entries(AMBIENTES).map(([k, v]) => <button key={k} type="button" className={`chip ${amb === k ? "on" : ""}`} aria-pressed={amb === k} onClick={() => setAmb(k)}>{t(v.label)}</button>)}</div></div>}
-      result={<Run gen={gen} error={error} />}
+      result={<Run gen={gen} error={error} onCancel={cancel} />}
     >
       <div className="card">
         <div className="field"><label>{t("Modelo da galeria")}</label>
