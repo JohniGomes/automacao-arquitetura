@@ -17,9 +17,9 @@ services:
       - key: MOCK_MODE
         value: auto   # sem GEMINI_API_KEY/GOOGLE_MAPS_API_KEY roda em mock
       - key: SIGNUP_CREDITS
-        value: "30"   # cadastro é aberto: cada conta nova pode gastar API real se houver chave
+        value: "15"   # cadastro é aberto: cada conta nova pode gastar API real se houver chave
       - key: CLIP_SECONDS
-        value: "0"
+        value: "5"   # teto de cada clipe do filme (o excedente é cortado)
       - key: GEMINI_IMAGE_MODEL
         value: gemini-nano-banana-2.1
       - key: GEMINI_VIDEO_MODEL

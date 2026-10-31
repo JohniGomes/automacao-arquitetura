@@ -16,7 +16,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ name: st
     headers: {
       "Content-Type": contentType(name),
       "Cache-Control": "private, max-age=3600",
-      ...(dl ? { "Content-Disposition": `attachment; filename="${name}"` } : {}),
+      ...(dl ? { "Content-Disposition": `attachment; filename="${name.replace(/[^A-Za-z0-9._-]/g, "_")}"` } : {}),
     },
   });
 }

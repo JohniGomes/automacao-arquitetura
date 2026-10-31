@@ -1,19 +1,27 @@
 import crypto from "node:crypto";
+import { promisify } from "node:util";
 import { cookies } from "next/headers";
 import { User } from "./db";
 import { env } from "./config";
 import { store } from "./store";
 
+const scrypt = promisify(crypto.scrypt) as (p: string, salt: string, len: number) => Promise<Buffer>;
 const sign = (v: string) => crypto.createHmac("sha256", env.sessionSecret).update(v).digest("hex");
+const safeEq = (a: string, b: string) => a.length === b.length && crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 
-export function hashPassword(p: string) {
+// scrypt assíncrono: o síncrono travava o servidor inteiro (inclusive a fila de gerações) durante cada login
+export async function hashPassword(p: string) {
   const salt = crypto.randomBytes(16).toString("hex");
-  return `${salt}:${crypto.scryptSync(p, salt, 64).toString("hex")}`;
+  return `${salt}:${(await scrypt(p, salt, 64)).toString("hex")}`;
 }
-export function checkPassword(p: string, stored?: string) {
-  if (!stored) return false;
-  const [salt, hash] = stored.split(":");
-  return crypto.timingSafeEqual(crypto.scryptSync(p, salt, 64), Buffer.from(hash, "hex"));
+const DUMMY = `${"0".repeat(32)}:${"0".repeat(128)}`;
+/** Confere a senha. Sem hash (conta inexistente ou só Google) ele ainda faz a conta, para o tempo não revelar se o e-mail existe. */
+export async function checkPassword(p: string, stored?: string) {
+  const [salt, hash] = (stored || DUMMY).split(":");
+  if (!salt || !hash) return false;
+  const given = await scrypt(p, salt, 64);
+  const want = Buffer.from(hash, "hex");
+  return !!stored && want.length === given.length && crypto.timingSafeEqual(given, want);
 }
 
 export async function startSession(userId: string) {
@@ -27,6 +35,6 @@ export async function currentUser(): Promise<User | null> {
   const c = (await cookies()).get("sid")?.value;
   if (!c) return null;
   const [id, exp, sig] = c.split(".");
-  if (!sig || sign(`${id}.${exp}`) !== sig || Number(exp) < Date.now()) return null;
+  if (!id || !exp || !sig || !safeEq(sign(`${id}.${exp}`), sig) || Number(exp) < Date.now()) return null;
   return store.getUser(id);
 }

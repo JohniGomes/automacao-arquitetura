@@ -25,7 +25,7 @@ services:
       - key: SIGNUP_CREDITS
         value: "0"   # cadastro público NÃO deve dar crédito grátis: cada crédito gasta dinheiro de API
       - key: CLIP_SECONDS
-        value: "0"
+        value: "5"   # teto de cada clipe do filme (o excedente é cortado)
       - key: GEMINI_IMAGE_MODEL
         value: gemini-nano-banana-2.1
       - key: GEMINI_VIDEO_MODEL

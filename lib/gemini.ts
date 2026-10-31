@@ -1,22 +1,42 @@
 import { Agent, fetch as ufetch } from "undici";
 import { env } from "./config";
+import { UserError } from "./errors";
 
-// Gerar vídeo pode levar minutos com a conexão aberta: sem isso o fetch do Node desiste em ~5 min.
+// Gerar vídeo pode levar minutos com a conexão aberta; o limite de tempo de cada chamada é o AbortSignal abaixo.
 const longAgent = new Agent({ headersTimeout: 0, bodyTimeout: 0, connectTimeout: 30_000 });
 
 const BASE = "https://generativelanguage.googleapis.com/v1beta";
 export type Img = { data: Buffer; mime: string };
 
-async function post(body: unknown) {
-  const res = await ufetch(`${BASE}/interactions`, {
-    method: "POST",
-    headers: { "x-goog-api-key": env.geminiKey, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    dispatcher: longAgent,
-  } as any).catch((e: any) => { throw new Error(`Falha de rede ao chamar o Gemini: ${e?.cause?.message || e?.message}`); });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`Gemini API ${res.status}: ${text.slice(0, 400)}`);
-  return JSON.parse(text);
+const IMAGE_TIMEOUT = 5 * 60_000;
+const VIDEO_TIMEOUT = 15 * 60_000;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** POST com tempo limite e até 2 novas tentativas em erro temporário (429, 5xx ou rede). Os erros 4xx não repetem. */
+async function post(body: unknown, timeoutMs = IMAGE_TIMEOUT) {
+  let last: Error = new Error("Falha ao chamar o Gemini.");
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await sleep(attempt === 1 ? 2_000 : 6_000);
+    let res;
+    try {
+      res = await ufetch(`${BASE}/interactions`, {
+        method: "POST",
+        headers: { "x-goog-api-key": env.geminiKey, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        dispatcher: longAgent,
+        signal: AbortSignal.timeout(timeoutMs),
+      } as any);
+    } catch (e: any) {
+      last = new Error(`Falha de rede ao chamar o Gemini: ${e?.cause?.message || e?.message}`);
+      if (e?.name === "TimeoutError") throw new UserError("A IA demorou demais para responder. Tente novamente.");
+      continue;
+    }
+    const text = await res.text();
+    if (res.ok) return JSON.parse(text);
+    last = new Error(`Gemini API ${res.status}: ${text.slice(0, 400)}`);
+    if (res.status !== 429 && res.status < 500) throw last;
+  }
+  throw last;
 }
 
 /** Procura recursivamente o primeiro bloco de mídia do tipo pedido (formato da resposta varia entre SDK e REST). */
@@ -31,6 +51,10 @@ function findMedia(node: any, type: "image" | "video"): any | null {
   return null;
 }
 
+/** Procura sinais de bloqueio por segurança na resposta (o nome do campo varia). */
+const blocked = (json: unknown) => /SAFETY|PROHIBITED|BLOCKED|blockReason|IMAGE_OTHER|RECITATION/i.test(JSON.stringify(json).slice(0, 20_000));
+const BLOCK_MSG = "A IA recusou esta imagem por segurança. Reformule o pedido ou use outra imagem.";
+
 /** Imagem(ns) de entrada + prompt -> imagem. Ref.: ai.google.dev/gemini-api/docs/image-generation */
 export async function generateImage(prompt: string, images: Img[], aspect?: string, size?: string): Promise<Buffer> {
   const input = [
@@ -41,7 +65,7 @@ export async function generateImage(prompt: string, images: Img[], aspect?: stri
   if (aspect) response_format.aspect_ratio = aspect;
   const json = await post({ model: env.imageModel, input, response_format });
   const m = findMedia(json, "image");
-  if (!m?.data) throw new Error("Gemini não devolveu imagem (resposta inesperada ou bloqueada por segurança).");
+  if (!m?.data) throw new UserError(blocked(json) ? BLOCK_MSG : "A IA não devolveu a imagem. Tente novamente.");
   return Buffer.from(m.data, "base64");
 }
 
@@ -56,19 +80,24 @@ export async function generateVideo(prompt: string, image: Img): Promise<Buffer>
     ],
     generation_config: { video_config: { task: "image_to_video" } },
     response_format: { type: "video", aspect_ratio: "16:9", resolution: env.videoRes, delivery: "uri" },
-  });
+  }, VIDEO_TIMEOUT);
   const m = findMedia(json, "video");
-  if (!m) throw new Error("Gemini não devolveu vídeo.");
+  if (!m) throw new UserError(blocked(json) ? BLOCK_MSG : "A IA não devolveu o vídeo. Tente novamente.");
   if (m.data) return Buffer.from(m.data, "base64");
   const id = String(m.uri).match(/files\/([a-zA-Z0-9_-]+)/)?.[1];
   if (!id) throw new Error("URI de vídeo inesperada: " + m.uri);
-  for (let i = 0; i < 120; i++) {
-    const f: any = await (await ufetch(`${BASE}/files/${id}`, { headers: { "x-goog-api-key": env.geminiKey }, dispatcher: longAgent })).json();
-    if (f.state === "ACTIVE") break;
-    if (f.state === "FAILED") throw new Error("Geração de vídeo falhou no Gemini.");
-    await new Promise((r) => setTimeout(r, 5000));
+  const headers = { "x-goog-api-key": env.geminiKey };
+  let ready = false;
+  for (let i = 0; i < 120 && !ready; i++) {
+    const r = await ufetch(`${BASE}/files/${id}`, { headers, dispatcher: longAgent, signal: AbortSignal.timeout(60_000) } as any);
+    if (!r.ok) throw new Error(`Consulta do vídeo falhou: ${r.status}`);
+    const f: any = await r.json();
+    if (f.state === "ACTIVE") ready = true;
+    else if (f.state === "FAILED") throw new Error("Geração de vídeo falhou no Gemini.");
+    else await sleep(5000);
   }
-  const dl = await ufetch(`${BASE}/files/${id}:download?alt=media`, { headers: { "x-goog-api-key": env.geminiKey }, redirect: "follow", dispatcher: longAgent });
+  if (!ready) throw new UserError("O vídeo demorou demais para ficar pronto. Tente novamente.");
+  const dl = await ufetch(`${BASE}/files/${id}:download?alt=media`, { headers, redirect: "follow", dispatcher: longAgent, signal: AbortSignal.timeout(5 * 60_000) } as any);
   if (!dl.ok) throw new Error(`Download do vídeo falhou: ${dl.status}`);
   return Buffer.from(await dl.arrayBuffer());
 }
@@ -87,7 +116,7 @@ export async function geminiText(prompt: string, images: Img[]): Promise<string>
     { type: "text", text: prompt },
     ...images.map((i) => ({ type: "image", mime_type: i.mime, data: i.data.toString("base64") })),
   ];
-  const json = await post({ model: env.geminiTextModel, input });
+  const json = await post({ model: env.geminiTextModel, input }, 2 * 60_000);
   const out = (Array.isArray(json?.steps) ? json.steps.filter((s: any) => s?.type === "model_output") : []).map(findText).filter(Boolean).join("\n") || findText(json);
   if (!out) throw new Error("Gemini não devolveu texto.");
   return out.trim();

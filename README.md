@@ -135,19 +135,22 @@ Menu lateral com ícones (Início, Projetos, Gerações, Ferramentas e atalhos f
 - **Multi-ângulo** (`/app/angulos`): imagem única (ângulo predefinido ou manual, com giro e altura da câmera) ou mosaico de 2 a 6 ângulos, com escolha de lente. No mosaico, cada ângulo é gerado e uma imagem-contato junta todos (montada com sharp). 2 créditos por ângulo (provisório).
 - **Beta, não validado com IA real:** se o modelo respeita a máscara (altera só a área branca) e se mantém a geometria ao girar a câmera só aparece no teste com chave. Os lados da construção que não aparecem na imagem são inventados pela IA. Em modo mock, o editor pinta cada região com uma cor sobre a imagem para mostrar onde a IA mexeria.
 
-## Provedor de IA (Gemini ou Grok) e teste com chave real
+## IA (Gemini) e teste com chave real
 
-- **Escolha do provedor:** `AI_PROVIDER=gemini|grok` define imagem e vídeo; `IMAGE_PROVIDER` e `VIDEO_PROVIDER` sobrescrevem cada um (dá para usar, por exemplo, imagens no Gemini e vídeo no Grok). Chave do Grok em `XAI_API_KEY`. O código está em `lib/ai.ts`, `lib/gemini.ts` e `lib/grok.ts`. Sem a chave do provedor escolhido o app continua em modo mock.
-- **Grok (xAI):** imagem por `POST /v1/images/edits` (modelo `grok-imagine-image-2.0`, 1 a 5 imagens de entrada) e vídeo por `POST /v1/videos/generations` (`grok-imagine-video-1.5`, 1 a 15 s, 480p/720p/1080p, com consulta periódica até ficar pronto). `GROK_VIDEO_SECONDS` e `GROK_VIDEO_RES` controlam o clipe. A documentação não fecha todos os campos (nome do array de várias imagens, formato da resposta), então a chamada tenta variações e remove campos opcionais que a API recusar. O vídeo usa a imagem por URL: com o Supabase vai o link assinado da cena; sem ele, base64 (não confirmado pela documentação).
-- **Teste com chave real:** coloque as chaves em `.env.local` (nunca no Git) e rode `npm run test:ia -- --grok` (ou `--gemini`, `--maps`; `--video` inclui o vídeo, a chamada mais cara). O script usa `public/casa/modelo.jpg`, mostra o status e o formato de cada resposta (sem imprimir a chave) e salva os resultados em `data/teste-ia/`.
-- **Depois do script:** rode o app com `MOCK_MODE=false` e exercite as ferramentas pela interface (render, editor, multi-ângulo, filme) conferindo a geometria da casa.
+- **Provedor:** só Gemini. Imagens em `gemini-nano-banana-2.1` e vídeo em `gemini-omni-1.1-flash` (o Veo foi descontinuado). Os modelos podem ser trocados por `GEMINI_IMAGE_MODEL`, `GEMINI_VIDEO_MODEL` e `GEMINI_TEXT_MODEL`.
+- **Vídeo:** o Omni não tem parâmetro de duração; ela é pedida no texto (`GEMINI_VIDEO_SECONDS`, 5 s) e o ffmpeg corta qualquer clipe maior que `CLIP_SECONDS`. Resolução nativa 720p (`GEMINI_VIDEO_RES`); o 1080p do Omni é upscale e custa mais por segundo. Custo medido: clipe de 5 s em 720p ≈ R$ 3,00; imagem ≈ R$ 0,23.
+- **Chamadas à IA:** têm tempo limite (5 min para imagem, 15 min para vídeo), até 2 novas tentativas em erro temporário (429/5xx) e mensagem própria quando a IA recusa por segurança. Cada job tem tempo máximo (12 min; filme, 35 min) e, ao estourar, é encerrado e estornado.
+- **Falhas parciais:** o que não foi entregue é devolvido (versão, ângulo ou região que falhou; cena sem imagem; vídeo de cena que falhou, que entra como imagem animada).
+- **Teste com chave real:** coloque as chaves em `.env.local` (nunca no Git) e rode `npm run test:ia` (`-- --gemini` ou `-- --maps`).
 
-## Primeiro teste real (Grok, 29/10/2026)
+## Segurança e limites
 
-- **Funciona:** `POST /v1/images/edits` com uma imagem em base64, `response_format=b64_json` e `resolution=1k` respondeu HTTP 200 em cerca de 20 s, com `data[0].b64_json` e `usage.cost_in_usd_ticks` (700000000 por imagem, que parece corresponder a cerca de US$ 0,07 por imagem de 1k; confirme no painel do xAI). Nenhum campo opcional foi recusado.
-- **Fidelidade é questão de prompt.** Com "preserve o ângulo da câmera e a composição" o Grok trocou a isométrica do print por uma perspectiva baixa e reorganizou os volumes. Com a câmera, a vista (isométrica, axonométrica, vista de cima) e cada elemento descritos como "exatamente no mesmo lugar", sem pedir céu nem "fotografia profissional de arquitetura" (que levam o modelo para a altura dos olhos), o render saiu alinhado com o print: forma em L, coberturas, janelas, volume de madeira e piscina no lugar. O prompt de `composeRender` (`lib/compose.ts`) já usa essa versão.
-- **Atenção ao `.env.local`:** `AI_PROVIDER` precisa ser `grok`. O modelo `.env.example` traz `gemini`; com `MOCK_MODE=false` isso manda as chamadas para o Gemini e falha por falta de chave.
-- **Ainda não testado com IA real:** vídeo (Grok e Gemini), editor por regiões, multi-ângulo, melhorar render, esboço, ideias, moodboard, mapa de situação e luz.
+- Sessão por cookie assinado (HMAC); em produção o app não sobe sem `SESSION_SECRET`.
+- Login: limite de tentativas por IP e por e-mail; cadastro: 5 por hora por IP; geração: 20 pedidos por 10 min e no máximo 3 em andamento por conta; pré-visualização do mapa: 30 por 10 min. Os limites ficam na memória do processo (instância única); com mais de uma instância, trocar por Redis/Upstash.
+- Login com Google usa `state` aleatório em cookie e **não vincula** a uma conta criada com senha (o e-mail da conta por senha não é verificado). Verificação de e-mail e recuperação de senha dependem de um serviço de e-mail e ainda não existem.
+- O prompt nunca vai ao navegador; erros técnicos ficam no log do servidor e o usuário recebe uma mensagem genérica.
+- Suporte: mensagens ficam na tabela `support_messages` e, com `RESEND_API_KEY` + `SUPPORT_EMAIL` (+ `MAIL_FROM`), também chegam por e-mail.
+- Cabeçalhos de segurança básicos no `next.config.mjs` (sem CSP por enquanto).
 
 ## Prompts da auditoria (versão aplicada em 29/10/2026)
 

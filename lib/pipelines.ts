@@ -9,6 +9,28 @@ import { mockEdit, mockImage } from "./mock";
 import { composeEdit } from "./compose";
 import { satellite } from "./maps";
 import { AMBIENTES, AmbienteKey, CENAS, CenaDef, CenaKey, PROMPT_BIBLIA, PROMPT_MAPA, promptLuz, promptMoodboard, REF_PREFIX } from "./prompts";
+import { refund } from "./credits";
+import { UserError } from "./errors";
+import { COSTS } from "./costs";
+
+/** Proporção aceita pela IA mais próxima da imagem: a saída mantém o enquadramento da entrada. */
+async function nearestAspect(buf: Buffer, fallback = "2:3"): Promise<string> {
+  const m = await sharp(buf).metadata().catch(() => null);
+  const ratio = m?.width && m?.height ? m.width / m.height : 2 / 3;
+  return (["9:16", "2:3", "3:4", "4:5", "1:1", "5:4", "4:3", "3:2", "16:9"] as const).reduce<string>((best, a) => {
+    const [w, h] = a.split(":").map(Number);
+    const [bw, bh] = best.split(":").map(Number);
+    return Math.abs(w / h - ratio) < Math.abs(bw / bh - ratio) ? a : best;
+  }, fallback);
+}
+
+/** Devolve créditos de uma parte que não foi entregue e registra o total devolvido (o estorno final desconta isso). */
+async function refundPart(c: Ctx, amount: number, reason: string) {
+  const v = Math.max(0, Math.min(Math.round(amount), c.gen.cost - (c.gen.refunded || 0)));
+  if (!v) return;
+  c.gen.refunded = (c.gen.refunded || 0) + v;
+  await refund(c.gen.userId, v, reason, c.gen.id).catch((e) => console.error("estorno parcial falhou:", e));
+}
 
 export type JobInput = { type: Generation["type"]; params: any; images: Record<string, Img> };
 
@@ -46,8 +68,7 @@ const ext = (b: Buffer) => (mimeOf(b) === "image/jpeg" ? "jpg" : mimeOf(b) === "
  */
 function snap(c: Ctx, prompt: string, extra?: Record<string, unknown>): string {
   const { prompt: _p, angles: _a, regions: _r, ...opts } = c.input.params || {};
-  const model = env.imageProvider === "grok" ? env.grokImageModel : env.imageModel;
-  return `[Provedor: ${env.imageProvider} · Modelo: ${model}]\n[Opções: ${JSON.stringify({ ...opts, ...extra })}]\n\n${prompt}`;
+  return `[Modelo: ${env.imageModel}]\n[Opções: ${JSON.stringify({ ...opts, ...extra })}]\n\n${prompt}`;
 }
 
 async function mapa(c: Ctx) {
@@ -61,7 +82,7 @@ async function mapa(c: Ctx) {
   await addOutput(c, sat.data, ext(sat.data), "image", "Satélite (entrada)");
   progress(c, 35, "Gerando o mapa de situação…");
   c.gen.prompt = snap(c, PROMPT_MAPA);
-  const out = await makeImage(c, "Mapa de situação", PROMPT_MAPA, [sat]);
+  const out = await makeImage(c, "Mapa de situação", PROMPT_MAPA, [sat], await nearestAspect(sat.data, "1:1"));
   await addOutput(c, out, ext(out), "image", "Mapa de situação");
   c.gen.outputs.reverse(); // resultado primeiro
 }
@@ -72,14 +93,8 @@ async function moodboard(c: Ctx) {
   c.gen.prompt = snap(c, prompt);
   progress(c, 20, `Gerando moodboard de ${AMBIENTES[amb].label.toLowerCase()}…`);
   // ordem declarada no prompt: imagem 1 = casa, imagem 2 = layout
-  // a proporção da saída segue a do modelo escolhido (a mais próxima entre as aceitas pela IA)
-  const tm = await sharp(c.input.images.template.data).metadata();
-  const ratio = (tm.width || 2) / (tm.height || 3);
-  const aspect = (["9:16", "2:3", "3:4", "4:5", "1:1", "5:4", "4:3", "3:2", "16:9"] as const).reduce<string>((best, a) => {
-    const [w, h] = a.split(":").map(Number);
-    const [bw, bh] = best.split(":").map(Number);
-    return Math.abs(w / h - ratio) < Math.abs(bw / bh - ratio) ? a : best;
-  }, "2:3");
+  // a proporção da saída segue a do modelo escolhido
+  const aspect = await nearestAspect(c.input.images.template.data);
   // o modelo vai em tons de cinza: assim ele só define a estrutura e nenhuma cor dele pode vazar para o resultado
   const gray: Img = { data: await sharp(c.input.images.template.data).grayscale().jpeg({ quality: 92 }).toBuffer(), mime: "image/jpeg" };
   const out = await makeImage(c, `Moodboard — ${AMBIENTES[amb].label}`, prompt, [c.input.images.house, gray], aspect);
@@ -92,16 +107,20 @@ async function variants(c: Ctx, label: string, imgs: Img[]) {
   const n: number = c.input.params.versions || 1;
   const size: string | undefined = c.input.params.size;
   c.gen.prompt = snap(c, prompt);
+  const aspect = await nearestAspect(imgs[0].data, "16:9");
   let done = 0;
   const jobs = Array.from({ length: n }, (_, i) =>
-    makeImage(c, `${label} ${i + 1}`, prompt, imgs, undefined, size).then(async (b) => {
+    makeImage(c, `${label} ${i + 1}`, prompt, imgs, aspect, size).then(async (b) => {
       await addOutput(c, b, ext(b), "image", n > 1 ? `${label} — versão ${i + 1}` : label);
       progress(c, (++done / n) * 95, `${done} de ${n} versões prontas`);
     }));
   const res = await Promise.allSettled(jobs);
   const failed = res.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
   if (failed.length === n) throw failed[0].reason;
-  if (failed.length) c.gen.message = `${n - failed.length} de ${n} versões geradas (algumas falharam).`;
+  if (failed.length) {
+    c.gen.message = `${n - failed.length} de ${n} versões geradas (algumas falharam).`;
+    await refundPart(c, (c.gen.cost / n) * failed.length, "Estorno: versões que falharam");
+  }
 }
 
 // a ordem das imagens enviadas é a declarada nos prompts: imagem 1 = a base, imagem 2 = referência (se houver)
@@ -115,7 +134,7 @@ async function luz(c: Ctx) {
   const prompt = promptLuz(c.input.params.descricao);
   c.gen.prompt = snap(c, prompt);
   progress(c, 20, "Gerando nova iluminação…");
-  const out = await makeImage(c, `Luz: ${c.input.params.rotulo}`, prompt, [c.input.images.base]);
+  const out = await makeImage(c, `Luz: ${c.input.params.rotulo}`, prompt, [c.input.images.base], await nearestAspect(c.input.images.base.data, "16:9"));
   await addOutput(c, out, ext(out), "image", c.input.params.rotulo);
 }
 
@@ -134,6 +153,7 @@ async function filme(c: Ctx) {
   const cenas: CenaKey[] = c.input.params.cenas;
   const n = cenas.length;
   const clips: Buffer[] = [];
+  let skipped = 0, fallback = 0;
 
   progress(c, 3, "Analisando o projeto para manter a continuidade entre as cenas…");
   const bible = await visualBible(c);
@@ -150,20 +170,46 @@ async function filme(c: Ctx) {
     const imgs = [c.input.images.project, ...(ref ? [ref] : [])];
     const imgPrompt = (ref ? REF_PREFIX : "") + cena.img + bibleBlock;
 
+    const sceneCost = COSTS.filmeImagemPorCena + COSTS.filmeVideoPorCena;
+
     progress(c, base + slice * 0.05, `Cena ${i + 1}/${n} (${cena.label}): gerando imagem…`);
-    const img = await makeImage(c, `Cena ${cena.label}`, imgPrompt, imgs, "16:9");
+    let img: Buffer;
+    try {
+      img = await makeImage(c, `Cena ${cena.label}`, imgPrompt, imgs, "16:9");
+    } catch (e) {
+      // cena sem imagem: pula e devolve o que ela custaria; as outras seguem
+      console.warn(`filme: cena ${cena.label} sem imagem:`, (e as Error)?.message);
+      await refundPart(c, sceneCost, "Estorno: cena que falhou");
+      skipped++;
+      continue;
+    }
     await addOutput(c, img, ext(img), "image", `Cena: ${cena.label}`);
     progress(c, base + slice * 0.3, `Cena ${i + 1}/${n} (${cena.label}): gerando clipe de vídeo…`);
     c.gen.usage.videoClips++;
-    if (mockVideo()) clips.push(await imageToClip(img, env.clipSeconds || 5));
-    else {
-      // link assinado da imagem da cena (o xAI pede a imagem por URL); sem Supabase fica null e vai em base64
-      const url = await store.fileUrl(c.gen.userId, c.gen.outputs[c.gen.outputs.length - 1].file, false).catch(() => null);
-      clips.push(await generateVideo(cena.video, asImg(img), url));
+    try {
+      if (mockVideo()) clips.push(await imageToClip(img, env.clipSeconds));
+      else clips.push(await generateVideo(cena.video, asImg(img)));
+    } catch (e) {
+      // sem clipe de IA: a cena entra no filme como imagem com movimento suave, e o vídeo não entregue é devolvido
+      console.warn(`filme: cena ${cena.label} sem vídeo:`, (e as Error)?.message);
+      clips.push(await imageToClip(img, env.clipSeconds));
+      await refundPart(c, COSTS.filmeVideoPorCena, "Estorno: vídeo da cena que falhou");
+      fallback++;
     }
   }
+  if (!clips.length) throw new UserError("Não foi possível gerar nenhuma cena. Tente novamente.");
+  if (skipped || fallback) c.gen.message = `Concluído. ${skipped ? `${skipped} cena(s) não puderam ser geradas. ` : ""}${fallback ? `${fallback} cena(s) usam imagem animada no lugar do vídeo de IA. ` : ""}Os créditos dessas partes foram devolvidos.`;
   progress(c, 93, "Montando o filme final com ffmpeg…");
-  const final = await concatClips(clips, env.clipSeconds);
+  let final: Buffer;
+  try {
+    final = await concatClips(clips, env.clipSeconds);
+  } catch (e) {
+    // sem o MP4 final o usuário fica só com as imagens das cenas: devolve a parte de vídeo
+    console.error("filme: montagem falhou:", (e as Error)?.message);
+    await refundPart(c, clips.length * COSTS.filmeVideoPorCena - (c.gen.refunded || 0), "Estorno: filme não montado");
+    c.gen.message = "Concluído. Não foi possível montar o filme; as imagens das cenas estão disponíveis e os créditos do vídeo foram devolvidos.";
+    return;
+  }
   await addOutput(c, final, "mp4", "video", "Filme do projeto (1920x1080)");
   c.gen.outputs.sort((a) => (a.kind === "video" ? -1 : 1));
 }
@@ -193,22 +239,34 @@ async function editor(c: Ctx) {
   let current = c.input.images.base;
   c.gen.prompt = snap(c, `${composeEdit(regions[0].text)}\n\n(a mesma estrutura se repete para cada região; instruções:)\n${regions.map((r, i) => `Região ${i + 1}: ${r.text}`).join("\n")}`, { regioes: n });
   let semRecorte = false;
+  const aspect = await nearestAspect(current.data, "16:9");
+  let feitas = 0;
   for (let i = 0; i < n; i++) {
     progress(c, (i / n) * 95 + 3, `Editando a região ${i + 1} de ${n}…`);
     const mask = c.input.images[`mask${i + 1}`];
     c.gen.usage.images++;
     let out: Buffer;
-    // ordem declarada no prompt: imagem 1 = imagem atual, imagem 2 = máscara
-    if (mockGemini()) { await new Promise((r) => setTimeout(r, 900)); out = await mockEdit(current.data, mask.data, i); }
-    else {
-      out = await generateImage(composeEdit(regions[i].text), [current, mask]);
-      const fixed = await recompose(current, out, mask).catch((e) => { console.warn("recompose falhou:", e?.message || e); return null; });
-      if (fixed) out = fixed; else semRecorte = true;
+    try {
+      // ordem declarada no prompt: imagem 1 = imagem atual, imagem 2 = máscara
+      if (mockGemini()) { await new Promise((r) => setTimeout(r, 900)); out = await mockEdit(current.data, mask.data, i); }
+      else {
+        out = await generateImage(composeEdit(regions[i].text), [current, mask], aspect);
+        const fixed = await recompose(current, out, mask).catch((e) => { console.warn("recompose falhou:", e?.message || e); return null; });
+        if (fixed) out = fixed; else semRecorte = true;
+      }
+    } catch (e) {
+      // falha numa região: entrega o que já foi editado e devolve as regiões restantes
+      if (!feitas) throw e;
+      console.warn(`editor: região ${i + 1} falhou:`, (e as Error)?.message);
+      c.gen.message = `Concluído. Só ${feitas} de ${n} regiões foram editadas; os créditos das demais foram devolvidos.`;
+      await refundPart(c, (c.gen.cost / n) * (n - feitas), "Estorno: regiões que falharam");
+      break;
     }
     current = asImg(out);
+    feitas++;
   }
-  if (semRecorte) c.gen.message = "Concluído. O formato da imagem devolvida difere do original: o recorte por máscara não pôde ser aplicado, confira as áreas fora da região.";
-  await addOutput(c, current.data, ext(current.data), "image", n > 1 ? `Editada (${n} regiões)` : "Editada");
+  if (semRecorte && feitas === n) c.gen.message = "Concluído. O formato da imagem devolvida difere do original: o recorte por máscara não pôde ser aplicado, confira as áreas fora da região.";
+  await addOutput(c, current.data, ext(current.data), "image", feitas > 1 ? `Editada (${feitas} regiões)` : "Editada");
 }
 
 /** Gera cada ângulo em paralelo e, no modo mosaico, junta tudo em uma imagem. */
@@ -217,16 +275,20 @@ async function angulos(c: Ctx) {
   const n = list.length;
   c.gen.prompt = snap(c, `${list[0].prompt}\n\n(estrutura repetida para cada ângulo; ângulos:)\n${list.map((a) => a.label).join("\n")}`, { angulos: n });
   const got: { label: string; buf: Buffer }[] = [];
+  const aspect = await nearestAspect(c.input.images.base.data, "16:9");
   let done = 0;
   const res = await Promise.allSettled(list.map((a, i) =>
-    makeImage(c, `Ângulo ${i + 1}`, a.prompt, [c.input.images.base]).then(async (b) => {
+    makeImage(c, `Ângulo ${i + 1}`, a.prompt, [c.input.images.base], aspect).then(async (b) => {
       got[i] = { label: a.label, buf: b };
       await addOutput(c, b, ext(b), "image", a.label);
       progress(c, (++done / n) * 90, `${done} de ${n} ângulos prontos`);
     })));
   const failed = res.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
   if (failed.length === n) throw failed[0].reason;
-  if (failed.length) c.gen.message = `${n - failed.length} de ${n} ângulos gerados (alguns falharam).`;
+  if (failed.length) {
+    c.gen.message = `${n - failed.length} de ${n} ângulos gerados (alguns falharam).`;
+    await refundPart(c, (c.gen.cost / n) * failed.length, "Estorno: ângulos que falharam");
+  }
   const ok = got.filter(Boolean);
   if (c.input.params.mosaic && ok.length >= 2) {
     progress(c, 94, "Montando o mosaico…");

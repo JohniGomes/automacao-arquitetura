@@ -6,6 +6,7 @@ import { useT } from "./I18nProvider";
 
 const ERROS: Record<string, string> = {
   aceite: "Para criar conta com o Google, aceite os Termos de Uso e a Política de Privacidade.",
+  "conta-existente": "Já existe uma conta com este e-mail. Entre com e-mail e senha.",
 };
 
 export default function AuthForm({ mode, erro }: { mode: "login" | "register"; erro?: string }) {

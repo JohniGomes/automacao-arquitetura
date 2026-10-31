@@ -12,6 +12,8 @@ export type Generation = {
   usage: { images: number; videoClips: number };
   projectId?: string | null;
   favorite?: boolean;
+  /** créditos já devolvidos durante o processamento (falha parcial); não vai para o banco */
+  refunded?: number;
 };
 export type Project = { id: string; userId: string; name: string; createdAt: string };
 export type Tx = { id: string; userId: string; delta: number; reason: string; genId?: string; at: string };

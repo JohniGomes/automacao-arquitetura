@@ -7,7 +7,10 @@ import { charge, COSTS } from "@/lib/credits";
 import { renderCost, COSTS_EDICAO } from "@/lib/costs";
 import { ANGULOS, angleLabel, composeAngle, LENTES, LenteKey, MAX_REGIOES, composeEsboco, composeIdeia, composeMelhorar, composeRender, ESTILOS, ESTILOS_ARQ, EstiloKey, Env, MELHORIAS, MelhoriaKey, TIPOS_IDEIA } from "@/lib/compose";
 import { Generation, GenType, uid } from "@/lib/db";
-import { enqueue, live, recoverStale } from "@/lib/jobs";
+import { activeJobs, enqueue, live, MAX_ACTIVE_PER_USER, recoverStale } from "@/lib/jobs";
+import { limited } from "@/lib/ratelimit";
+import { refund } from "@/lib/credits";
+import { ELEMENTOS, CENAS_LUZ } from "@/lib/compose";
 import { Img } from "@/lib/gemini";
 import { env, mockGemini, mockMaps, mockVideo } from "@/lib/config";
 import { store } from "@/lib/store";
@@ -17,6 +20,8 @@ import { AMBIENTES, AmbienteKey, CENAS, CenaKey, LUZES, LuzKey } from "@/lib/pro
 export const runtime = "nodejs";
 const bad = (m: string, s = 400) => NextResponse.json({ error: m }, { status: s });
 const TEMPLATES = path.join(process.cwd(), "templates", "moodboards");
+/** corpo máximo de um pedido (filme: até 4 imagens; editor: até 8 máscaras) */
+const MAX_BODY = 60 * 1024 * 1024;
 
 export async function GET() {
   const u = await currentUser();
@@ -41,7 +46,8 @@ async function readImage(userId: string, form: FormData, key: string): Promise<I
   }
   if (!buf) return null;
   try {
-    const out = await sharp(buf).rotate().resize(2048, 2048, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 90 }).toBuffer();
+    // PNG com transparência viraria fundo preto: achata em branco antes de enviar à IA
+    const out = await sharp(buf).rotate().flatten({ background: "#ffffff" }).resize(2048, 2048, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 90 }).toBuffer();
     return { data: out, mime: "image/jpeg" };
   } catch {
     throw new Error("Arquivo de imagem inválido.");
@@ -52,6 +58,10 @@ export async function POST(req: NextRequest) {
   const u = await currentUser();
   if (!u) return bad("Não autenticado.", 401);
   await recoverStale();
+  // limites antes de ler o corpo: o formData carrega tudo na memória
+  if (Number(req.headers.get("content-length") || 0) > MAX_BODY) return bad("Os arquivos enviados são grandes demais.", 413);
+  if (limited(`jobs:${u.id}`, 20, 10 * 60_000)) return bad("Muitos pedidos em pouco tempo. Aguarde um pouco e tente de novo.", 429);
+  if (activeJobs(u.id) >= MAX_ACTIVE_PER_USER) return bad(`Você já tem ${MAX_ACTIVE_PER_USER} gerações em andamento. Aguarde uma terminar para pedir outra.`, 429);
   const form = await req.formData();
   const type = String(form.get("type")) as GenType;
   const str = (k: string) => String(form.get(k) || "").trim();
@@ -68,7 +78,7 @@ export async function POST(req: NextRequest) {
 
   try {
     if (type === "mapa") {
-      const address = str("address");
+      const address = str("address").slice(0, 200);
       const up = await readImage(u.id, form, "upload");
       if (up) images.upload = up;
       else if (!address) throw new Error("Digite um endereço ou envie um print.");
@@ -91,8 +101,8 @@ export async function POST(req: NextRequest) {
       const mode = str("mode") === "precisao" ? "precisao" : "rapido";
       const prompt = composeRender({
         style: (str("style") in ESTILOS ? str("style") : "realista") as EstiloKey, level: int("level", 0, 2, 1), env: envOf(),
-        guidance: str("guidance").slice(0, 500), scene: str("scene"), sceneFree: str("sceneFree").slice(0, 200),
-        elements: str("elements").split(",").filter(Boolean), reference: !!ref,
+        guidance: str("guidance").slice(0, 500), scene: CENAS_LUZ.some((s) => s.id === str("scene")) ? str("scene") : "", sceneFree: str("sceneFree").slice(0, 200),
+        elements: str("elements").split(",").filter((x) => ELEMENTOS.some((e) => e.id === x)).slice(0, ELEMENTOS.length), reference: !!ref,
       });
       params = { prompt, versions, size: mode === "precisao" ? "2K" : undefined };
       cost = renderCost(mode, versions);
@@ -108,7 +118,7 @@ export async function POST(req: NextRequest) {
     } else if (type === "esboco") {
       await need("sketch", "Envie o esboço ou desenho.");
       const versions = int("versions", 1, 4, 1);
-      const prompt = composeEsboco({ env: envOf(), estilo: str("estilo"), detalhes: str("detalhes").slice(0, 240) });
+      const prompt = composeEsboco({ env: envOf(), estilo: (ESTILOS_ARQ as readonly string[]).includes(str("estilo")) ? str("estilo") : "", detalhes: str("detalhes").slice(0, 240) });
       params = { prompt, versions };
       cost = versions * COSTS.esbocoPorImagem;
       summary = `Render de esboço (${versions} ${versions === 1 ? "versão" : "versões"})`;
@@ -164,14 +174,14 @@ export async function POST(req: NextRequest) {
     } else if (type === "luz") {
       await need("base", "Escolha um render ou envie uma imagem.");
       const k = str("luz");
-      const livre = str("luzLivre");
+      const livre = str("luzLivre").slice(0, 200);
       const desc = livre || LUZES[k as LuzKey]?.text;
       if (!desc) throw new Error("Escolha a iluminação ou descreva uma luz.");
       params = { descricao: desc, rotulo: livre ? `Luz: ${livre}` : LUZES[k as LuzKey].label };
       cost = COSTS.luz;
       summary = `Variação de luz — ${params.rotulo}`;
     } else if (type === "filme") {
-      if (env.filmeRequerCompra && !(await store.listTxs(u.id, 500)).some((t) => /^(Compra|Plano)/.test(t.reason)))
+      if (env.filmeRequerCompra && !(await store.listTxs(u.id, 5000)).some((t) => /^(Compra|Plano)/.test(t.reason)))
         throw new Error("O filme do projeto é liberado para quem tem plano ou já comprou créditos.");
       await need("project", "Envie a imagem do projeto.");
       const cenas = str("cenas").split(",").filter((c) => CENAS[c as CenaKey]) as CenaKey[];
@@ -201,7 +211,13 @@ export async function POST(req: NextRequest) {
     summary, outputs: [], cost, usage: { images: 0, videoClips: 0 }, projectId, favorite: false,
     mock: mockGemini() || (type === "filme" && mockVideo()) || (type === "mapa" && mockMaps() && !images.upload),
   };
-  await store.saveGen(gen);
+  try { await store.saveGen(gen); }
+  catch (e) {
+    // não conseguiu registrar a geração: devolve o crédito já cobrado em vez de deixar o usuário sem nada
+    console.error("saveGen falhou, estornando:", (e as Error)?.message);
+    await refund(u.id, cost, "Estorno: geração não registrada", id).catch((er) => console.error("estorno falhou:", er));
+    return bad("Não foi possível iniciar a geração. Tente novamente.", 500);
+  }
   enqueue(gen, { type, params, images });
   return NextResponse.json({ id });
 }

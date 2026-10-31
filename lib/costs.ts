@@ -38,5 +38,5 @@ export const COSTS_EDICAO = {
   /** cada região editada é uma geração */
   editorPorRegiao: 3,
   /** cada ângulo gerado */
-  anguloPorImagem: 2,
+  anguloPorImagem: 3,
 };
