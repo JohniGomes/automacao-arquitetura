@@ -1,17 +1,8 @@
-/* TEMA ESCURO do Croqui: mesmos tokens com superfícies de grafite e a terracota mais clara. Dois blocos iguais: escolha explícita e "Sistema". */
+/* TEMA ESCURO: as cores vivem em tokens.css. Aqui ficam só apelidos legados e ajustes de componente. */
 
 :root[data-theme="dark"]{
-  --sage: #E07A5F; --moss: #3A3733; --mist: #33312D; --ivory: #2A2825; --sand: #3A3733;
-  --deep: #F4EFE8; --sage-d: #E07A5F;
-  --bg: #1F1E1C; --surface: #2A2825; --surface-2: #33312D; --field: #24221F;
-  --line: rgba(244, 239, 232, .12); --line-strong: rgba(244, 239, 232, .28); --rim: rgba(244, 239, 232, .12);
-  --ink: #EAE4DA; --head: #F4EFE8; --muted: #B9B2A6;
-  --accent: #E07A5F; --accent-ink: #FFFDF9; --link: #E8896F;
-  --btn-a: #BC4E34; --btn-b: #A8432B;
-  --ok: #6cc08f; --bad: #ff8f84; --final-bg: #33312D;
+  --ivory: #2A2825; --final-bg: #33312D;
   --raise: 0 1px 0 rgba(0, 0, 0, .3);
-  --raise-sm: none;
-  color-scheme: dark;
 }
 :root[data-theme="dark"] .warn { color: var(--ink); }
 :root[data-theme="dark"] .ticon { color: #FFFDF9; }
@@ -23,17 +14,8 @@
 @media (prefers-color-scheme: dark) {
 
 :root[data-theme="system"]{
-  --sage: #E07A5F; --moss: #3A3733; --mist: #33312D; --ivory: #2A2825; --sand: #3A3733;
-  --deep: #F4EFE8; --sage-d: #E07A5F;
-  --bg: #1F1E1C; --surface: #2A2825; --surface-2: #33312D; --field: #24221F;
-  --line: rgba(244, 239, 232, .12); --line-strong: rgba(244, 239, 232, .28); --rim: rgba(244, 239, 232, .12);
-  --ink: #EAE4DA; --head: #F4EFE8; --muted: #B9B2A6;
-  --accent: #E07A5F; --accent-ink: #FFFDF9; --link: #E8896F;
-  --btn-a: #BC4E34; --btn-b: #A8432B;
-  --ok: #6cc08f; --bad: #ff8f84; --final-bg: #33312D;
+  --ivory: #2A2825; --final-bg: #33312D;
   --raise: 0 1px 0 rgba(0, 0, 0, .3);
-  --raise-sm: none;
-  color-scheme: dark;
 }
 :root[data-theme="system"] .warn { color: var(--ink); }
 :root[data-theme="system"] .ticon { color: #FFFDF9; }

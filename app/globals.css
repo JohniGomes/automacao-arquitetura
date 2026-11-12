@@ -1,33 +1,32 @@
 /* CALM KIT — Sage #687F6E · Moss #A7B8A7 · Mist #D0E1D9 · Ivory #F4EFE8 · Sand #C9BDAF (fundo). Fonte Inter.
    Cartões macios (sombras de relevo) e botões frosted (vidro fosco). */
 :root {
-  /* nomes herdados do Calm Kit: --sage agora é a terracota do Croqui, --deep é o grafite */
-  --sage: #C4553A; --moss: #D9CDB8; --mist: #E7DECF; --ivory: #F4EFE8; --sand: #D9CDB8;
-  --deep: #2B2A28; --sage-d: #A8432B;
-  --bg: #F4EFE8;
-  --surface: #FBF8F3;
-  --surface-2: #EFE8DC;
-  --field: #FFFDF9;
-  --line: rgba(43, 42, 40, .12);
-  --line-strong: rgba(43, 42, 40, .26);
-  --ink: #2B2A28;
-  --head: #2B2A28;
-  --muted: #5A564F;
-  --accent: #C4553A;
-  --accent-ink: #FFFDF9;
-  --link: #A8432B;
+  /* Nomes herdados do tema anterior: agora são apenas apelidos dos tokens semânticos de tokens.css.
+     Código novo deve usar --color-*, --space-*, --radius-* e --text-*. */
+  --sage: var(--color-accent); --moss: var(--color-sand); --mist: var(--color-sand-soft); --ivory: #F4EFE8; --sand: var(--color-sand);
+  --deep: var(--color-secondary); --sage-d: var(--color-link);
+  --bg: var(--color-bg);
+  --surface: var(--color-surface);
+  --surface-2: color-mix(in srgb, var(--color-sand) 35%, var(--color-bg));
+  --field: var(--color-field);
+  --line: var(--color-border);
+  --line-strong: var(--color-border-strong);
+  --rim: var(--color-border);
+  --ink: var(--color-text);
+  --head: var(--color-text);
+  --muted: var(--color-text-secondary);
+  --accent: var(--color-accent);
+  --accent-ink: var(--color-on-primary);
+  --link: var(--color-link);
   --door: var(--ivory);
-  --ok: #2d6b47; --bad: #B3261E;
+  --ok: var(--color-success); --bad: var(--color-error);
   --final-bg: #2B2A28;
-  /* botões primários: texto claro com contraste AA (>= 4,5:1) */
-  --btn-a: #BC4E34; --btn-b: #A8432B;
+  --btn-a: var(--color-primary); --btn-b: var(--color-primary-hover);
   --raise: 0 1px 0 rgba(43, 42, 40, .05);
   --raise-sm: none;
   --inset: none;
-  --rim: rgba(43, 42, 40, .12);
-  --font-body: var(--f-body), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: var(--f-display), Georgia, "Times New Roman", serif;
-  color-scheme: light;
+  --font-body: var(--font-sans);
+  --font-display: var(--font-serif);
 }
 * { box-sizing: border-box; }
 html { background: var(--bg); }

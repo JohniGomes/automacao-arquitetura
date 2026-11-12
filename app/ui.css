@@ -1,0 +1,39 @@
+/* CROQUI — COMPONENTES DO DESIGN SYSTEM (primitivas novas)
+   Usam somente tokens de tokens.css. Os componentes antigos (.btn, .card, .chip, .tag, .warn, .alert...) seguem em
+   globals.css, rail.css e croqui.css e serão migrados para cá fase a fase. Ver docs/redesign/DESIGN-SYSTEM.md. */
+
+/* ---------- esqueleto de carregamento ---------- */
+.skel { display: block; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--color-text) 8%, transparent); position: relative; overflow: hidden; }
+.skel::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-surface-elevated) 55%, transparent), transparent); animation: skel-sweep 1.4s var(--ease-out) infinite; }
+@keyframes skel-sweep { to { transform: translateX(100%); } }
+.skel.line { height: 12px; } .skel.line.w60 { width: 60%; } .skel.line.w40 { width: 40%; }
+.skel.title { height: 28px; width: min(320px, 70%); border-radius: var(--radius-sm); }
+.skel.block { height: 120px; border-radius: var(--radius-md); }
+.skel-card { border: 1px solid var(--color-border); background: var(--color-surface); border-radius: var(--radius-md); padding: var(--space-4); display: grid; gap: var(--space-3); margin: var(--space-4) 0; }
+
+/* ---------- tela de estado (erro, 404, vazio) ---------- */
+.statepage { display: grid; place-items: center; min-height: 60vh; padding: var(--space-8) var(--space-4); text-align: center; }
+.statepage.full { min-height: 100dvh; background: var(--color-bg); }
+.statepage .inner { max-width: 420px; display: grid; gap: var(--space-3); justify-items: center; }
+.statepage svg { width: 56px; height: 56px; color: var(--color-text); }
+.statepage h1 { font-family: var(--font-serif); font-weight: var(--weight-regular); font-size: var(--text-xl); line-height: var(--leading-tight); margin: 0; }
+.statepage p { margin: 0; color: var(--color-text-secondary); line-height: var(--leading-body); }
+.statepage .acts { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; margin-top: var(--space-2); }
+.statepage .code { font-size: var(--text-xs); letter-spacing: .12em; color: var(--color-text-secondary); }
+
+/* ---------- toast ---------- */
+.toasts { position: fixed; left: 0; right: 0; bottom: calc(var(--space-4) + env(safe-area-inset-bottom)); z-index: var(--z-toast); display: grid; gap: var(--space-2); justify-items: center; padding: 0 var(--space-4); pointer-events: none; }
+.toast {
+  pointer-events: auto; display: flex; align-items: center; gap: var(--space-3); max-width: min(420px, 100%);
+  padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); line-height: var(--leading-snug);
+  color: var(--color-text); background: color-mix(in srgb, var(--color-surface-elevated) 86%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--color-border-strong); box-shadow: var(--shadow-2);
+  animation: toast-in var(--dur-base) var(--ease-out);
+}
+.toast .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--color-success); }
+.toast.error .dot { background: var(--color-error); }
+.toast.info .dot { background: var(--color-info); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+@media (max-width: 860px) { .toasts { bottom: calc(92px + env(safe-area-inset-bottom)); } }
+@media (prefers-reduced-motion: reduce) { .skel::after { animation: none; } .toast { animation: none; } }

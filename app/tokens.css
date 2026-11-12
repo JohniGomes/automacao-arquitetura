@@ -1,0 +1,93 @@
+/* CROQUI — TOKENS DO DESIGN SYSTEM
+   Fonte única das decisões visuais. Os nomes antigos (--sage, --deep, --btn-a...) continuam existindo em globals.css,
+   mas agora apontam para estes tokens. Componentes novos usam só os nomes semânticos daqui.
+   Modo escuro: bloco [data-theme="dark"] e, para "Sistema", o mesmo bloco dentro de prefers-color-scheme. */
+
+:root {
+  /* ---------- cor: marca ---------- */
+  --color-primary: #BC4E34;          /* ação principal; texto claro sobre ele passa de 4,5:1 */
+  --color-primary-hover: #A8432B;
+  --color-on-primary: #FFFDF9;
+  --color-accent: #C4553A;           /* detalhes e ícones; não usar como fundo de texto pequeno */
+  --color-secondary: #2B2A28;        /* grafite: ações secundárias e ênfase */
+  --color-link: #A8432B;
+
+  /* ---------- cor: superfícies ---------- */
+  --color-bg: #F4EFE8;               /* papel */
+  --color-surface: #FBF8F3;
+  --color-surface-elevated: #FFFDF9; /* folhas, menus e diálogos */
+  --color-field: #FFFDF9;
+  --color-sand: #D9CDB8;
+  --color-sand-soft: #E7DECF;
+
+  /* ---------- cor: texto e bordas ---------- */
+  --color-text: #2B2A28;
+  --color-text-secondary: #5A564F;
+  --color-border: rgba(43, 42, 40, .12);
+  --color-border-strong: rgba(43, 42, 40, .26);
+
+  /* ---------- cor: estados ---------- */
+  --color-success: #2D6B47;
+  --color-warning: #8A5A00;
+  --color-error: #B3261E;
+  --color-info: #2F5D8A;
+
+  /* ---------- tipografia ---------- */
+  --font-sans: var(--f-body), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: var(--f-display), Georgia, "Times New Roman", serif;
+  --text-xs: .75rem;     /* 12 */
+  --text-sm: .8125rem;   /* 13 */
+  --text-base: .9375rem; /* 15: padrão do app */
+  --text-md: 1rem;       /* 16: campos no celular (evita zoom do iOS) */
+  --text-lg: 1.25rem;    /* 20 */
+  --text-xl: 1.5rem;     /* 24 */
+  --text-2xl: 2rem;      /* 32 */
+  --text-3xl: 2.75rem;   /* 44: só landing */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --leading-tight: 1.15;
+  --leading-snug: 1.35;
+  --leading-body: 1.55;
+
+  /* ---------- espaçamento (base 4 px) ---------- */
+  --space-1: .25rem; --space-2: .5rem; --space-3: .75rem; --space-4: 1rem; --space-5: 1.25rem;
+  --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem; --space-16: 4rem;
+
+  /* ---------- forma, elevação e movimento ---------- */
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-pill: 999px;
+  --control-h: 44px;                 /* altura mínima de qualquer elemento tocável */
+  --shadow-1: 0 1px 0 rgba(43, 42, 40, .05);
+  --shadow-2: 0 18px 44px -22px rgba(43, 42, 40, .38);
+  --dur-fast: 120ms; --dur-base: 200ms;
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+  --z-bar: 50; --z-sheet: 60; --z-toast: 80; --z-lightbox: 90;
+
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --color-primary: #BC4E34; --color-primary-hover: #A8432B; --color-on-primary: #FFFDF9;
+  --color-accent: #E07A5F; --color-secondary: #F4EFE8; --color-link: #E8896F;
+  --color-bg: #1F1E1C; --color-surface: #2A2825; --color-surface-elevated: #33312D; --color-field: #24221F;
+  --color-sand: #3A3733; --color-sand-soft: #33312D;
+  --color-text: #EAE4DA; --color-text-secondary: #B9B2A6;
+  --color-border: rgba(244, 239, 232, .12); --color-border-strong: rgba(244, 239, 232, .28);
+  --color-success: #6CC08F; --color-warning: #E3B341; --color-error: #FF8F84; --color-info: #7FB2E5;
+  --shadow-1: 0 1px 0 rgba(0, 0, 0, .3); --shadow-2: 0 18px 44px -20px rgba(0, 0, 0, .7);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] {
+    --color-primary: #BC4E34; --color-primary-hover: #A8432B; --color-on-primary: #FFFDF9;
+    --color-accent: #E07A5F; --color-secondary: #F4EFE8; --color-link: #E8896F;
+    --color-bg: #1F1E1C; --color-surface: #2A2825; --color-surface-elevated: #33312D; --color-field: #24221F;
+    --color-sand: #3A3733; --color-sand-soft: #33312D;
+    --color-text: #EAE4DA; --color-text-secondary: #B9B2A6;
+    --color-border: rgba(244, 239, 232, .12); --color-border-strong: rgba(244, 239, 232, .28);
+    --color-success: #6CC08F; --color-warning: #E3B341; --color-error: #FF8F84; --color-info: #7FB2E5;
+    --shadow-1: 0 1px 0 rgba(0, 0, 0, .3); --shadow-2: 0 18px 44px -20px rgba(0, 0, 0, .7);
+    color-scheme: dark;
+  }
+}

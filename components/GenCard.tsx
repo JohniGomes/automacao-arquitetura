@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useLang, useT } from "./I18nProvider";
 import { Gen, Results } from "./client";
 import { TYPE_LABEL } from "@/lib/tools";
+import { useToast } from "./Toast";
 
 export type Proj = { id: string; name: string };
 
@@ -17,6 +18,7 @@ export default function GenCard({ gen, projects, onChange }: { gen: Gen; project
   const t = useT();
   const lang = useLang();
   const [err, setErr] = useState("");
+  const toast = useToast();
   const thumbs = gen.outputs.filter((o) => o.kind === "image").slice(0, 4);
 
   async function patch(body: { favorite?: boolean; projectId?: string | null }) {
@@ -25,6 +27,8 @@ export default function GenCard({ gen, projects, onChange }: { gen: Gen; project
     const j = await r.json();
     if (!r.ok) { setErr(t(j.error || "Não foi possível salvar.")); return; }
     onChange({ ...gen, ...body });
+    if (body.favorite !== undefined) toast(t(body.favorite ? "Adicionado aos favoritos" : "Removido dos favoritos"));
+    else toast(t("Projeto atualizado"));
   }
 
   return (
