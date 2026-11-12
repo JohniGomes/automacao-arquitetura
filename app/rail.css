@@ -285,3 +285,14 @@
 .plancard .price { margin: 4px 0 2px; font-size: 13px; color: var(--muted); }
 .plancard .price b { font-size: 28px; font-weight: 600; color: var(--deep); font-variant-numeric: tabular-nums; }
 .plancard ul { padding-left: 18px; margin: 10px 0 14px; }
+
+/* ---------- tela de pagamento ---------- */
+.paygrid { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.paygrid .card { margin: 0; }
+.paytotal { font-size: 30px; font-weight: 600; color: var(--deep); margin: 10px 0; font-variant-numeric: tabular-nums; }
+.paytotal span { font-size: 14px; font-weight: 400; color: var(--muted); }
+.payrow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pixbox { display: grid; gap: 10px; justify-items: start; }
+.pixbox textarea { min-height: 90px; font-family: ui-monospace, monospace; font-size: 12px; }
+.pixqr { background: #fff; padding: 10px; border-radius: 16px; border: 1px solid var(--line-strong); max-width: 100%; height: auto; }
+@media (max-width: 860px) { .paygrid { grid-template-columns: minmax(0, 1fr); } }

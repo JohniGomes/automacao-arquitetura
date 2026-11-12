@@ -6,7 +6,7 @@ export type PlanCard = { id: string; nome: string; preco: number; creditosMes: n
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
 /** Os planos (todos mensais) e o botão de assinar de cada um. */
-export default function PlanPicker({ plans, enabled, current, needsCpf }: { plans: PlanCard[]; enabled: boolean; current?: string; needsCpf: boolean }) {
+export default function PlanPicker({ plans, enabled, current }: { plans: PlanCard[]; enabled: boolean; current?: string }) {
   const t = useT();
   return (
     <div className="tools">
@@ -17,7 +17,7 @@ export default function PlanPicker({ plans, enabled, current, needsCpf }: { plan
           <p className="small">{p.creditosMes.toLocaleString("pt-BR")} {t("créditos por mês")}</p>
           <ul className="small">{p.itens.map((i) => <li key={i}>{t(i)}</li>)}</ul>
           {current === p.id ? <p className="tag done">{t("Seu plano atual")}</p>
-            : enabled ? <BuyButton id={p.id} label={current ? "Trocar para este plano" : "Assinar"} needsCpf={needsCpf} />
+            : enabled ? <BuyButton id={p.id} label={current ? "Trocar para este plano" : "Assinar"} t={t} />
             : <button type="button" disabled>{t("Em breve")}</button>}
         </div>
       ))}

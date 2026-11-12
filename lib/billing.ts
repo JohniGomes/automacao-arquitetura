@@ -75,58 +75,121 @@ async function ensureCustomer(u: User, cpfCnpj: string): Promise<string> {
   return c.id;
 }
 
-/**
- * Envia o pedido com o redirecionamento de volta ao app; se o Asaas recusar o endereço de retorno (domínio ainda não
- * cadastrado na conta), repete sem ele: o cliente paga do mesmo jeito e só não volta sozinho para o app.
- */
-async function withCallback(path: string, body: Record<string, unknown>) {
-  try {
-    return await asaas(path, { method: "POST", body: { ...body, callback: success() } });
-  } catch (e) {
-    if (!/callback|successUrl|dom[ií]nio|url de retorno/i.test((e as Error).message)) throw e;
-    console.warn("Asaas recusou o endereço de retorno; seguindo sem redirecionamento automático:", (e as Error).message);
-    return asaas(path, { method: "POST", body });
-  }
-}
-
 /** Data de hoje no horário de Brasília (AAAA-MM-DD), como o Asaas espera. */
 const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
-const success = () => ({ successUrl: `${env.appUrl}/app/creditos?pagamento=ok`, autoRedirect: true });
 
-/** Cria a cobrança (ou assinatura) e devolve o link da página de pagamento do Asaas. */
-export async function createCheckout(u: User, id: string, cpfCnpj: string): Promise<string> {
-  const split = splitRule();
-  const pack = PACOTES.find((p) => p.id === id);
-  if (pack) {
-    const customer = await ensureCustomer(u, cpfCnpj);
-    const ref: Ref = { userId: u.id, kind: "pacote", item: pack.id };
-    const p = await withCallback("/payments", {
-      customer, billingType: "UNDEFINED", value: pack.preco, dueDate: today(), description: `ArqIA — ${pack.creditos} créditos`,
-      externalReference: encodeRef(ref), split,
-    });
-    return p.invoiceUrl;
-  }
-  const plan = planById(id);
-  if (!plan) throw new UserError("Item inválido.");
-  // uma assinatura por vez: para trocar de plano, cancele a renovação do atual antes
-  if (activePlan(u) && u.planStatus !== "cancelado") throw new UserError("Você já tem uma assinatura ativa. Cancele a renovação do plano atual para contratar outro.");
-  const customer = await ensureCustomer(u, cpfCnpj);
-  // assinatura anterior que não virou plano (cliente abriu e não pagou) ou já cancelada: remove, para nunca haver duas cobrando
-  if (u.asaasSubscriptionId) await asaas(`/subscriptions/${encodeURIComponent(u.asaasSubscriptionId)}`, { method: "DELETE" }).catch(() => undefined);
-  const ref: Ref = { userId: u.id, kind: "plano", item: plan.id };
-  const s = await withCallback("/subscriptions", {
-    customer, billingType: "UNDEFINED", value: plan.preco, nextDueDate: today(), cycle: "MONTHLY", description: `ArqIA ${plan.nome} — plano mensal`,
-    externalReference: encodeRef(ref), split,
-  });
-  await store.setPlan(u.id, { asaasSubscriptionId: s.id });
-  // a primeira cobrança da assinatura nasce logo em seguida: pega o link dela
-  for (let i = 0; i < 6; i++) {
-    const list = await asaas(`/subscriptions/${encodeURIComponent(s.id)}/payments?limit=1`);
-    const url = list?.data?.[0]?.invoiceUrl;
-    if (url) return url;
+// ------------------------------------------------------------------ checkout próprio (Pix e cartão, sem boleto)
+/** Créditos avulsos: Pix ou cartão. Plano mensal: só cartão (renovação automática). */
+export type Method = "PIX" | "CREDIT_CARD";
+/** Dados do cartão: vão do navegador direto para a API do Asaas e nunca são gravados nem registrados em log. */
+export type CardInput = { holderName: string; number: string; expiryMonth: string; expiryYear: string; ccv: string; postalCode: string; addressNumber: string; phone: string };
+export type CheckoutResult =
+  | { kind: "pix"; paymentId: string; image: string; payload: string; expiresAt?: string }
+  | { kind: "card"; paymentId: string; status: string };
+
+const digits = (s: string) => String(s || "").replace(/\D/g, "");
+
+/** Confere o cartão (Luhn, validade e CVV) antes de enviar ao Asaas. */
+export function validateCard(c: CardInput): string | null {
+  const n = digits(c.number);
+  if (n.length < 13 || n.length > 19) return "Número do cartão inválido.";
+  let sum = 0;
+  for (let i = 0; i < n.length; i++) { let d = Number(n[n.length - 1 - i]); if (i % 2) { d *= 2; if (d > 9) d -= 9; } sum += d; }
+  if (sum % 10) return "Número do cartão inválido.";
+  const mm = Number(c.expiryMonth), yy = Number(c.expiryYear);
+  if (!(mm >= 1 && mm <= 12) || c.expiryYear.length !== 4) return "Validade do cartão inválida.";
+  const now = new Date();
+  if (yy < now.getFullYear() || (yy === now.getFullYear() && mm < now.getMonth() + 1)) return "Cartão vencido.";
+  if (!/^\d{3,4}$/.test(c.ccv)) return "Código de segurança inválido.";
+  if (String(c.holderName || "").trim().length < 3) return "Informe o nome impresso no cartão.";
+  if (digits(c.postalCode).length !== 8) return "Informe um CEP válido (8 dígitos).";
+  if (!String(c.addressNumber || "").trim()) return "Informe o número do endereço.";
+  if (digits(c.phone).length < 10) return "Informe um telefone com DDD.";
+  return null;
+}
+
+/** Tira de uma mensagem de erro qualquer sequência longa de números (por segurança, nada parecido com cartão vai para o log). */
+export const scrub = (m: string) => m.replace(/\d{9,}/g, "[…]");
+
+function cardFields(u: User, cpfCnpj: string, c: CardInput, ip: string) {
+  return {
+    creditCard: { holderName: c.holderName.trim(), number: digits(c.number), expiryMonth: String(c.expiryMonth).padStart(2, "0"), expiryYear: c.expiryYear, ccv: c.ccv },
+    creditCardHolderInfo: { name: c.holderName.trim(), email: u.email, cpfCnpj: digits(cpfCnpj), postalCode: digits(c.postalCode), addressNumber: String(c.addressNumber).trim(), phone: digits(c.phone) },
+    remoteIp: ip,
+  };
+}
+
+/** Primeira cobrança de uma assinatura (ela nasce logo depois de criar a assinatura). */
+async function firstPayment(subId: string): Promise<any> {
+  for (let i = 0; i < 8; i++) {
+    const list = await asaas(`/subscriptions/${encodeURIComponent(subId)}/payments?limit=1`);
+    if (list?.data?.[0]) return list.data[0];
     await new Promise((r) => setTimeout(r, 700));
   }
   throw new Error("assinatura criada sem cobrança");
+}
+
+/** Dados de pagamento da cobrança, conforme o método escolhido. */
+async function present(p: any, method: Method): Promise<CheckoutResult> {
+  const paymentId = String(p.id);
+  if (method === "PIX") {
+    const q = await asaas(`/payments/${encodeURIComponent(paymentId)}/pixQrCode`);
+    return { kind: "pix", paymentId, image: q.encodedImage, payload: q.payload, expiresAt: q.expirationDate };
+  }
+  return { kind: "card", paymentId, status: String(p.status || "PENDING") };
+}
+
+/**
+ * Cria a cobrança (pacote) ou a assinatura mensal (plano) no Asaas já com o método escolhido e devolve o que a tela
+ * precisa mostrar: QR Code Pix ou o resultado do cartão. Os créditos só entram pelo webhook.
+ */
+export async function createCheckout(u: User, id: string, method: Method, cpfCnpj: string, card?: CardInput, ip = ""): Promise<CheckoutResult> {
+  if (method !== "PIX" && method !== "CREDIT_CARD") throw new UserError("Forma de pagamento inválida.");
+  if (method === "CREDIT_CARD") {
+    const bad = card ? validateCard(card) : "Informe os dados do cartão.";
+    if (bad) throw new UserError(bad);
+  }
+  const split = splitRule();
+  const pack = PACOTES.find((p) => p.id === id);
+  const plan = pack ? null : planById(id);
+  if (!pack && !plan) throw new UserError("Item inválido.");
+  // a assinatura mensal só é cobrada no cartão: o Pix serve apenas para créditos avulsos
+  if (plan && method !== "CREDIT_CARD") throw new UserError("Planos são pagos somente no cartão de crédito.");
+  if (plan && activePlan(u) && u.planStatus !== "cancelado") throw new UserError("Você já tem uma assinatura ativa. Cancele a renovação do plano atual para contratar outro.");
+  const customer = await ensureCustomer(u, cpfCnpj);
+  // o titular do cartão informa o próprio CPF/CNPJ (o Asaas confere com o banco emissor)
+  if (method === "CREDIT_CARD" && !validCpfCnpj(cpfCnpj)) throw new UserError("Informe o CPF ou CNPJ do titular do cartão.");
+  const cardPart = method === "CREDIT_CARD" ? cardFields(u, cpfCnpj, card!, ip || "0.0.0.0") : {};
+  try {
+    if (pack) {
+      const ref: Ref = { userId: u.id, kind: "pacote", item: pack.id };
+      const p = await asaas("/payments", { method: "POST", body: {
+        customer, billingType: method, value: pack.preco, dueDate: today(), description: `ArqIA — ${pack.creditos} créditos`,
+        externalReference: encodeRef(ref), split, ...cardPart,
+      } });
+      return await present(p, method);
+    }
+    // assinatura anterior que não virou plano (cliente abriu e não pagou) ou já cancelada: remove, para nunca haver duas cobrando
+    if (u.asaasSubscriptionId) await asaas(`/subscriptions/${encodeURIComponent(u.asaasSubscriptionId)}`, { method: "DELETE" }).catch(() => undefined);
+    const ref: Ref = { userId: u.id, kind: "plano", item: plan!.id };
+    const s = await asaas("/subscriptions", { method: "POST", body: {
+      customer, billingType: method, value: plan!.preco, nextDueDate: today(), cycle: "MONTHLY", description: `ArqIA ${plan!.nome} — plano mensal`,
+      externalReference: encodeRef(ref), split, ...cardPart,
+    } });
+    await store.setPlan(u.id, { asaasSubscriptionId: s.id });
+    return await present(await firstPayment(s.id), method);
+  } catch (e) {
+    const msg = (e as Error).message || "";
+    if (e instanceof UserError) throw e;
+    if (method === "CREDIT_CARD" && /invalid_creditCard|not authorized|n[ãa]o autorizad|recusad/i.test(msg)) throw new UserError("Cartão recusado. Confira os dados ou use outro cartão.");
+    throw new Error(scrub(msg));
+  }
+}
+
+/** O pagamento já foi confirmado (e os créditos liberados) pelo webhook? Só responde para o dono do pagamento. */
+export async function paymentPaid(userId: string, paymentId: string): Promise<boolean> {
+  const p = await store.findPayment(PROVIDER, paymentId);
+  return !!p && p.userId === userId;
 }
 
 /** Cancela a assinatura no Asaas. O plano continua valendo até o fim do período já pago. */
