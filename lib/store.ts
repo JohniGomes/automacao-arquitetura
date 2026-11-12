@@ -148,7 +148,7 @@ const sb = () => (g.__sb ??= createClient(process.env.SUPABASE_URL!, process.env
 const check = (error: { message: string } | null, what: string) => { if (error) throw new Error(`Supabase (${what}): ${error.message}`); };
 
 const toUser = (r: any): User => ({ id: r.id, email: r.email, name: r.name, passHash: r.pass_hash ?? undefined, googleId: r.google_id ?? undefined, credits: r.credits, createdAt: r.created_at, termsAcceptedAt: r.terms_accepted_at ?? undefined, termsVersion: r.terms_version ?? undefined, emailVerifiedAt: r.email_verified_at ?? undefined,
-  plan: r.plan ?? undefined, planUntil: r.plan_until ?? undefined, planStatus: r.plan_status ?? undefined, asaasCustomerId: r.asaas_customer_id ?? undefined, asaasSubscriptionId: r.asaas_subscription_id ?? undefined });
+  plan: r.plan ?? undefined, planUntil: r.plan_until ?? undefined, planStatus: r.plan_status ?? undefined, planNext: r.plan_next ?? undefined, asaasCustomerId: r.asaas_customer_id ?? undefined, asaasSubscriptionId: r.asaas_subscription_id ?? undefined });
 const toGen = (r: any): Generation => ({
   id: r.id, userId: r.user_id, type: r.type, status: r.status, progress: r.progress, message: r.message ?? "", createdAt: r.created_at,
   finishedAt: r.finished_at ?? undefined, summary: r.summary, prompt: r.prompt ?? undefined, outputs: r.outputs ?? [], cost: r.cost,
@@ -196,7 +196,7 @@ const supabaseStore: Store = {
   },
   async setPassHash(id, passHash) { check((await sb().from("users").update({ pass_hash: passHash }).eq("id", id)).error, "setPassHash"); },
   async setPlan(userId, f) {
-    const col: Record<string, string> = { plan: "plan", planUntil: "plan_until", planStatus: "plan_status", asaasCustomerId: "asaas_customer_id", asaasSubscriptionId: "asaas_subscription_id" };
+    const col: Record<string, string> = { plan: "plan", planUntil: "plan_until", planStatus: "plan_status", planNext: "plan_next", asaasCustomerId: "asaas_customer_id", asaasSubscriptionId: "asaas_subscription_id" };
     const row: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(f)) if (v !== undefined) row[col[k]] = v;
     if (!Object.keys(row).length) return;

@@ -30,6 +30,9 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
             {t("Plano")} <b>{t(plan.nome)}</b> ({t("mensal")}) · {u.planStatus === "cancelado" ? t("renovação cancelada, vale até") : t("válido até")} {until}
           </p>
         ) : <p className="small muted" style={{ margin: "6px 0 0" }}>{t("Você ainda não tem um plano.")}</p>}
+        {plan && u.planStatus !== "cancelado" && u.planNext && PLANOS.find((p) => p.id === u.planNext) && (
+          <p className="small" style={{ margin: "6px 0 0" }}>{t("Troca agendada: na próxima renovação você passa para o plano")} <b>{t(PLANOS.find((p) => p.id === u.planNext)!.nome)}</b>.</p>
+        )}
         {plan && u.planStatus !== "cancelado" && <CancelPlan />}
       </div>
       <div className="card"><h2>{t("Planos")}</h2>

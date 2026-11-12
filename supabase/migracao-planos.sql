@@ -2,6 +2,7 @@
 
 alter table public.users add column if not exists plan text;                    -- essencial | profissional | max
 alter table public.users add column if not exists plan_until timestamptz;       -- o plano vale até esta data
+alter table public.users add column if not exists plan_next text;               -- plano que começa na próxima renovação (downgrade agendado)
 alter table public.users add column if not exists plan_status text;             -- ativo | cancelado
 alter table public.users add column if not exists asaas_customer_id text;        -- cliente no Asaas
 alter table public.users add column if not exists asaas_subscription_id text;    -- assinatura mensal no Asaas

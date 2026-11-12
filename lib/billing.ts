@@ -45,16 +45,19 @@ function splitRule() {
 }
 
 // ------------------------------------------------------------------ referência do pedido
-export type Ref = { userId: string; kind: "pacote" | "plano"; item: string };
-const encodeRef = (r: Ref) => `${r.userId}|${r.kind === "pacote" ? "pack" : "plan"}|${r.item}`;
+export type Ref = { userId: string; kind: "pacote" | "plano" | "troca"; item: string };
+const encodeRef = (r: Ref) => `${r.userId}|${r.kind === "pacote" ? "pack" : r.kind === "troca" ? "up" : "plan"}|${r.item}`;
 export function parseRef(s: unknown): Ref | null {
   const [userId, kind, item] = String(s || "").split("|");
   if (!userId || !item) return null;
   if (kind === "pack" && PACOTES.some((p) => p.id === item)) return { userId, kind: "pacote", item };
   if (kind === "plan" && planById(item)) return { userId, kind: "plano", item };
+  if (kind === "up" && planById(item)) return { userId, kind: "troca", item };
   return null;
 }
-const priceOf = (r: Ref) => (r.kind === "pacote" ? PACOTES.find((p) => p.id === r.item)!.preco : planById(r.item)!.preco);
+// troca de plano: a cobrança é só a diferença proporcional (mínimo do cartão no Asaas: R$ 5)
+const MIN_CARD = 5;
+const priceOf = (r: Ref) => (r.kind === "pacote" ? PACOTES.find((p) => p.id === r.item)!.preco : r.kind === "troca" ? MIN_CARD : planById(r.item)!.preco);
 
 // ------------------------------------------------------------------ cliente e checkout
 /** Valida CPF ou CNPJ pelos dígitos verificadores. */
@@ -85,7 +88,10 @@ export type Method = "PIX" | "CREDIT_CARD";
 export type CardInput = { holderName: string; number: string; expiryMonth: string; expiryYear: string; ccv: string; postalCode: string; addressNumber: string; phone: string };
 export type CheckoutResult =
   | { kind: "pix"; paymentId: string; image: string; payload: string; expiresAt?: string }
-  | { kind: "card"; paymentId: string; status: string };
+  | { kind: "card"; paymentId: string; status: string }
+  /** troca de plano sem cobrança agora: já valeu ("done") ou fica agendada para a próxima renovação ("scheduled") */
+  | { kind: "done" }
+  | { kind: "scheduled"; at: string };
 
 const digits = (s: string) => String(s || "").replace(/\D/g, "");
 
@@ -147,6 +153,8 @@ async function present(p: any, method: Method): Promise<CheckoutResult> {
  */
 export async function createCheckout(u: User, id: string, method: Method, cpfCnpj: string, card?: CardInput, ip = ""): Promise<CheckoutResult> {
   if (method !== "PIX" && method !== "CREDIT_CARD") throw new UserError("Forma de pagamento inválida.");
+  // quem já tem plano ativo troca de plano com valor proporcional (sem criar outra assinatura)
+  if (planById(id) && activePlan(u) && u.planStatus !== "cancelado" && u.asaasSubscriptionId) return changePlan(u, id, method, cpfCnpj, card, ip);
   if (method === "CREDIT_CARD") {
     const bad = card ? validateCard(card) : "Informe os dados do cartão.";
     if (bad) throw new UserError(bad);
@@ -197,7 +205,102 @@ export async function paymentPaid(userId: string, paymentId: string): Promise<bo
 /** Cancela a assinatura no Asaas. O plano continua valendo até o fim do período já pago. */
 export async function cancelSubscription(u: User) {
   if (u.asaasSubscriptionId && billingEnabled()) await asaas(`/subscriptions/${encodeURIComponent(u.asaasSubscriptionId)}`, { method: "DELETE" });
-  await store.setPlan(u.id, { planStatus: "cancelado" });
+  await store.setPlan(u.id, { planStatus: "cancelado", planNext: null });
+}
+
+// ------------------------------------------------------------------ troca de plano
+export type ChangeQuote = {
+  mode: "upgrade" | "downgrade" | "keep";
+  /** a cobrar agora (R$) — só no upgrade; abaixo de R$ 5 a troca vale sem cobrança */
+  amount: number;
+  /** créditos extras do mês, proporcionais ao que falta do período */
+  extraCredits: number;
+  /** próxima renovação (ISO) */
+  nextDue: string;
+  newPrice: number;
+};
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Simula a troca do plano atual para `targetId`: upgrade cobra a diferença proporcional ao que falta do período; downgrade vale na renovação. */
+export async function changeQuote(u: User, targetId: string): Promise<ChangeQuote | null> {
+  const cur = activePlan(u), target = planById(targetId);
+  if (!cur || !target || u.planStatus === "cancelado" || !u.asaasSubscriptionId) return null;
+  const sub = await asaas(`/subscriptions/${encodeURIComponent(u.asaasSubscriptionId)}`).catch(() => null);
+  const nextDue = sub?.nextDueDate ? new Date(`${sub.nextDueDate}T12:00:00Z`) : new Date(new Date(u.planUntil!).getTime() - 5 * DAY);
+  const prev = new Date(nextDue);
+  prev.setUTCMonth(prev.getUTCMonth() - 1);
+  const fraction = Math.min(1, Math.max(0, (nextDue.getTime() - Date.now()) / (nextDue.getTime() - prev.getTime())));
+  const base = { nextDue: nextDue.toISOString(), newPrice: target.preco };
+  if (target.id === cur.id) return u.planNext ? { mode: "keep", amount: 0, extraCredits: 0, ...base } : null;
+  if (target.preco < cur.preco) return { mode: "downgrade", amount: 0, extraCredits: 0, ...base };
+  return {
+    mode: "upgrade", amount: round2((target.preco - cur.preco) * fraction),
+    extraCredits: Math.max(0, Math.round((target.creditosMes - cur.creditosMes) * fraction)), ...base,
+  };
+}
+
+/** Aponta a assinatura (valor e referência) para o plano `planId`; as cobranças futuras já saem com ele. */
+async function setSubscriptionPlan(subId: string, userId: string, planId: string) {
+  const p = planById(planId)!;
+  await asaas(`/subscriptions/${encodeURIComponent(subId)}`, { method: "PUT", body: {
+    value: p.preco, description: `ArqIA ${p.nome} — plano mensal`, externalReference: encodeRef({ userId, kind: "plano", item: p.id }), updatePendingPayments: true,
+  } });
+}
+
+async function changePlan(u: User, targetId: string, method: Method, cpfCnpj: string, card: CardInput | undefined, ip: string): Promise<CheckoutResult> {
+  const q = await changeQuote(u, targetId);
+  const target = planById(targetId)!;
+  if (!q) throw new UserError("Esta troca de plano não está disponível.");
+  try {
+    if (q.mode === "keep") {
+      await setSubscriptionPlan(u.asaasSubscriptionId!, u.id, u.plan!);
+      await store.setPlan(u.id, { planNext: null });
+      return { kind: "done" };
+    }
+    if (q.mode === "downgrade") {
+      await setSubscriptionPlan(u.asaasSubscriptionId!, u.id, target.id);
+      await store.setPlan(u.id, { planNext: target.id });
+      return { kind: "scheduled", at: q.nextDue };
+    }
+    if (q.amount < MIN_CARD) {
+      // sobra tão pouco do período que a diferença nem chega ao valor mínimo do cartão: a troca vale sem cobrança
+      await applyUpgradeNow(u, target.id, q.extraCredits);
+      return { kind: "done" };
+    }
+    if (method !== "CREDIT_CARD") throw new UserError("A troca de plano é paga no cartão de crédito.");
+    const bad = card ? validateCard(card) : "Informe os dados do cartão.";
+    if (bad) throw new UserError(bad);
+    if (!validCpfCnpj(cpfCnpj)) throw new UserError("Informe o CPF ou CNPJ do titular do cartão.");
+    const customer = await ensureCustomer(u, cpfCnpj);
+    const p = await asaas("/payments", { method: "POST", body: {
+      customer, billingType: "CREDIT_CARD", value: q.amount, dueDate: today(), description: `ArqIA — troca para o plano ${target.nome} (valor proporcional)`,
+      externalReference: encodeRef({ userId: u.id, kind: "troca", item: target.id }), split: splitRule(), ...cardFields(u, cpfCnpj, card!, ip || "0.0.0.0"),
+    } });
+    return await present(p, "CREDIT_CARD");
+  } catch (e) {
+    const msg = (e as Error).message || "";
+    if (e instanceof UserError) throw e;
+    if (/invalid_creditCard|not authorized|n[ãa]o autorizad|recusad/i.test(msg)) throw new UserError("Cartão recusado. Confira os dados ou use outro cartão.");
+    throw new Error(scrub(msg));
+  }
+}
+
+/** Efetiva o upgrade: assinatura no novo valor, plano novo agora (a data de renovação não muda) e créditos extras do período. */
+async function applyUpgradeNow(user: User, targetId: string, credits: number) {
+  const target = planById(targetId)!;
+  // se o Asaas falhar aqui, o plano novo vale e a próxima cobrança sai no valor antigo (corrigir a assinatura à mão)
+  if (user.asaasSubscriptionId) await setSubscriptionPlan(user.asaasSubscriptionId, user.id, target.id).catch((e) => console.error("assinatura não atualizada:", scrub(String(e?.message))));
+  await store.setPlan(user.id, { plan: target.id, planNext: null, planStatus: "ativo" });
+  if (credits > 0) await store.grant(user.id, credits, `Troca para o plano ${target.nome}: créditos proporcionais`);
+}
+
+/** Pagamento da diferença confirmado. Idempotente por pagamento (quem chama já registrou o pagamento). */
+async function applyUpgrade(user: User, targetId: string, paid: number) {
+  const cur = activePlan(user), target = planById(targetId);
+  if (!cur || !target || target.preco <= cur.preco || !user.asaasSubscriptionId) { console.warn("troca de plano paga mas não aplicável:", user.id, targetId); return; }
+  const diff = target.preco - cur.preco;
+  const credits = Math.round((target.creditosMes - cur.creditosMes) * Math.min(1, paid / diff));
+  await applyUpgradeNow(user, target.id, credits);
 }
 
 // ------------------------------------------------------------------ créditos do plano
@@ -232,7 +335,7 @@ async function applyPayment(pay: any) {
   const paid = Number(pay.value);
   // o valor cobrado precisa bater com o catálogo: um pagamento menor não libera nada
   if (!Number.isFinite(paid) || paid + 0.005 < priceOf(ref)) { console.warn("pagamento com valor menor que o do catálogo:", pay.id, paid); return; }
-  const fresh = await store.recordPayment({ provider: PROVIDER, refId: String(pay.id), userId: user.id, kind: ref.kind, item: ref.item, amount: paid, createdAt: new Date().toISOString() });
+  const fresh = await store.recordPayment({ provider: PROVIDER, refId: String(pay.id), userId: user.id, kind: ref.kind === "pacote" ? "pacote" : "plano", item: ref.kind === "troca" ? `up:${ref.item}:${activePlan(user)?.id ?? ""}` : ref.item, amount: paid, createdAt: new Date().toISOString() });
   if (!fresh) return;
 
   if (ref.kind === "pacote") {
@@ -240,11 +343,12 @@ async function applyPayment(pay: any) {
     await store.grant(user.id, p.creditos, `Compra: ${p.creditos} créditos (${p.rotulo})`);
     return;
   }
+  if (ref.kind === "troca") { await applyUpgrade(user, ref.item, paid); return; }
   const plan = planById(ref.item)!;
   const now = Date.now();
   // renovação do mesmo plano soma ao que resta; troca de plano começa agora
   const from = activePlan(user) && user.plan === plan.id && user.planUntil ? Math.max(now, new Date(user.planUntil).getTime()) : now;
-  await store.setPlan(user.id, { plan: plan.id, planUntil: new Date(from + 35 * DAY).toISOString(), planStatus: "ativo", ...(pay.subscription ? { asaasSubscriptionId: String(pay.subscription) } : {}) });
+  await store.setPlan(user.id, { plan: plan.id, planUntil: new Date(from + 35 * DAY).toISOString(), planStatus: "ativo", planNext: null, ...(pay.subscription ? { asaasSubscriptionId: String(pay.subscription) } : {}) });
   await grantMonthly(user.id, plan.id, user.credits);
 }
 
@@ -258,6 +362,14 @@ async function revokePayment(paymentId: string) {
     const p = PACOTES.find((x) => x.id === original.item);
     const u = await store.getUser(original.userId);
     if (p && u) { const n = Math.min(p.creditos, u.credits); if (n > 0) await store.charge(u.id, n, `Estorno de pagamento: ${p.creditos} créditos (${p.rotulo})`); }
+  } else if (original.item.startsWith("up:")) {
+    // estorno da diferença de uma troca: volta ao plano anterior (e ao valor dele na assinatura)
+    const [, , from] = original.item.split(":");
+    const u = await store.getUser(original.userId), prev = planById(from);
+    if (u && prev) {
+      if (u.asaasSubscriptionId) await setSubscriptionPlan(u.asaasSubscriptionId, u.id, prev.id).catch((e) => console.error("reverter assinatura:", scrub(String(e?.message))));
+      await store.setPlan(u.id, { plan: prev.id, planNext: null });
+    }
   } else {
     await store.setPlan(original.userId, { planUntil: new Date().toISOString(), planStatus: "cancelado" });
   }

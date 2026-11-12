@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 
 type Method = "PIX" | "CREDIT_CARD";
-type Result = { kind: "pix"; paymentId: string; image: string; payload: string; expiresAt?: string } | { kind: "card"; paymentId: string; status: string };
+type Result = { kind: "pix"; paymentId: string; image: string; payload: string; expiresAt?: string } | { kind: "card"; paymentId: string; status: string } | { kind: "done" } | { kind: "scheduled"; at: string };
+type Change = { mode: "upgrade" | "downgrade" | "keep"; amount: number; extraCredits: number; nextDue: string; newPrice: number };
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 const onlyDigits = (s: string) => s.replace(/\D/g, "");
 const groups = (s: string) => onlyDigits(s).slice(0, 19).replace(/(.{4})/g, "$1 ").trim();
@@ -15,7 +16,8 @@ const maskExp = (s: string) => onlyDigits(s).slice(0, 4).replace(/^(\d{2})(\d)/,
 
 const EMPTY = { number: "", holderName: "", exp: "", ccv: "", postalCode: "", addressNumber: "", phone: "" };
 
-export default function CheckoutForm({ itemId, isPlan, title, price, detail, needsDoc, blocked }: { itemId: string; isPlan: boolean; title: string; price: number; detail: string; needsDoc: boolean; blocked: string }) {
+/** Troca de plano sem cartão: downgrade, manter o plano ou upgrade abaixo do mínimo de cobrança. */
+export default function CheckoutForm({ itemId, isPlan, title, price, detail, needsDoc, blocked, change }: { itemId: string; isPlan: boolean; title: string; price: number; detail: string; needsDoc: boolean; blocked: string; change?: Change }) {
   const t = useT();
   const [method, setMethod] = useState<Method>(isPlan ? "CREDIT_CARD" : "PIX");
   const [doc, setDoc] = useState("");
@@ -26,17 +28,19 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
   const [paid, setPaid] = useState(false);
   const [copied, setCopied] = useState(false);
   const stop = useRef(false);
+  const needCard = method === "CREDIT_CARD" && (!change || (change.mode === "upgrade" && change.amount >= 5));
   const set = (k: keyof typeof EMPTY, f: (s: string) => string = (s) => s) => (e: React.ChangeEvent<HTMLInputElement>) => setCard((c) => ({ ...c, [k]: f(e.target.value) }));
 
   // depois do pagamento a tela pergunta ao servidor (que recebe o webhook do Asaas) se já foi confirmado
   useEffect(() => {
-    if (!res || paid) return;
+    if (!res || paid || !("paymentId" in res)) return;
+    const paymentId = res.paymentId;
     stop.current = false;
     let tries = 0;
     const tick = async () => {
       if (stop.current) return;
       try {
-        const j = await fetch(`/api/billing/status?paymentId=${encodeURIComponent(res.paymentId)}`, { cache: "no-store" }).then((r) => r.json());
+        const j = await fetch(`/api/billing/status?paymentId=${encodeURIComponent(paymentId)}`, { cache: "no-store" }).then((r) => r.json());
         if (j.paid) { setPaid(true); window.dispatchEvent(new Event("credits-changed")); return; }
       } catch { /* tenta de novo */ }
       if (++tries < 300) setTimeout(tick, tries < 20 ? 3000 : 6000);
@@ -49,7 +53,7 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
     setErr(""); setBusy(true);
     const [mm, yy] = card.exp.split("/");
     const body: Record<string, unknown> = { id: itemId, method, cpfCnpj: doc };
-    if (method === "CREDIT_CARD") body.card = { holderName: card.holderName, number: onlyDigits(card.number), expiryMonth: mm || "", expiryYear: yy ? `20${yy}` : "", ccv: card.ccv, postalCode: card.postalCode, addressNumber: card.addressNumber, phone: card.phone };
+    if (needCard) body.card = { holderName: card.holderName, number: onlyDigits(card.number), expiryMonth: mm || "", expiryYear: yy ? `20${yy}` : "", ccv: card.ccv, postalCode: card.postalCode, addressNumber: card.addressNumber, phone: card.phone };
     try {
       const r = await fetch("/api/billing/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), cache: "no-store" });
       const j = await r.json().catch(() => ({}));
@@ -66,8 +70,8 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
     try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2500); } catch { /* o usuário copia à mão */ }
   }
 
-  const needDocField = needsDoc || method === "CREDIT_CARD";
-  const cardReady = method !== "CREDIT_CARD" || (onlyDigits(card.number).length >= 13 && card.holderName.trim().length > 2 && card.exp.length === 5 && card.ccv.length >= 3 && onlyDigits(card.postalCode).length === 8 && card.addressNumber && onlyDigits(card.phone).length >= 10);
+  const needDocField = needCard || (needsDoc && !change);
+  const cardReady = !needCard || (onlyDigits(card.number).length >= 13 && card.holderName.trim().length > 2 && card.exp.length === 5 && card.ccv.length >= 3 && onlyDigits(card.postalCode).length === 8 && card.addressNumber && onlyDigits(card.phone).length >= 10);
   const ready = !blocked && cardReady && (!needDocField || onlyDigits(doc).length >= 11);
 
   if (paid) return (
@@ -85,7 +89,14 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
           <h2>{t("Resumo")}</h2>
           <p style={{ margin: "6px 0 2px" }}><b>{title}</b></p>
           {detail && <p className="small muted" style={{ margin: 0 }}>{detail}</p>}
-          <p className="paytotal">{brl(price)}{isPlan ? <span> / {t("mês")}</span> : null}</p>
+          {change ? (
+            <>
+              <p className="paytotal">{brl(change.mode === "upgrade" ? change.amount : 0)}<span> {t("hoje")}</span></p>
+              {change.mode === "upgrade" && <p className="small muted">{t("Diferença proporcional ao que falta do período atual.")} {change.extraCredits > 0 ? `+${change.extraCredits} ${t("créditos extras agora")}. ` : ""}{t("Próxima renovação em")} {change.nextDue}: {brl(change.newPrice)} / {t("mês")}.</p>}
+              {change.mode === "downgrade" && <p className="small muted">{t("Você continua no plano atual até")} {change.nextDue}. {t("A partir daí, o plano novo custa")} {brl(change.newPrice)} / {t("mês")}.</p>}
+              {change.mode === "keep" && <p className="small muted">{t("Cancela a troca agendada e mantém o plano atual.")}</p>}
+            </>
+          ) : <p className="paytotal">{brl(price)}{isPlan ? <span> / {t("mês")}</span> : null}</p>}
           {isPlan && <p className="small muted">{t("A assinatura renova todo mês no mesmo cartão. Você pode cancelar a renovação quando quiser, em Créditos e planos.")}</p>}
           <p className="small muted"><span aria-hidden="true">🔒 </span>{t("Pagamento seguro processado pelo Asaas. Os dados do cartão não são guardados pelo ArqIA.")}</p>
         </div>
@@ -102,14 +113,14 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
                   </div>
                 </div>
               )}
-              {isPlan && <p className="small muted" style={{ marginTop: 0 }}>{t("Os planos são pagos somente no cartão de crédito.")}</p>}
+              {isPlan && !change && <p className="small muted" style={{ marginTop: 0 }}>{t("Os planos são pagos somente no cartão de crédito.")}</p>}
 
               {needDocField && (
                 <div className="field"><label htmlFor="doc">{method === "CREDIT_CARD" ? t("CPF ou CNPJ do titular do cartão") : t("CPF ou CNPJ")}</label>
                   <input id="doc" type="text" inputMode="numeric" autoComplete="off" value={doc} onChange={(e) => setDoc(maskDoc(e.target.value))} placeholder="000.000.000-00" /></div>
               )}
 
-              {method === "CREDIT_CARD" && (
+              {needCard && (
                 <>
                   <div className="field"><label htmlFor="cc-number">{t("Número do cartão")}</label>
                     <input id="cc-number" type="text" inputMode="numeric" autoComplete="cc-number" value={card.number} onChange={set("number", groups)} placeholder="0000 0000 0000 0000" /></div>
@@ -135,7 +146,7 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
 
               {err && <p className="alert err" role="alert">{t(err)}</p>}
               <button type="button" className="full" disabled={busy || !ready} aria-busy={busy} onClick={pay}>
-                {busy ? t("Processando…") : method === "PIX" ? t("Gerar QR Code Pix") : `${t("Pagar")} ${brl(price)}`}
+                {busy ? t("Processando…") : method === "PIX" ? t("Gerar QR Code Pix") : change && !needCard ? t("Confirmar troca de plano") : `${t("Pagar")} ${brl(change ? change.amount : price)}`}
               </button>
               <p className="small muted" style={{ textAlign: "center" }}><Link href="/app/creditos">{t("Voltar para Créditos e planos")}</Link></p>
             </>
@@ -151,6 +162,14 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
               <textarea id="pixcode" readOnly className="short" value={res.payload} onFocus={(e) => e.currentTarget.select()} />
               <button type="button" onClick={() => copy(res.payload)}>{copied ? t("Código copiado!") : t("Copiar código")}</button>
               <p className="small muted" role="status" aria-live="polite">{t("Aguardando a confirmação do pagamento…")}{res.expiresAt ? ` · ${t("o QR Code vale até")} ${res.expiresAt}` : ""}</p>
+            </div>
+          )}
+
+          {(res?.kind === "done" || res?.kind === "scheduled") && (
+            <div className="pixbox">
+              <h2>{t("Troca de plano confirmada")}</h2>
+              <p role="status">{res.kind === "scheduled" ? t("O novo plano começa na próxima renovação.") : t("Pronto! A mudança já vale.")}</p>
+              <Link href="/app/creditos" className="btn">{t("Ver meus créditos")}</Link>
             </div>
           )}
 
