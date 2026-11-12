@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Logo from "./Logo";
-import { LEGAL_DATE } from "@/lib/legal";
+import { LEGAL_DATE, LEGAL_DATE_EN } from "@/lib/legal";
 import { getT } from "@/lib/i18n-server";
 
 export default async function LegalPage({ title, children }: { title: string; children: React.ReactNode }) {
@@ -13,8 +13,7 @@ export default async function LegalPage({ title, children }: { title: string; ch
       </div>
       <article>
         <h1>{t(title)}</h1>
-        <p className="ver">{t("Versão de")} {LEGAL_DATE}</p>
-        {lang === "en" && <p className="warn">{t("Este documento está disponível apenas em português. Uma versão em inglês será publicada em breve.")}</p>}
+        <p className="ver">{t("Versão de")} {lang === "en" ? LEGAL_DATE_EN : LEGAL_DATE}</p>
         {children}
       </article>
     </main>

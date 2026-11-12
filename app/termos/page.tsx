@@ -1,10 +1,23 @@
 import LegalPage from "@/components/LegalPage";
 import { CONTACT_EMAIL } from "@/lib/legal";
+import { getLang } from "@/lib/i18n-server";
 
+export const dynamic = "force-dynamic";
 
-export default function Termos() {
+const Contact = ({ en }: { en?: boolean }) => (CONTACT_EMAIL ? <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> : <>{en ? "through the support channel in the app" : "pelo canal de suporte informado no aplicativo"}</>);
+
+export default async function Termos() {
+  const en = (await getLang()) === "en";
   return (
     <LegalPage title="Termos de Uso">
+      {en ? <English /> : <Portuguese />}
+    </LegalPage>
+  );
+}
+
+function Portuguese() {
+  return (
+    <>
       <h2>1. Aceite</h2>
       <p>Estes Termos regem o uso do ArqIA, plataforma que usa inteligência artificial para gerar mapas de situação, moodboards, renders, variações de iluminação e filmes de projeto. Ao criar uma conta ou usar o serviço, você declara que leu e concorda com estes Termos e com a Política de Privacidade. Se não concordar, não use o serviço.</p>
 
@@ -14,17 +27,22 @@ export default function Termos() {
       <h2>3. Cadastro e conta</h2>
       <ul>
         <li>Você deve ter 18 anos ou mais e capacidade legal para contratar.</li>
-        <li>As informações do cadastro devem ser verdadeiras e atualizadas.</li>
+        <li>As informações do cadastro devem ser verdadeiras e atualizadas. Para liberar o uso, pedimos que você confirme o seu e-mail pelo link que enviamos.</li>
         <li>Você é responsável pela confidencialidade da sua senha e por tudo o que ocorrer na sua conta. Avise-nos se suspeitar de uso indevido.</li>
         <li>A conta é pessoal e intransferível.</li>
       </ul>
 
-      <h2>4. Créditos e pagamentos</h2>
+      <h2>4. Créditos, planos e pagamentos</h2>
       <ul>
-        <li>As gerações consomem créditos. O custo de cada ação é exibido antes de você gerar.</li>
-        <li>Se uma geração falhar sem entregar resultado, os créditos correspondentes são devolvidos automaticamente.</li>
+        <li>As gerações consomem créditos. O custo de cada ação é exibido antes de você gerar. Se uma geração falhar sem entregar resultado, os créditos correspondentes são devolvidos automaticamente.</li>
         <li>Créditos não são moeda, não são transferíveis e não podem ser convertidos em dinheiro, salvo quando a lei exigir.</li>
-        <li>A compra de créditos e as assinaturas serão disponibilizadas por meio de provedores de pagamento. As condições comerciais (preços, prazos, cancelamento e reembolso) serão informadas no momento da contratação, respeitado o Código de Defesa do Consumidor, inclusive o direito de arrependimento quando aplicável.</li>
+        <li><strong>Créditos avulsos</strong> são vendidos em pacotes, pagos por Pix ou cartão de crédito, e entram na conta assim que o pagamento é confirmado.</li>
+        <li><strong>Planos</strong> são assinaturas mensais pagas somente no cartão de crédito, com renovação automática a cada mês até o cancelamento. Cada plano libera os créditos mensais e os recursos descritos na página de planos; o acúmulo dos créditos mensais não usados é limitado, conforme informado nessa página.</li>
+        <li><strong>Cancelamento:</strong> você pode cancelar a renovação a qualquer momento em &quot;Créditos e planos&quot;. O plano continua valendo até o fim do período já pago, e não há novas cobranças depois disso.</li>
+        <li><strong>Troca de plano:</strong> ao passar para um plano mais caro, cobramos no cartão a diferença proporcional ao que falta do período atual e liberamos, na mesma proporção, os créditos adicionais do novo plano; a data de renovação não muda. Ao passar para um plano mais barato, a mudança vale a partir da próxima renovação, sem cobrança nem devolução.</li>
+        <li><strong>Falha na cobrança:</strong> se a renovação não for paga, o plano termina ao fim do período já pago. Os créditos que você já recebeu continuam na conta.</li>
+        <li><strong>Direito de arrependimento:</strong> nas contratações feitas pela internet, você pode desistir em até 7 dias corridos da contratação (art. 49 do Código de Defesa do Consumidor) e pedir o reembolso, descontados os créditos que já tiver consumido. Para isso, fale com o suporte.</li>
+        <li>Os pagamentos são processados pelo Asaas. Os dados do cartão são enviados diretamente ao Asaas e não são guardados pelo ArqIA. Preços e condições são exibidos no momento da contratação e podem mudar para novas compras, sem afetar o que você já pagou.</li>
       </ul>
 
       <h2>5. Conteúdo que você envia</h2>
@@ -46,12 +64,12 @@ export default function Termos() {
 
       <h2>8. Serviços de terceiros</h2>
       <ul>
-        <li>O serviço usa provedores como Google (modelos Gemini e Google Maps Platform), Supabase (armazenamento) e provedores de hospedagem e de pagamento. Os termos e políticas desses provedores também se aplicam ao que cada um faz.</li>
+        <li>O serviço usa provedores como Google (modelos Gemini e Google Maps Platform), Supabase (armazenamento), Asaas (pagamentos), Resend (envio de e-mails) e provedores de hospedagem. Os termos e políticas desses provedores também se aplicam ao que cada um faz.</li>
         <li>As imagens de satélite vêm da Google Maps Platform e estão sujeitas aos Termos de Serviço da Google Maps Platform, inclusive à atribuição exigida. Você é responsável por usar essas imagens somente de forma permitida por esses termos. Se você enviar o seu próprio print de mapas ou de satélite, a conformidade com os termos do provedor de origem também é sua.</li>
       </ul>
 
       <h2>9. Uso permitido</h2>
-      <p>É proibido: usar o serviço para fins ilícitos ou para gerar conteúdo que viole direitos de terceiros; tentar burlar limites, créditos ou controles de segurança; acessar contas ou dados de outros usuários; fazer engenharia reversa; automatizar o uso de forma abusiva; ou revender o acesso sem autorização.</p>
+      <p>É proibido: usar o serviço para fins ilícitos ou para gerar conteúdo que viole direitos de terceiros; tentar burlar limites, créditos ou controles de segurança; acessar contas ou dados de outros usuários; fazer engenharia reversa; automatizar o uso de forma abusiva; ou revender o acesso sem autorização. Para proteger o serviço, aplicamos limites de uso por conta e por endereço de rede.</p>
 
       <h2>10. Disponibilidade e mudanças no serviço</h2>
       <p>O serviço é fornecido no estado em que se encontra, pode ficar indisponível para manutenção ou por falhas de terceiros e pode ser alterado, inclusive os modelos de IA usados, limites e custos em créditos. Faremos esforços razoáveis para avisar mudanças relevantes.</p>
@@ -72,7 +90,87 @@ export default function Termos() {
       <p>Estes Termos são regidos pelas leis do Brasil. Para consumidores, fica eleito o foro do domicílio do usuário; nos demais casos, o foro da comarca do responsável pelo serviço.</p>
 
       <h2>16. Contato</h2>
-      <p>Dúvidas sobre estes Termos: {CONTACT_EMAIL ? <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> : "pelo canal de suporte informado no aplicativo"}.</p>
-    </LegalPage>
+      <p>Dúvidas sobre estes Termos: <Contact />.</p>
+    </>
+  );
+}
+
+function English() {
+  return (
+    <>
+      <h2>1. Acceptance</h2>
+      <p>These Terms govern the use of ArqIA, a platform that uses artificial intelligence to generate site maps, moodboards, renders, lighting variations and project films. By creating an account or using the service, you state that you have read and agree to these Terms and to the Privacy Policy. If you do not agree, do not use the service.</p>
+
+      <h2>2. The service</h2>
+      <p>ArqIA receives the images and information you send, processes them with AI models and third-party services, and returns images and videos. Results are produced automatically and may vary from one generation to the next.</p>
+
+      <h2>3. Registration and account</h2>
+      <ul>
+        <li>You must be at least 18 years old and legally able to enter into contracts.</li>
+        <li>Registration information must be accurate and up to date. To unlock the service, we ask you to confirm your email through the link we send you.</li>
+        <li>You are responsible for keeping your password confidential and for everything that happens on your account. Tell us if you suspect misuse.</li>
+        <li>The account is personal and cannot be transferred.</li>
+      </ul>
+
+      <h2>4. Credits, plans and payments</h2>
+      <ul>
+        <li>Generations consume credits. The cost of each action is shown before you generate. If a generation fails without delivering a result, the corresponding credits are automatically refunded.</li>
+        <li>Credits are not currency, are not transferable and cannot be exchanged for money, except where the law requires it.</li>
+        <li><strong>Standalone credits</strong> are sold in packs, paid by Pix or credit card, and are added to your account as soon as the payment is confirmed.</li>
+        <li><strong>Plans</strong> are monthly subscriptions paid by credit card only, renewing automatically every month until cancelled. Each plan provides the monthly credits and features described on the plans page; carry-over of unused monthly credits is limited, as stated on that page.</li>
+        <li><strong>Cancellation:</strong> you can cancel renewal at any time under &quot;Credits and plans&quot;. The plan stays valid until the end of the period already paid, and no further charges are made after that.</li>
+        <li><strong>Changing plans:</strong> when you move to a more expensive plan, we charge your card the difference, prorated to the time left in the current period, and release the new plan&apos;s extra credits in the same proportion; the renewal date does not change. When you move to a cheaper plan, the change takes effect at the next renewal, with no charge or refund.</li>
+        <li><strong>Failed charges:</strong> if a renewal is not paid, the plan ends at the end of the period already paid. Credits you have already received stay in your account.</li>
+        <li><strong>Right of withdrawal:</strong> for purchases made online, you may withdraw within 7 calendar days of the purchase (art. 49 of the Brazilian Consumer Protection Code) and request a refund, minus any credits you have already used. To do so, contact support.</li>
+        <li>Payments are processed by Asaas. Card data is sent directly to Asaas and is not stored by ArqIA. Prices and conditions are shown at the time of purchase and may change for new purchases, without affecting what you have already paid.</li>
+      </ul>
+
+      <h2>5. Content you send</h2>
+      <ul>
+        <li>You keep the rights to the images and information you send (such as 3D model screenshots, renders, references and addresses).</li>
+        <li>You state that you hold the necessary rights to this content, including projects, third-party images and references taken from the internet, and you authorize us to store and process it, including through the AI and infrastructure providers described in the Privacy Policy, only to provide the service to you.</li>
+        <li>Do not send content that is unlawful, infringes third-party rights, contains sensitive personal data, shows children or teenagers, or shows identifiable people without their permission.</li>
+      </ul>
+
+      <h2>6. AI-generated results</h2>
+      <ul>
+        <li>Results are illustrative. They may contain inaccuracies and changes to geometry, proportions, materials and details compared with the original project, and fidelity is not guaranteed.</li>
+        <li>AI-generated results may resemble one another or existing works, and the legal treatment of copyright in them is uncertain. We do not guarantee exclusivity or registrability.</li>
+        <li>As between you and ArqIA, you may use results generated from your content for professional purposes, subject to these Terms, the terms of third-party providers and applicable law.</li>
+      </ul>
+
+      <h2>7. The architect&apos;s technical responsibility</h2>
+      <p>AI does not replace the technical and legal responsibility of the licensed professional. Projects, measurements, standards, specifications, technical documents and any information presented to clients and public authorities remain the sole responsibility of the architect or professional who signs them. Check every result before presenting or using it.</p>
+
+      <h2>8. Third-party services</h2>
+      <ul>
+        <li>The service uses providers such as Google (Gemini models and Google Maps Platform), Supabase (storage), Asaas (payments), Resend (email delivery) and hosting providers. These providers&apos; terms and policies also apply to what each of them does.</li>
+        <li>Satellite images come from Google Maps Platform and are subject to the Google Maps Platform Terms of Service, including the required attribution. You are responsible for using these images only as those terms allow. If you upload your own map or satellite screenshot, compliance with the source provider&apos;s terms is also yours.</li>
+      </ul>
+
+      <h2>9. Permitted use</h2>
+      <p>You may not: use the service for unlawful purposes or to generate content that infringes third-party rights; try to bypass limits, credits or security controls; access other users&apos; accounts or data; reverse engineer the service; automate use abusively; or resell access without authorization. To protect the service, we apply usage limits per account and per network address.</p>
+
+      <h2>10. Availability and changes to the service</h2>
+      <p>The service is provided as is, may be unavailable for maintenance or because of third-party failures, and may change, including the AI models used, limits and credit costs. We will make reasonable efforts to notify you of relevant changes.</p>
+
+      <h2>11. ArqIA&apos;s intellectual property</h2>
+      <p>The software, brand, design, moodboard templates and other ArqIA elements belong to their owners and are not assigned to you, except for the right to use the service under these Terms.</p>
+
+      <h2>12. Limitation of liability</h2>
+      <p>To the maximum extent permitted by law, ArqIA is not liable for design decisions, errors in AI-generated results, indirect losses, lost profits or damages arising from the unavailability of third-party services. Nothing in these Terms limits rights that the law treats as non-waivable, including consumer rights.</p>
+
+      <h2>13. Suspension and termination</h2>
+      <p>We may suspend or terminate accounts that violate these Terms or the law, with notice where possible. You may stop using the service and request deletion of your account at any time, as described in the Privacy Policy.</p>
+
+      <h2>14. Changes to these Terms</h2>
+      <p>We may update these Terms. When a change is significant, we will ask for new acceptance or notify you before it takes effect. Continuing to use the service after a change means you agree to the new version.</p>
+
+      <h2>15. Governing law and venue</h2>
+      <p>These Terms are governed by the laws of Brazil. For consumers, the courts of the user&apos;s place of residence are chosen; in other cases, the courts of the district of the party responsible for the service.</p>
+
+      <h2>16. Contact</h2>
+      <p>Questions about these Terms: <Contact en />.</p>
+    </>
   );
 }
