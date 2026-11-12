@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
     const u = await currentUser();
     if (!u) return bad("Não autenticado.", 401);
     if (u.emailVerifiedAt) return NextResponse.json({ ok: true });
-    if (limited(`vsend:${u.id}`, 3, 10 * 60_000)) return bad(TOO_MANY, 429);
+    if (await limited(`vsend:${u.id}`, 3, 10 * 60_000)) return bad(TOO_MANY, 429);
     if (!mailEnabled()) return bad("O envio de e-mail não está ativo.", 501);
     try {
       await sendVerifyMail(u.email, makeToken("verify", u.id, 48 * 3600_000, u.email), lang);
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
   if (action === "forgot") {
     const email = String(b.email || "").trim().toLowerCase().slice(0, 254);
     if (!/^\S+@\S+\.\S+$/.test(email)) return bad("E-mail inválido.");
-    if (limited(`forgot-ip:${ip}`, 10, 10 * 60_000) || limited(`forgot-mail:${email}`, 3, 10 * 60_000)) return bad(TOO_MANY, 429);
+    if (await limited(`forgot-ip:${ip}`, 10, 10 * 60_000) || await limited(`forgot-mail:${email}`, 3, 10 * 60_000)) return bad(TOO_MANY, 429);
     if (!mailEnabled()) return bad("A recuperação por e-mail ainda não está ativa. Fale com o suporte.", 501);
     const u = await store.getUserByEmail(email);
     if (u?.passHash) {
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
 
   // define a nova senha com o link recebido (o link deixa de valer assim que a senha muda)
   if (action === "reset") {
-    if (limited(`reset-ip:${ip}`, 10, 10 * 60_000)) return bad(TOO_MANY, 429);
+    if (await limited(`reset-ip:${ip}`, 10, 10 * 60_000)) return bad(TOO_MANY, 429);
     const token = String(b.token || ""), password = String(b.password || "").slice(0, 200);
     if (password.length < 8) return bad("A senha precisa ter ao menos 8 caracteres.");
     const peek = peekToken(token);

@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
   if (!/^\S+@\S+\.\S+$/.test(email)) return bad("E-mail inválido.");
   if (action === "register") {
     // cada conta nova ganha créditos: o limite por IP segura quem tenta criar contas em série
-    if (limited(`reg:${ip}`, 5, 60 * 60_000)) return bad(TOO_MANY, 429);
+    if (await limited(`reg:${ip}`, 5, 60 * 60_000)) return bad(TOO_MANY, 429);
     if (b.aceite !== true) return bad("Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.");
     if (password.length < 8) return bad("A senha precisa ter ao menos 8 caracteres.");
     if (await store.getUserByEmail(email)) return bad("Este e-mail já está cadastrado.", 409);
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
     return NextResponse.json({ ok: true });
   }
   if (action === "login") {
-    if (limited(`login-ip:${ip}`, 20, 10 * 60_000) || limited(`login-mail:${email}`, 8, 10 * 60_000)) return bad(TOO_MANY, 429);
+    if (await limited(`login-ip:${ip}`, 20, 10 * 60_000) || await limited(`login-mail:${email}`, 8, 10 * 60_000)) return bad(TOO_MANY, 429);
     const u = await store.getUserByEmail(email);
     if (!(await checkPassword(password, u?.passHash)) || !u) return bad("E-mail ou senha incorretos.", 401);
     await startSession(u.id);

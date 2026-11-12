@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const subject = b.subject in SUBJECTS ? String(b.subject) : "duvida";
   const message = String(b.message || "").trim().slice(0, 4000);
   if (message.length < 10) return NextResponse.json({ error: "Escreva uma mensagem com pelo menos 10 caracteres." }, { status: 400 });
-  if (limited(`support:${u.id}`, 5, 60 * 60_000)) return NextResponse.json({ error: "Muitas mensagens em pouco tempo. Tente novamente mais tarde." }, { status: 429 });
+  if (await limited(`support:${u.id}`, 5, 60 * 60_000)) return NextResponse.json({ error: "Muitas mensagens em pouco tempo. Tente novamente mais tarde." }, { status: 429 });
   try {
     await store.addSupport({ userId: u.id, email: u.email, subject, message });
   } catch (e: any) {

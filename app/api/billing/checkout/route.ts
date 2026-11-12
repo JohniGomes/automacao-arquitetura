@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const ip = clientIp(req);
   // tentativas de cartão são limitadas: impede quem testa números de cartão em série
   const card = method === "CREDIT_CARD";
-  if (limited(`checkout-${card ? "card" : "pix"}:${u.id}`, card ? 8 : 15, 10 * 60_000) || (card && limited(`checkout-card-ip:${ip}`, 16, 10 * 60_000)))
+  if (await limited(`checkout-${card ? "card" : "pix"}:${u.id}`, card ? 8 : 15, 10 * 60_000) || (card && await limited(`checkout-card-ip:${ip}`, 16, 10 * 60_000)))
     return NextResponse.json({ error: "Muitas tentativas. Aguarde alguns minutos e tente de novo." }, { status: 429, headers: NO_STORE });
   try {
     const c = b.card || {};

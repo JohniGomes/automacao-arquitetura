@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
   await recoverStale();
   // limites antes de ler o corpo: o formData carrega tudo na memória
   if (Number(req.headers.get("content-length") || 0) > MAX_BODY) return bad("Os arquivos enviados são grandes demais.", 413);
-  if (limited(`jobs:${u.id}`, 20, 10 * 60_000)) return bad("Muitos pedidos em pouco tempo. Aguarde um pouco e tente de novo.", 429);
+  if (await limited(`jobs:${u.id}`, 20, 10 * 60_000)) return bad("Muitos pedidos em pouco tempo. Aguarde um pouco e tente de novo.", 429);
   if (activeJobs(u.id) >= MAX_ACTIVE_PER_USER) return bad(`Você já tem ${MAX_ACTIVE_PER_USER} gerações em andamento. Aguarde uma terminar para pedir outra.`, 429);
   const form = await req.formData();
   const type = String(form.get("type")) as GenType;
