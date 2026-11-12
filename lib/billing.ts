@@ -10,8 +10,9 @@ import { store } from "./store";
  * Cobrança pelo Asaas (https://docs.asaas.com).
  * - Créditos avulsos: cobrança única (/payments). Plano: assinatura mensal (/subscriptions). O cliente escolhe Pix, boleto
  *   ou cartão na página de pagamento do próprio Asaas (billingType UNDEFINED).
- * - Divisão de receita: cada cobrança leva um `split` para a carteira do sócio (ASAAS_PARTNER_WALLET_ID, ASAAS_PARTNER_PERCENT).
- *   O Asaas calcula o percentual sobre o valor líquido (já descontadas as taxas) e o resto fica na conta que gera a cobrança.
+ * - Divisão de receita (opcional): com ASAAS_PARTNER_WALLET_ID definido, cada cobrança leva um `split` para a carteira do sócio
+ *   (ASAAS_PARTNER_PERCENT). O Asaas calcula o percentual sobre o valor líquido (já descontadas as taxas) e o resto fica na conta
+ *   que gera a cobrança. Sem o walletId, 100% fica na conta dona da chave de API.
  * - Os créditos só são concedidos pelo webhook, depois de consultar o pagamento na API do Asaas.
  */
 const PROVIDER = "asaas";
@@ -19,7 +20,6 @@ const DAY = 86_400_000;
 
 const base = () => process.env.ASAAS_API_BASE || (process.env.ASAAS_ENV === "production" ? "https://api.asaas.com/v3" : "https://api-sandbox.asaas.com/v3");
 export const billingEnabled = () => !!process.env.ASAAS_API_KEY;
-const live = () => process.env.NODE_ENV === "production" && process.env.ASAAS_ENV === "production";
 
 async function asaas(path: string, init: { method?: string; body?: unknown } = {}) {
   const res = await fetch(base() + path, {
@@ -34,16 +34,13 @@ async function asaas(path: string, init: { method?: string; body?: unknown } = {
 }
 
 // ------------------------------------------------------------------ divisão com o sócio
-/** Percentual do sócio (padrão 30%). O restante fica com a conta dona da chave de API. */
+/** Percentual do sócio quando houver walletId (padrão 30%). O restante fica com a conta dona da chave de API. */
 export const partnerPercent = () => { const n = Number(process.env.ASAAS_PARTNER_PERCENT || 30); return Number.isFinite(n) && n > 0 && n < 100 ? n : 30; };
 
 function splitRule() {
-  const walletId = process.env.ASAAS_PARTNER_WALLET_ID;
-  if (!walletId) {
-    // em produção nenhuma cobrança sai sem a divisão combinada
-    if (live()) throw new Error("ASAAS_PARTNER_WALLET_ID não definido: a divisão com o sócio não está configurada.");
-    return undefined;
-  }
+  const walletId = process.env.ASAAS_PARTNER_WALLET_ID?.trim();
+  // sem walletId não há divisão: 100% vai para a conta dona da chave de API
+  if (!walletId) return undefined;
   return [{ walletId, percentualValue: partnerPercent() }];
 }
 
