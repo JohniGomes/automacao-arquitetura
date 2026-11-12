@@ -95,7 +95,9 @@ export function validateCard(c: CardInput): string | null {
   if (n.length < 13 || n.length > 19) return "Número do cartão inválido.";
   let sum = 0;
   for (let i = 0; i < n.length; i++) { let d = Number(n[n.length - 1 - i]); if (i % 2) { d *= 2; if (d > 9) d -= 9; } sum += d; }
-  if (sum % 10) return "Número do cartão inválido.";
+  // os cartões de teste do sandbox do Asaas (ex.: 4444 4444 4444 4444) não passam no dígito verificador; em produção passam todos os reais
+  const sandbox = process.env.ASAAS_ENV?.trim().toLowerCase() !== "production";
+  if (!sandbox && sum % 10) return "Número do cartão inválido.";
   const mm = Number(c.expiryMonth), yy = Number(c.expiryYear);
   if (!(mm >= 1 && mm <= 12) || c.expiryYear.length !== 4) return "Validade do cartão inválida.";
   const now = new Date();
