@@ -18,13 +18,13 @@ import { store } from "./store";
 const PROVIDER = "asaas";
 const DAY = 86_400_000;
 
-const base = () => process.env.ASAAS_API_BASE || (process.env.ASAAS_ENV === "production" ? "https://api.asaas.com/v3" : "https://api-sandbox.asaas.com/v3");
-export const billingEnabled = () => !!process.env.ASAAS_API_KEY;
+const base = () => process.env.ASAAS_API_BASE || (process.env.ASAAS_ENV?.trim().toLowerCase() === "production" ? "https://api.asaas.com/v3" : "https://api-sandbox.asaas.com/v3");
+export const billingEnabled = () => !!process.env.ASAAS_API_KEY?.trim();
 
 async function asaas(path: string, init: { method?: string; body?: unknown } = {}) {
   const res = await fetch(base() + path, {
     method: init.method || "GET",
-    headers: { access_token: process.env.ASAAS_API_KEY || "", "Content-Type": "application/json", "User-Agent": "ArqIA" },
+    headers: { access_token: (process.env.ASAAS_API_KEY || "").trim(), "Content-Type": "application/json", "User-Agent": "ArqIA" },
     body: init.body ? JSON.stringify(init.body) : undefined,
     signal: AbortSignal.timeout(20_000),
   });
@@ -75,6 +75,20 @@ async function ensureCustomer(u: User, cpfCnpj: string): Promise<string> {
   return c.id;
 }
 
+/**
+ * Envia o pedido com o redirecionamento de volta ao app; se o Asaas recusar o endereço de retorno (domínio ainda não
+ * cadastrado na conta), repete sem ele: o cliente paga do mesmo jeito e só não volta sozinho para o app.
+ */
+async function withCallback(path: string, body: Record<string, unknown>) {
+  try {
+    return await asaas(path, { method: "POST", body: { ...body, callback: success() } });
+  } catch (e) {
+    if (!/callback|successUrl|dom[ií]nio|url de retorno/i.test((e as Error).message)) throw e;
+    console.warn("Asaas recusou o endereço de retorno; seguindo sem redirecionamento automático:", (e as Error).message);
+    return asaas(path, { method: "POST", body });
+  }
+}
+
 /** Data de hoje no horário de Brasília (AAAA-MM-DD), como o Asaas espera. */
 const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
 const success = () => ({ successUrl: `${env.appUrl}/app/creditos?pagamento=ok`, autoRedirect: true });
@@ -86,10 +100,10 @@ export async function createCheckout(u: User, id: string, cpfCnpj: string): Prom
   if (pack) {
     const customer = await ensureCustomer(u, cpfCnpj);
     const ref: Ref = { userId: u.id, kind: "pacote", item: pack.id };
-    const p = await asaas("/payments", { method: "POST", body: {
+    const p = await withCallback("/payments", {
       customer, billingType: "UNDEFINED", value: pack.preco, dueDate: today(), description: `ArqIA — ${pack.creditos} créditos`,
-      externalReference: encodeRef(ref), split, callback: success(),
-    } });
+      externalReference: encodeRef(ref), split,
+    });
     return p.invoiceUrl;
   }
   const plan = planById(id);
@@ -100,10 +114,10 @@ export async function createCheckout(u: User, id: string, cpfCnpj: string): Prom
   // assinatura anterior que não virou plano (cliente abriu e não pagou) ou já cancelada: remove, para nunca haver duas cobrando
   if (u.asaasSubscriptionId) await asaas(`/subscriptions/${encodeURIComponent(u.asaasSubscriptionId)}`, { method: "DELETE" }).catch(() => undefined);
   const ref: Ref = { userId: u.id, kind: "plano", item: plan.id };
-  const s = await asaas("/subscriptions", { method: "POST", body: {
+  const s = await withCallback("/subscriptions", {
     customer, billingType: "UNDEFINED", value: plan.preco, nextDueDate: today(), cycle: "MONTHLY", description: `ArqIA ${plan.nome} — plano mensal`,
-    externalReference: encodeRef(ref), split, callback: success(),
-  } });
+    externalReference: encodeRef(ref), split,
+  });
   await store.setPlan(u.id, { asaasSubscriptionId: s.id });
   // a primeira cobrança da assinatura nasce logo em seguida: pega o link dela
   for (let i = 0; i < 6; i++) {
@@ -133,7 +147,7 @@ async function grantMonthly(userId: string, planId: string, balance: number) {
 // ------------------------------------------------------------------ webhook
 /** Confere o token do webhook (cabeçalho asaas-access-token). Em produção o token é obrigatório. */
 export function verifyWebhookToken(headers: Headers): boolean {
-  const want = process.env.ASAAS_WEBHOOK_TOKEN;
+  const want = process.env.ASAAS_WEBHOOK_TOKEN?.trim();
   if (!want) return process.env.NODE_ENV !== "production";
   const got = headers.get("asaas-access-token") || "";
   return got.length === want.length && crypto.timingSafeEqual(Buffer.from(got), Buffer.from(want));
