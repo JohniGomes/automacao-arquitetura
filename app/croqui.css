@@ -1,0 +1,127 @@
+/* CROQUI — identidade visual. Papel, areia, grafite e terracota; traço fino, superfícies planas, serifada nos títulos.
+   Carregado depois de globals.css e rail.css: substitui o relevo (neumorfismo) e o vidro fosco do Calm Kit por linhas e cores chapadas. */
+
+body { background: var(--bg); }
+h1, h2, h3 { font-weight: 500; }
+h3 { font-weight: 500; }
+.hero h1, .sec h2, .final h2, .doc h1, .auth .box h1 { font-weight: 400; }
+
+/* ---------- botões: chapados, cantos suaves ---------- */
+button, .btn {
+  border-radius: 10px; font-weight: 500; letter-spacing: 0;
+  background: var(--btn-a); border: 1px solid var(--btn-a);
+  -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none;
+}
+button:hover:not(:disabled), .btn:hover { filter: none; transform: none; background: var(--btn-b); border-color: var(--btn-b); }
+button.ghost, .btn.ghost, .chip {
+  color: var(--deep); background: transparent; border: 1px solid var(--line-strong); box-shadow: none; font-weight: 500;
+}
+button.ghost:hover:not(:disabled), .btn.ghost:hover, .chip:hover:not(:disabled) { background: color-mix(in srgb, var(--deep) 6%, transparent); border-color: var(--deep); }
+.chip.on { color: var(--accent-ink); background: var(--btn-a); border-color: var(--btn-a); box-shadow: none; }
+.chip { border-radius: 8px; }
+
+/* ---------- campos ---------- */
+input[type=text], input[type=email], input[type=password], textarea, select {
+  border: 1px solid var(--line-strong); border-radius: 10px; background: var(--field); box-shadow: none;
+}
+textarea { border-radius: 12px; }
+input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--sage); outline-offset: 1px; border-color: var(--sage); }
+input[type=range] { accent-color: var(--sage); }
+label { text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--muted); }
+.shell label { font-size: 12px; }
+input[type=file]::file-selector-button { background: transparent; color: var(--deep); border: 1px solid var(--line-strong); border-radius: 8px; }
+input[type=file]:hover::file-selector-button { background: color-mix(in srgb, var(--deep) 6%, transparent); border-color: var(--deep); }
+
+/* ---------- blocos ---------- */
+.card { border-radius: 14px; box-shadow: none; border: 1px solid var(--line); }
+.warn { border-radius: 10px; box-shadow: none; background: color-mix(in srgb, var(--moss) 35%, var(--bg)); border: 1px solid var(--line); color: var(--ink); }
+.tag { border-radius: 6px; background: color-mix(in srgb, var(--moss) 55%, var(--bg)); color: var(--deep); letter-spacing: 0; }
+.tag.done { background: color-mix(in srgb, var(--ok) 14%, var(--bg)); color: var(--ok); }
+.tag.error { background: color-mix(in srgb, var(--bad) 12%, var(--bg)); color: var(--bad); }
+.bar { height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--deep) 12%, transparent); box-shadow: none; }
+.bar div { background: var(--sage); }
+figure { border-radius: 12px; box-shadow: none; border: 1px solid var(--line); }
+.preview, .thumbs img { box-shadow: none; border-radius: 10px; }
+.thumbs img.sel, .thumbs img:hover { border-color: var(--sage); }
+.legal { border-top: 1px solid var(--line); }
+
+/* ---------- menu lateral ---------- */
+.side, .rail, .drawer, .pop, .topbar { border-radius: 16px; box-shadow: none; border: 1px solid var(--line); }
+.drawer, .pop { box-shadow: 0 18px 40px -22px rgba(43, 42, 40, .4); }
+.rbrand { color: var(--deep); }
+.brand { font-weight: 400; letter-spacing: -0.01em; font-size: 24px; }
+.brand svg { color: var(--deep); width: 30px; height: 30px; }
+.shell .brand { font-size: 22px; }
+.side nav a, .ritem, .dtool, .pop a { border-radius: 10px; }
+.side nav a.on, .ritem.on, .shell .seg button.on {
+  color: var(--link); font-weight: 500; background: color-mix(in srgb, var(--sage) 13%, transparent);
+  -webkit-backdrop-filter: none; backdrop-filter: none; border: 1px solid color-mix(in srgb, var(--sage) 28%, transparent); box-shadow: none;
+}
+.side nav a.on svg, .ritem.on svg { stroke: var(--link); }
+.dtool.on { background: color-mix(in srgb, var(--sage) 12%, transparent); box-shadow: none; }
+.credits, .rcredits, .chipcredits { box-shadow: none; border: 1px solid var(--line); background: var(--field); border-radius: 10px; }
+.chipcredits { border-radius: 8px; }
+.credits b, .rcredits b, .tcost b { color: var(--link); }
+.tpanel { border-radius: 14px; box-shadow: none; border: 1px solid var(--line); }
+.plus { color: var(--sage); }
+
+/* ícones das ferramentas: cores chapadas da paleta */
+.ticon { border-radius: 10px; box-shadow: none; color: #FFFDF9; }
+.tn-0 { background: #C4553A; }
+.tn-1 { background: #2B2A28; }
+.tn-2 { background: #8C7A5E; }
+.tn-3 { background: #A8432B; }
+.tn-4 { background: #5A564F; }
+.tn-5 { background: #B98A4E; }
+
+/* ---------- comparador casa (imagens reais) ---------- */
+.house { border-radius: 14px; background: var(--moss); }
+.house .seam { background: #F4EFE8; box-shadow: 0 0 0 1px rgba(43, 42, 40, .25); }
+.house .knob { background: #F4EFE8; color: #2B2A28; -webkit-backdrop-filter: none; backdrop-filter: none; border: 1px solid rgba(43, 42, 40, .25); box-shadow: 0 6px 16px rgba(43, 42, 40, .3); }
+.house .tg { background: #F4EFE8; color: #2B2A28; -webkit-backdrop-filter: none; backdrop-filter: none; border: 1px solid rgba(43, 42, 40, .2); border-radius: 6px; letter-spacing: .1em; }
+
+/* ---------- landing ---------- */
+.lnav .links a.txt { color: var(--deep); }
+.hero h1 { font-weight: 400; letter-spacing: -0.03em; }
+.hero h1 em { font-style: italic; font-weight: 400; color: var(--link); }
+.hero .house { border-radius: 14px; border: 1px solid var(--line); box-shadow: none; }
+.hero .stage { position: relative; }
+.cota { display: block; width: 100%; height: 22px; margin-top: 10px; color: var(--sage); }
+.cota text { fill: var(--link); font: 500 11px var(--font-body); letter-spacing: .08em; }
+.regua { display: block; width: 100%; height: 16px; color: var(--muted); margin: 0 0 -1px; }
+.sec { border-top: 1px solid var(--line); }
+.sec h2 { font-weight: 400; }
+.steps li { border-radius: 14px; box-shadow: none; border: 1px solid var(--line); background: var(--surface); }
+.steps .n { color: var(--sage); font-family: var(--font-display); font-weight: 400; }
+.trio h3 { color: var(--head); }
+.final { border-radius: 16px; background: var(--final-bg); color: #F4EFE8; box-shadow: none; }
+.final h2 { color: #F4EFE8; font-weight: 400; }
+.final .btn { color: #FFFDF9; background: var(--btn-a); border-color: var(--btn-a); box-shadow: none; }
+.final .btn:hover { background: var(--btn-b); border-color: var(--btn-b); }
+.final .btn.ghost { color: #F4EFE8; background: transparent; border-color: rgba(244, 239, 232, .45); box-shadow: none; }
+.final .btn.ghost:hover { background: rgba(244, 239, 232, .1); border-color: #F4EFE8; }
+.lfoot { border-top: 1px solid var(--line); }
+
+/* ---------- login e cadastro ---------- */
+.auth .box { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; border: 1px solid var(--line); border-radius: 16px; box-shadow: none; }
+.auth .brand { font-size: 26px; }
+.auth .view { padding: 28px 28px 28px 8px; }
+.auth .view .panel { flex: 1; border-radius: 16px; background: var(--moss); display: grid; place-items: center; color: var(--deep); position: relative; overflow: hidden; }
+.auth .view .panel .lineload { width: min(220px, 40%); height: auto; }
+.auth .view .panel p { position: absolute; left: 0; right: 0; bottom: 26px; margin: 0; text-align: center; font-family: var(--font-display); font-style: italic; font-size: 20px; color: var(--deep); }
+.accept input { border-radius: 5px; box-shadow: none; }
+.accept a { color: var(--link); }
+
+/* ---------- documentos ---------- */
+.doc article { border-radius: 16px; box-shadow: none; border: 1px solid var(--line); }
+
+/* ---------- linha que se desenha (carregamento) ---------- */
+@keyframes desenha { 0% { stroke-dashoffset: 1; } 60%, 100% { stroke-dashoffset: 0; } }
+.lineload path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: desenha 3s ease-in-out infinite; }
+.gerando { display: flex; align-items: center; gap: 14px; color: var(--deep); }
+@media (prefers-reduced-motion: reduce) { .lineload path { animation: none; stroke-dashoffset: 0; } }
+
+/* ---------- carimbo (plano ativo) ---------- */
+.carimbo { display: inline-grid; place-items: center; width: 74px; height: 74px; border-radius: 50%; border: 2px solid var(--sage); outline: 1px solid var(--sage); outline-offset: -6px; color: var(--link); text-align: center; font: 600 10px/1.2 var(--font-body); letter-spacing: .14em; text-transform: uppercase; transform: rotate(-10deg); flex: none; }
+
+@media (max-width: 560px) { .lnav .links a.txt { display: none; } }

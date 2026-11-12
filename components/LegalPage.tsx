@@ -8,7 +8,7 @@ export default async function LegalPage({ title, children }: { title: string; ch
   return (
     <main className="doc">
       <div className="top">
-        <Link href="/" className="brand"><Logo />ArqIA</Link>
+        <Link href="/" className="brand"><Logo />Croqui</Link>
         <div className="flinks"><Link href="/termos">{t("Termos de Uso")}</Link><Link href="/privacidade">{t("Privacidade")}</Link></div>
       </div>
       <article>

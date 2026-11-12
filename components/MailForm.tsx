@@ -23,7 +23,7 @@ export default function MailForm({ mode, token }: { mode: "forgot" | "reset"; to
 
   return (
     <form className="box" onSubmit={go}>
-      <Link href="/" className="brand"><Logo />ArqIA</Link>
+      <Link href="/" className="brand"><Logo />Croqui</Link>
       <h1>{forgot ? t("Esqueci minha senha") : t("Criar nova senha")}</h1>
       {done ? (
         <>

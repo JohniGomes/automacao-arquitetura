@@ -10,7 +10,7 @@ async function watermark(buf: Buffer): Promise<Buffer> {
   const m = await img.metadata();
   const w = m.width || 1280, h = m.height || 720;
   const fs = Math.max(18, Math.round(w * 0.024));
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><text x="${w - fs}" y="${h - fs}" text-anchor="end" font-family="Arial, sans-serif" font-size="${fs}" font-weight="700" fill="#ffffff" fill-opacity="0.75" stroke="#000000" stroke-opacity="0.35" stroke-width="${Math.max(1, fs / 14)}">ArqIA</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><text x="${w - fs}" y="${h - fs}" text-anchor="end" font-family="Arial, sans-serif" font-size="${fs}" font-weight="700" fill="#ffffff" fill-opacity="0.75" stroke="#000000" stroke-opacity="0.35" stroke-width="${Math.max(1, fs / 14)}">Croqui</text></svg>`;
   const out = img.composite([{ input: Buffer.from(svg) }]);
   return m.format === "png" ? out.png().toBuffer() : out.jpeg({ quality: 92 }).toBuffer();
 }
@@ -32,7 +32,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ name: st
     if (thumb) return new NextResponse(new Uint8Array(thumb), { headers: { "Content-Type": "image/webp", "Cache-Control": "private, max-age=86400" } });
   }
 
-  // download de imagem sem plano Profissional/Max leva a marca d'água do ArqIA
+  // download de imagem sem plano Profissional/Max leva a marca d'água do Croqui
   if (dl && isImage && !rulesOf(u).semMarca) {
     const orig = await store.getFile(u.id, name);
     if (!orig) return new NextResponse("Não encontrado", { status: 404 });

@@ -24,7 +24,7 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
     <>
       <h1>{t("Créditos e planos")}</h1>
       {pagamento === "ok" && <p className="warn" role="status">{t("Pagamento enviado. Os créditos aparecem aqui assim que o pagamento for confirmado (Pix e cartão costumam levar segundos).")}</p>}
-      <div className="card"><h2>{t("Saldo")}: {u.credits} {t("créditos")}</h2>
+      <div className="card"><div className="row" style={{ alignItems: "flex-start", flexWrap: "nowrap" }}><div style={{ minWidth: 0 }}><h2>{t("Saldo")}: {u.credits} {t("créditos")}</h2>
         {plan ? (
           <p className="small muted" style={{ margin: "6px 0 0" }}>
             {t("Plano")} <b>{t(plan.nome)}</b> ({t("mensal")}) · {u.planStatus === "cancelado" ? t("renovação cancelada, vale até") : t("válido até")} {until}
@@ -34,7 +34,7 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
           <p className="small" style={{ margin: "6px 0 0" }}>{t("Troca agendada: na próxima renovação você passa para o plano")} <b>{t(PLANOS.find((p) => p.id === u.planNext)!.nome)}</b>.</p>
         )}
         {plan && u.planStatus !== "cancelado" && <CancelPlan />}
-      </div>
+      </div>{plan && u.planStatus !== "cancelado" && <span className="carimbo" aria-hidden="true">{t("Plano")}<br />{t("ativo")}</span>}</div></div>
       <div className="card"><h2>{t("Planos")}</h2>
         {!enabled && <p className="warn">{t("A cobrança online ainda não está ativa. Fale com o suporte para contratar.")}</p>}
         <PlanPicker plans={PLANOS.map((p) => ({ ...p }))} enabled={enabled} current={plan?.id} />

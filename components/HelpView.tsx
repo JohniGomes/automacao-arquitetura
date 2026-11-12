@@ -8,7 +8,7 @@ type Section = { title: string; items: QA[] };
 
 const SECTIONS: Section[] = [
   { title: "Primeiros passos", items: [
-    { q: "O que é o ArqIA?", a: "O ArqIA é um conjunto de ferramentas de IA para arquitetos: gera render, moodboard, variações de luz, mapa de situação e filme do projeto a partir das suas imagens." },
+    { q: "O que é o Croqui?", a: "O Croqui é um conjunto de ferramentas de IA para arquitetos: gera render, moodboard, variações de luz, mapa de situação e filme do projeto a partir das suas imagens." },
     { q: "Como funcionam os créditos?", a: "Cada geração consome créditos. O custo aparece em tempo real no painel, antes de você gerar. Se uma geração falhar, os créditos são devolvidos." },
     { q: "A IA altera o meu projeto?", a: "As ferramentas foram feitas para preservar a geometria e a câmera do seu modelo. Resultados de IA podem ter pequenas variações, então confira cada imagem antes de apresentar ao cliente." },
   ] },

@@ -98,7 +98,7 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
             </>
           ) : <p className="paytotal">{brl(price)}{isPlan ? <span> / {t("mês")}</span> : null}</p>}
           {isPlan && <p className="small muted">{t("A assinatura renova todo mês no mesmo cartão. Você pode cancelar a renovação quando quiser, em Créditos e planos.")}</p>}
-          <p className="small muted"><span aria-hidden="true">🔒 </span>{t("Pagamento seguro processado pelo Asaas. Os dados do cartão não são guardados pelo ArqIA.")}</p>
+          <p className="small muted"><span aria-hidden="true">🔒 </span>{t("Pagamento seguro processado pelo Asaas. Os dados do cartão não são guardados pelo Croqui.")}</p>
         </div>
 
         <div className="card">

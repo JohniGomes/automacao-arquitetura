@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
 import { useT } from "./I18nProvider";
+import LineLoader from "./LineLoader";
 
 export type Gen = {
   id: string; type: string; status: "queued" | "running" | "done" | "error"; progress: number; message: string;
@@ -100,6 +101,7 @@ export function Progress({ gen, onCancel }: { gen: Gen; onCancel?: () => void })
       <div className="row"><strong>{t(gen.summary)}</strong><span className={`tag ${gen.status}`}>{gen.status === "done" ? "✓ " : gen.status === "error" ? "! " : ""}{t({ queued: "Na fila", running: "Gerando", done: "Pronto", error: "Erro" }[gen.status])}</span></div>
       {active && (
         <>
+          <div className="gerando"><LineLoader size={44} /><span className="small muted" style={{ margin: 0 }}>{t("A linha desenha enquanto a IA trabalha.")}</span></div>
           <div className="bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={gen.progress} aria-label={t(gen.summary)}><div style={{ width: `${gen.progress}%` }} /></div>
           <p className="muted" aria-live="polite">{gen.progress}% — {t(gen.message)}</p>
           <p className="small muted">{t("Tempo decorrido")}: {Math.floor(secs / 60)}:{String(secs % 60).padStart(2, "0")}{ETA[gen.type] ? ` · ${t("costuma levar")} ${t(ETA[gen.type])}` : ""}. {t("Você pode sair desta tela: a geração continua e aparece em Gerações.")}</p>

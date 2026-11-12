@@ -30,7 +30,7 @@ export default function AuthForm({ mode, erro }: { mode: "login" | "register"; e
 
   return (
     <form className="box" onSubmit={go}>
-      <Link href="/" className="brand"><Logo />ArqIA</Link>
+      <Link href="/" className="brand"><Logo />Croqui</Link>
       <h1>{reg ? t("Criar sua conta") : t("Entrar")}</h1>
       {reg && <div className="field"><label htmlFor="nome">{t("Nome")}</label><input id="nome" type="text" autoComplete="name" value={f.name} onChange={set("name")} /></div>}
       <div className="field"><label htmlFor="email">{t("E-mail")}</label><input id="email" type="email" required autoComplete="email" value={f.email} onChange={set("email")} /></div>

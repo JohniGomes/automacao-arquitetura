@@ -21,7 +21,7 @@ export default async function Landing() {
     <div className="land">
       <div className="in">
         <header className="lnav">
-          <Link href="/" className="brand" style={{ padding: 0 }}><Logo />ArqIA</Link>
+          <Link href="/" className="brand" style={{ padding: 0 }}><Logo />Croqui</Link>
           <div className="links">
             <a className="txt" href="#etapas">{t("Como funciona")}</a>
             {u ? <Link className="btn" href="/app">{t("Abrir o app")}</Link> : (<>
@@ -34,17 +34,22 @@ export default async function Landing() {
         <section className="hero">
           <div className="txt">
             <h1>{t("Do print do 3D ao")} <em>{t("filme do projeto")}</em>.</h1>
-            <p className="lead">{t("O ArqIA reúne em um só lugar o fluxo que você faz à mão: mapa de situação, moodboard, render, variações de luz e filme, com a geometria da sua casa como ponto de partida.")}</p>
+            <p className="lead">{t("O Croqui reúne em um só lugar o fluxo que você faz à mão: mapa de situação, moodboard, render, variações de luz e filme, com a geometria da sua casa como ponto de partida.")}</p>
             <div className="cta">
               <Link className="btn lg" href="/cadastro">{t("Assinar")}</Link>
               <Link className="btn lg ghost" href="/login">{t("Fazer login")}</Link>
             </div>
           </div>
-          <div>
+          <div className="stage">
             <HouseSplit />
+            <svg className="cota" viewBox="0 0 600 22" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M1 4v14M599 4v14M1 11h262M337 11h262" stroke="currentColor" strokeWidth="1" fill="none" vectorEffect="non-scaling-stroke" />
+              <text x="300" y="15" textAnchor="middle">{t("do modelo ao render")}</text>
+            </svg>
           </div>
         </section>
 
+        <svg className="regua" aria-hidden="true"><defs><pattern id="rg" width="10" height="16" patternUnits="userSpaceOnUse"><path d="M.5 10v6" stroke="currentColor" strokeWidth="1" /><path d="M5.5 13v3" stroke="currentColor" strokeWidth="1" /></pattern></defs><rect width="100%" height="16" fill="url(#rg)" /></svg>
         <section className="sec" id="etapas">
           <h2>{t("Cinco etapas, uma atrás da outra.")}</h2>
           <p className="sub">{t("Cada resultado alimenta o próximo: o render vira variação de luz, e a variação vira cena do filme.")}</p>
@@ -73,7 +78,7 @@ export default async function Landing() {
         </section>
 
         <footer className="lfoot">
-          <span>ArqIA</span>
+          <span>Croqui</span>
           <nav className="flinks"><Link href="/termos">{t("Termos de Uso")}</Link><Link href="/privacidade">{t("Política de Privacidade")}</Link></nav>
         </footer>
       </div>

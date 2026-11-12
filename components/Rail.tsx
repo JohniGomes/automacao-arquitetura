@@ -78,7 +78,7 @@ export default function Rail({ name, credits, theme: themeInit }: { name: string
   return (
     <>
       <nav className="rail" aria-label={t("Principal")}>
-        <Link href="/app" className="rbrand" aria-label={t("ArqIA, início")}><Logo /></Link>
+        <Link href="/app" className="rbrand" aria-label={t("Croqui, início")}><Logo /></Link>
         <div className="ritems">
           <Item href="/app" label={t("Início")} icon={I.home} active={on("/app", true)} />
           <Item href="/app/projetos" label={t("Projetos")} icon={I.folder} active={on("/app/projetos")} />
