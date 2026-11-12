@@ -10,6 +10,7 @@ import { Generation, GenType, uid } from "@/lib/db";
 import { activeJobs, enqueue, live, MAX_ACTIVE_PER_USER, recoverStale } from "@/lib/jobs";
 import { limited } from "@/lib/ratelimit";
 import { activePlan, rulesOf } from "@/lib/plans";
+import { needsVerification, VERIFY_MSG } from "@/lib/verify";
 import { refund } from "@/lib/credits";
 import { ELEMENTOS, CENAS_LUZ } from "@/lib/compose";
 import { Img } from "@/lib/gemini";
@@ -61,6 +62,7 @@ async function readImage(userId: string, form: FormData, key: string): Promise<I
 export async function POST(req: NextRequest) {
   const u = await currentUser();
   if (!u) return bad("Não autenticado.", 401);
+  if (needsVerification(u)) return bad(VERIFY_MSG, 403);
   await recoverStale();
   // limites antes de ler o corpo: o formData carrega tudo na memória
   if (Number(req.headers.get("content-length") || 0) > MAX_BODY) return bad("Os arquivos enviados são grandes demais.", 413);

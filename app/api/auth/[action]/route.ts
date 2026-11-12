@@ -3,6 +3,11 @@ import { checkPassword, currentUser, endSession, hashPassword, startSession } fr
 import { store } from "@/lib/store";
 import { LEGAL_VERSION } from "@/lib/legal";
 import { clientIp, limited } from "@/lib/ratelimit";
+import { cookies } from "next/headers";
+import { requireEmailVerification, sendVerifyMail } from "@/lib/mail";
+import { makeToken } from "@/lib/tokens";
+import { needsVerification } from "@/lib/verify";
+import { env } from "@/lib/config";
 
 const bad = (m: string, s = 400) => NextResponse.json({ error: m }, { status: s });
 const TOO_MANY = "Muitas tentativas. Aguarde alguns minutos e tente de novo.";
@@ -22,7 +27,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
     if (password.length < 8) return bad("A senha precisa ter ao menos 8 caracteres.");
     if (await store.getUserByEmail(email)) return bad("Este e-mail já está cadastrado.", 409);
     try {
-      const u = await store.createUser({ email, name: String(b.name || email.split("@")[0]).trim().slice(0, 80), passHash: await hashPassword(password), termsAcceptedAt: new Date().toISOString(), termsVersion: LEGAL_VERSION });
+      // com e-mail configurado, a conta nasce sem créditos e sem e-mail confirmado: os créditos de boas-vindas vêm ao confirmar
+      const verify = requireEmailVerification();
+      const u = await store.createUser({
+        email, name: String(b.name || email.split("@")[0]).trim().slice(0, 80), passHash: await hashPassword(password),
+        termsAcceptedAt: new Date().toISOString(), termsVersion: LEGAL_VERSION,
+        ...(verify ? { signupCredits: 0 } : { emailVerifiedAt: new Date().toISOString() }),
+      });
+      if (verify) {
+        const lang = (await cookies()).get("lang")?.value === "en" ? "en" : "pt";
+        await sendVerifyMail(email, makeToken("verify", u.id, 48 * 3600_000, email), lang).catch((e) => console.error("e-mail de verificação falhou:", e?.message));
+      }
       await startSession(u.id);
     } catch {
       return bad("Este e-mail já está cadastrado.", 409);
@@ -43,5 +58,5 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ act
   if ((await params).action !== "me") return bad("Não encontrado.", 404);
   const u = await currentUser();
   if (!u) return bad("Não autenticado.", 401);
-  return NextResponse.json({ id: u.id, email: u.email, name: u.name, credits: u.credits });
+  return NextResponse.json({ id: u.id, email: u.email, name: u.name, credits: u.credits, emailVerified: !needsVerification(u) });
 }

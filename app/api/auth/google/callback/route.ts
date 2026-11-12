@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     if (!u) {
       // conta nova só nasce com o aceite dos Termos e da Política de Privacidade
       if (aceiteFlag !== "1") return back("/cadastro?erro=aceite");
-      u = await store.createUser({ email, name: info.name || email, googleId: info.sub, termsAcceptedAt: new Date().toISOString(), termsVersion: LEGAL_VERSION });
+      u = await store.createUser({ email, name: info.name || email, googleId: info.sub, termsAcceptedAt: new Date().toISOString(), termsVersion: LEGAL_VERSION, emailVerifiedAt: new Date().toISOString() });
     } else if (u.googleId) {
       if (u.googleId !== info.sub) return fail();
     } else {

@@ -35,7 +35,7 @@ export default function AuthForm({ mode, erro }: { mode: "login" | "register"; e
       {reg && <div className="field"><label htmlFor="nome">{t("Nome")}</label><input id="nome" type="text" autoComplete="name" value={f.name} onChange={set("name")} /></div>}
       <div className="field"><label htmlFor="email">{t("E-mail")}</label><input id="email" type="email" required autoComplete="email" value={f.email} onChange={set("email")} /></div>
       <div className="field"><label htmlFor="senha">{t("Senha")}</label><input id="senha" type="password" required minLength={8} autoComplete={reg ? "new-password" : "current-password"} value={f.password} onChange={set("password")} />
-        {reg && <p className="small muted">{t("Mínimo de 8 caracteres.")}</p>}</div>
+        {reg ? <p className="small muted">{t("Mínimo de 8 caracteres.")}</p> : <p className="small"><Link href="/esqueci-senha">{t("Esqueci minha senha")}</Link></p>}</div>
       {reg && (
         <label className="accept" htmlFor="aceite">
           <input id="aceite" type="checkbox" checked={aceite} onChange={(e) => setAceite(e.target.checked)} />

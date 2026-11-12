@@ -3,6 +3,8 @@ import path from "node:path";
 
 export type GenType = "mapa" | "moodboard" | "render" | "luz" | "filme" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos";
 export type User = { id: string; email: string; name: string; passHash?: string; googleId?: string; credits: number; createdAt: string; termsAcceptedAt?: string; termsVersion?: string;
+  /** quando o e-mail foi confirmado (login com Google já nasce confirmado) */
+  emailVerifiedAt?: string;
   /** plano ativo (essencial | profissional | max) e quando vale; ver lib/plans.ts */
   plan?: string; planUntil?: string; planStatus?: "ativo" | "cancelado"; asaasCustomerId?: string; asaasSubscriptionId?: string };
 export type Payment = { provider: string; refId: string; userId: string; kind: "pacote" | "plano"; item: string; amount: number; createdAt: string };

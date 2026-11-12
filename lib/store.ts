@@ -9,7 +9,10 @@ export interface Store {
   kind: "supabase" | "local";
   getUser(id: string): Promise<User | null>;
   getUserByEmail(email: string): Promise<User | null>;
-  createUser(d: { email: string; name: string; passHash?: string; googleId?: string; termsAcceptedAt: string; termsVersion: string }): Promise<User>;
+  createUser(d: { email: string; name: string; passHash?: string; googleId?: string; termsAcceptedAt: string; termsVersion: string; emailVerifiedAt?: string; signupCredits?: number }): Promise<User>;
+  /** confirma o e-mail (e devolve false se já estava confirmado) */
+  markEmailVerified(id: string): Promise<boolean>;
+  setPassHash(id: string, passHash: string): Promise<void>;
   setGoogleId(id: string, googleId: string): Promise<void>;
   /** grava campos do plano (undefined não altera; null limpa) */
   setPlan(userId: string, f: { [K in keyof PlanFields]?: PlanFields[K] | null }): Promise<void>;
@@ -53,13 +56,16 @@ const localStore: Store = {
   async getUser(id) { return db().users.find((u) => u.id === id) ?? null; },
   async getUserByEmail(email) { return db().users.find((u) => u.email === email) ?? null; },
   async createUser(d) {
-    const u: User = { id: uid(), ...d, credits: env.signupCredits, createdAt: new Date().toISOString() };
+    const { signupCredits, ...rest } = d;
+    const u: User = { id: uid(), ...rest, credits: signupCredits ?? env.signupCredits, createdAt: new Date().toISOString() };
     db().users.push(u);
-    db().txs.push({ id: uid(), userId: u.id, delta: u.credits, reason: "Créditos de boas-vindas", at: u.createdAt });
+    if (u.credits > 0) db().txs.push({ id: uid(), userId: u.id, delta: u.credits, reason: "Créditos de boas-vindas", at: u.createdAt });
     save();
     return u;
   },
   async setGoogleId(id, googleId) { const u = db().users.find((x) => x.id === id); if (u) { u.googleId = googleId; save(); } },
+  async markEmailVerified(id) { const u = db().users.find((x) => x.id === id); if (!u || u.emailVerifiedAt) return false; u.emailVerifiedAt = new Date().toISOString(); save(); return true; },
+  async setPassHash(id, passHash) { const u = db().users.find((x) => x.id === id); if (u) { u.passHash = passHash; save(); } },
   async setPlan(userId, f) {
     const u = db().users.find((x) => x.id === userId);
     if (!u) return;
@@ -141,7 +147,7 @@ const g = globalThis as unknown as { __sb?: SupabaseClient };
 const sb = () => (g.__sb ??= createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } }));
 const check = (error: { message: string } | null, what: string) => { if (error) throw new Error(`Supabase (${what}): ${error.message}`); };
 
-const toUser = (r: any): User => ({ id: r.id, email: r.email, name: r.name, passHash: r.pass_hash ?? undefined, googleId: r.google_id ?? undefined, credits: r.credits, createdAt: r.created_at, termsAcceptedAt: r.terms_accepted_at ?? undefined, termsVersion: r.terms_version ?? undefined,
+const toUser = (r: any): User => ({ id: r.id, email: r.email, name: r.name, passHash: r.pass_hash ?? undefined, googleId: r.google_id ?? undefined, credits: r.credits, createdAt: r.created_at, termsAcceptedAt: r.terms_accepted_at ?? undefined, termsVersion: r.terms_version ?? undefined, emailVerifiedAt: r.email_verified_at ?? undefined,
   plan: r.plan ?? undefined, planUntil: r.plan_until ?? undefined, planStatus: r.plan_status ?? undefined, asaasCustomerId: r.asaas_customer_id ?? undefined, asaasSubscriptionId: r.asaas_subscription_id ?? undefined });
 const toGen = (r: any): Generation => ({
   id: r.id, userId: r.user_id, type: r.type, status: r.status, progress: r.progress, message: r.message ?? "", createdAt: r.created_at,
@@ -166,7 +172,8 @@ const supabaseStore: Store = {
     return data ? toUser(data) : null;
   },
   async createUser(d) {
-    const row = { id: uid(), email: d.email, name: d.name, pass_hash: d.passHash ?? null, google_id: d.googleId ?? null, credits: env.signupCredits };
+    const initial = d.signupCredits ?? env.signupCredits;
+    const row = { id: uid(), email: d.email, name: d.name, pass_hash: d.passHash ?? null, google_id: d.googleId ?? null, credits: initial, ...(d.emailVerifiedAt ? { email_verified_at: d.emailVerifiedAt } : {}) };
     let { data, error } = await sb().from("users").insert({ ...row, terms_accepted_at: d.termsAcceptedAt, terms_version: d.termsVersion }).select("*").single();
     if (error && /terms_(accepted_at|version)/.test(error.message)) {
       // colunas do aceite ainda não criadas no Supabase (rodar supabase/schema.sql): cadastra sem elas para não derrubar o serviço
@@ -174,13 +181,20 @@ const supabaseStore: Store = {
       ({ data, error } = await sb().from("users").insert(row).select("*").single());
     }
     check(error, "createUser");
-    if (env.signupCredits > 0) {
-      const t = await sb().from("credit_txs").insert({ user_id: row.id, delta: env.signupCredits, reason: "Créditos de boas-vindas" });
+    if (initial > 0) {
+      const t = await sb().from("credit_txs").insert({ user_id: row.id, delta: initial, reason: "Créditos de boas-vindas" });
       check(t.error, "createUser/tx");
     }
     return toUser(data);
   },
   async setGoogleId(id, googleId) { check((await sb().from("users").update({ google_id: googleId }).eq("id", id)).error, "setGoogleId"); },
+  async markEmailVerified(id) {
+    const { data, error } = await sb().from("users").update({ email_verified_at: new Date().toISOString() }).eq("id", id).is("email_verified_at", null).select("id");
+    if (error && /email_verified_at|schema cache/i.test(error.message)) throw new Error("Verificação de e-mail ainda não disponível: execute supabase/migracao-email.sql no Supabase.");
+    check(error, "markEmailVerified");
+    return (data ?? []).length > 0;
+  },
+  async setPassHash(id, passHash) { check((await sb().from("users").update({ pass_hash: passHash }).eq("id", id)).error, "setPassHash"); },
   async setPlan(userId, f) {
     const col: Record<string, string> = { plan: "plan", planUntil: "plan_until", planStatus: "plan_status", asaasCustomerId: "asaas_customer_id", asaasSubscriptionId: "asaas_subscription_id" };
     const row: Record<string, unknown> = {};
