@@ -100,6 +100,29 @@ O app **não roda como está na Vercel**: ela tem sistema de arquivos efêmero (
 **Qualidade do vídeo:** `CLIP_SECONDS=0` mantém cada clipe inteiro como o Gemini devolveu (sem corte); o ffmpeg reencoda com H.264 `-preset slow -crf 16` e redimensionamento lanczos para 1920x1080; a chamada ao Gemini usa timeouts sem limite para não abortar gerações longas. O Render não altera a qualidade: ela depende do modelo e da imagem de entrada.
 **Limites desta opção:** uma única instância (sem escala horizontal), fila em memória (deploy/reinício durante uma geração a interrompe e estorna os créditos), indisponibilidade breve a cada deploy por causa do disco.
 
+## Domínio próprio, e-mail e checklist de produção
+
+Passo a passo para sair do endereço `*.onrender.com` e ter um e-mail do tipo `contato@seudominio.com.br` (troque pelo domínio que você comprar).
+
+**1. SQL no Supabase (antes de ligar o e-mail).** No SQL Editor rode, nesta ordem (todos podem repetir sem problema): `supabase/migracao-planos.sql`, `supabase/migracao-email.sql` e `supabase/migracao-limites.sql`. A migração de e-mail marca quem já tem conta como verificado; só os cadastros novos precisam confirmar. A de limites cria a tabela e a função que fazem os limites de uso valerem em todas as instâncias (sem ela o app usa a memória de cada instância, sem quebrar).
+
+**2. Registrar o domínio** (Registro.br para `.com.br`, ou outro registrador). Deixe o DNS nele ou no próprio Render.
+
+**3. Apontar o domínio para o Render.** No serviço, *Settings > Custom Domains > Add*; o Render mostra os registros DNS (CNAME para o `.onrender.com`, e para o domínio raiz um registro A/ALIAS). Crie-os no painel do domínio e aguarde o certificado HTTPS ficar ativo (minutos a algumas horas). Depois, nas variáveis do Render: `APP_URL=https://www.seudominio.com.br` (sem barra no fim) e `NEXT_PUBLIC_CONTACT_EMAIL=contato@seudominio.com.br`. Mudar `NEXT_PUBLIC_*` exige novo deploy.
+
+**4. E-mail que envia (Resend).** Crie a conta em resend.com, em *Domains > Add Domain* informe `seudominio.com.br` e copie os registros que ele mostrar (SPF/`send`, DKIM e, de preferência, DMARC) para o DNS. Quando o domínio ficar *Verified*, crie uma chave em *API Keys* e defina no Render: `RESEND_API_KEY`, `MAIL_FROM="ArqIA <contato@seudominio.com.br>"` e `SUPPORT_EMAIL` (a caixa que vai receber as mensagens do suporte). A partir daí o cadastro passa a exigir confirmação de e-mail e a tela de login ganha "Esqueci minha senha". Para **receber** e-mail em `contato@` crie a caixa no provedor do domínio (Registro.br/Titan, Zoho Mail grátis, Google Workspace…); o Resend só envia. Dica: use `MAIL_FROM` e `SUPPORT_EMAIL` em endereços diferentes, ou o Resend e a caixa de entrada competem pela mesma conta.
+
+**5. Ajustar os serviços que apontam para o endereço.**
+- Asaas: em *Integrações > Webhooks*, troque a URL para `https://www.seudominio.com.br/api/billing/webhook` (mesmo token de `ASAAS_WEBHOOK_TOKEN`).
+- Google (login): em *Credenciais > cliente OAuth*, adicione `https://www.seudominio.com.br/api/auth/google/callback` aos URIs de redirecionamento e o domínio às origens autorizadas.
+- Google Maps: se a chave tiver restrição por site, inclua o domínio novo.
+
+**6. Variáveis do Render (resumo).** `SIGNUP_CREDITS=15` (o painel pode ter ficado com outro valor), `REQUIRE_EMAIL_VERIFICATION` (padrão: exige quando há `RESEND_API_KEY`; `false` desliga), `SESSION_SECRET` (obrigatório em produção), `ASAAS_ENV=production`.
+
+**7. Testar em produção.** Crie uma conta nova (chega o e-mail de confirmação? o link libera os créditos?), use "Esqueci minha senha", compre o menor pacote por Pix e assine o plano mais barato no cartão; confira no Asaas que o webhook respondeu 200. Se o login ou o cadastro falhar com 429, é o limite de tentativas funcionando.
+
+**Planos e troca.** Quem tem plano ativo pode trocar: *upgrade* cobra no cartão a diferença proporcional ao que falta do período (e libera os créditos extras na mesma proporção); *downgrade* vale na próxima renovação. O valor da assinatura no Asaas é atualizado na hora. Termos e Privacidade existem em português e inglês; **peça a revisão de um advogado** antes de abrir ao público (cláusulas de cobrança, arrependimento e LGPD).
+
 ## Supabase (dados fora do servidor)
 
 Usuários, créditos, extrato, histórico e arquivos (imagens/vídeos) ficam no Supabase; o Render guarda só o código.

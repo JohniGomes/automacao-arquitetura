@@ -38,6 +38,14 @@ services:
         value: 1K
       - key: APP_URL
         sync: false   # https://SEU-APP.onrender.com
+      - key: RESEND_API_KEY
+        sync: false   # e-mails de confirmação, recuperação de senha e suporte
+      - key: MAIL_FROM
+        sync: false   # ArqIA <contato@seudominio.com.br>
+      - key: SUPPORT_EMAIL
+        sync: false
+      - key: NEXT_PUBLIC_CONTACT_EMAIL
+        sync: false
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
