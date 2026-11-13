@@ -115,21 +115,21 @@
 /* tela Conta: em telas largas a coluna não passa de 640 px */
 .acchead, .accbalance, .grouptitle, .list, .signout { max-width: 640px; }
 
-/* barra de custo e "Gerar" nas ferramentas: uma linha compacta no celular */
+/* custo e "Gerar" nas ferramentas: uma linha escura no fim da página, em vez de grudada na tela */
 @media (max-width: 860px) {
-  .shell .tpfoot {
-    display: flex; align-items: center; gap: var(--space-3); margin: 0;
-    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
-    bottom: calc(80px + env(safe-area-inset-bottom)); border-radius: var(--radius-lg); border: 1px solid var(--color-border-strong);
+  .shell .tpfoot, :root[data-theme] .shell .tpfoot {
+    position: static; display: flex; align-items: center; gap: var(--space-3); margin: var(--space-4) 0 0;
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4); border-radius: var(--radius-lg); border: 0;
+    background: var(--color-secondary); color: var(--color-bg);
+    -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none;
   }
-  .shell .tpfoot .tcost { flex-direction: column; align-items: flex-start; gap: 0; margin: 0; padding: 0; border: 0; font-size: var(--text-xs); line-height: 1.2; white-space: nowrap; }
-  .shell .tpfoot .tcost b { font-size: var(--text-md); font-weight: var(--weight-semibold); }
+  .shell .tpfoot .tcost { flex-direction: column; align-items: flex-start; gap: 0; margin: 0; padding: 0; border: 0; color: inherit; line-height: 1.2; white-space: nowrap; }
+  .shell .tpfoot .tcost b { font-size: var(--text-base); font-weight: var(--weight-semibold); color: inherit; }
+  /* só o valor ao lado do botão; o rótulo e o aviso ficam para leitores de tela */
+  .shell .tpfoot .tcost > span, .shell .tpfoot .small { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .shell .tpfoot .full { flex: 1; width: auto; min-height: var(--control-h); padding: 0 var(--space-4); }
-  /* o aviso continua para leitores de tela, mas sai da vista */
-  .shell .tpfoot .small { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
-@media (max-width: 860px) {
-  /* só o valor: "4 créditos" ao lado do botão; o rótulo fica para leitores de tela */
-  .shell .tpfoot .tcost > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .shell .tpfoot .tcost b { font-size: var(--text-base); }
-}
+
+/* controles segmentados: sempre numa linha só (antes quebravam em "1 2 3 / 4") */
+.shell .seg { flex-wrap: nowrap; }
+.shell .seg button { min-width: 0; padding-left: var(--space-2); padding-right: var(--space-2); }
