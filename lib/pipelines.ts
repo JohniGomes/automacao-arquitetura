@@ -1,9 +1,9 @@
 import sharp from "sharp";
-import { env, mockGemini, mockVideo } from "./config";
+import { env, mockGemini } from "./config";
 import { Generation, Output, uid } from "./db";
 import { persist } from "./persist";
 import { store } from "./store";
-import { describeProject, generateImage, generateVideo, Img } from "./ai";
+import { describeProject, generateImage, Img } from "./ai";
 import { concatClips, imageToClip } from "./ffmpeg";
 import { mockEdit, mockImage } from "./mock";
 import { composeEdit } from "./compose";
@@ -171,7 +171,7 @@ async function filme(c: Ctx) {
     const imgs = [c.input.images.project, ...(ref ? [ref] : [])];
     const imgPrompt = (ref ? REF_PREFIX : "") + cena.img + bibleBlock;
 
-    const sceneCost = COSTS.filmeImagemPorCena + COSTS.filmeVideoPorCena;
+    const sceneCost = COSTS.filmeImagemPorCena + COSTS.filmeAnimacaoPorCena;
     if (c.gen.cancel) {
       // cancelado pelo usuário: as cenas que não começaram são devolvidas e o filme sai com as que já estão prontas
       await refundPart(c, sceneCost * (n - i), "Estorno: cenas canceladas");
@@ -191,24 +191,22 @@ async function filme(c: Ctx) {
       continue;
     }
     await addOutput(c, img, ext(img), "image", `Cena: ${cena.label}`);
-    progress(c, base + slice * 0.3, `Cena ${i + 1}/${n} (${cena.label}): gerando clipe de vídeo…`);
+    progress(c, base + slice * 0.3, `Cena ${i + 1}/${n} (${cena.label}): animando a cena…`);
     c.gen.usage.videoClips++;
     try {
-      if (mockVideo()) clips.push(await imageToClip(img, env.clipSeconds));
-      else clips.push(await generateVideo(cena.video, asImg(img)));
-    } catch (e) {
-      // sem clipe de IA: a cena entra no filme como imagem com movimento suave, e o vídeo não entregue é devolvido
-      console.warn(`filme: cena ${cena.label} sem vídeo:`, (e as Error)?.message);
       clips.push(await imageToClip(img, env.clipSeconds));
-      await refundPart(c, COSTS.filmeVideoPorCena, "Estorno: vídeo da cena que falhou");
+    } catch (e) {
+      // a animação falhou: a cena fica só como imagem e o que ela custaria é devolvido; as outras seguem
+      console.warn(`filme: cena ${cena.label} sem animação:`, (e as Error)?.message);
+      await refundPart(c, COSTS.filmeAnimacaoPorCena, "Estorno: animação da cena que falhou");
       fallback++;
     }
   }
   if (!clips.length) throw new UserError(c.gen.cancel ? "Geração cancelada." : "Não foi possível gerar nenhuma cena. Tente novamente.");
   if ((skipped || fallback) && !c.gen.cancel) {
-    note = skipped && fallback ? "Concluído. Algumas cenas não puderam ser geradas e outras usam imagem animada no lugar do vídeo de IA. Os créditos dessas partes foram devolvidos."
+    note = skipped && fallback ? "Concluído. Algumas cenas não puderam ser geradas ou animadas. Os créditos dessas partes foram devolvidos."
       : skipped ? "Concluído. Algumas cenas não puderam ser geradas. Os créditos dessas cenas foram devolvidos."
-      : "Concluído. Algumas cenas usam imagem animada no lugar do vídeo de IA. Os créditos do vídeo dessas cenas foram devolvidos.";
+      : "Concluído. Algumas cenas não puderam ser animadas e ficaram só como imagem. Os créditos da animação foram devolvidos.";
   }
   progress(c, 93, "Montando o filme final com ffmpeg…");
   let final: Buffer;
@@ -217,8 +215,8 @@ async function filme(c: Ctx) {
   } catch (e) {
     // sem o MP4 final o usuário fica só com as imagens das cenas: devolve a parte de vídeo
     console.error("filme: montagem falhou:", (e as Error)?.message);
-    await refundPart(c, clips.length * COSTS.filmeVideoPorCena - (c.gen.refunded || 0), "Estorno: filme não montado");
-    c.gen.message = "Concluído. Não foi possível montar o filme; as imagens das cenas estão disponíveis e os créditos do vídeo foram devolvidos.";
+    await refundPart(c, clips.length * COSTS.filmeAnimacaoPorCena - (c.gen.refunded || 0), "Estorno: filme não montado");
+    c.gen.message = "Concluído. Não foi possível montar o filme; as imagens das cenas estão disponíveis e os créditos da animação foram devolvidos.";
     return;
   }
   await addOutput(c, final, "mp4", "video", "Filme do projeto (1920x1080)");

@@ -14,7 +14,7 @@ import { needsVerification, VERIFY_MSG } from "@/lib/verify";
 import { refund } from "@/lib/credits";
 import { ELEMENTOS, CENAS_LUZ } from "@/lib/compose";
 import { Img } from "@/lib/gemini";
-import { env, mockGemini, mockMaps, mockVideo } from "@/lib/config";
+import { env, mockGemini, mockMaps } from "@/lib/config";
 import { store } from "@/lib/store";
 import { pub } from "@/lib/public";
 import { AMBIENTES, AmbienteKey, CENAS, CenaKey, LUZES, LuzKey } from "@/lib/prompts";
@@ -201,7 +201,7 @@ export async function POST(req: NextRequest) {
       }
       if (cenas.includes("interior" as CenaKey) && !images.interior) throw new Error("A cena Interior precisa de uma imagem interior de referência: o app não inventa um ambiente que não existe no projeto.");
       params = { cenas };
-      cost = cenas.length * (COSTS.filmeImagemPorCena + COSTS.filmeVideoPorCena);
+      cost = cenas.length * (COSTS.filmeImagemPorCena + COSTS.filmeAnimacaoPorCena);
       summary = `Filme do projeto — ${cenas.length} cena(s)`;
     } else throw new Error("Tipo inválido.");
   } catch (e: any) {
@@ -217,7 +217,7 @@ export async function POST(req: NextRequest) {
   const gen: Generation = {
     id, userId: u.id, type, status: "queued", progress: 0, message: "Na fila…", createdAt: new Date().toISOString(),
     summary, outputs: [], cost, usage: { images: 0, videoClips: 0 }, projectId, favorite: false,
-    mock: mockGemini() || (type === "filme" && mockVideo()) || (type === "mapa" && mockMaps() && !images.upload),
+    mock: mockGemini() || (type === "mapa" && mockMaps() && !images.upload),
   };
   try { await store.saveGen(gen); }
   catch (e) {

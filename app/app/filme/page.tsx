@@ -13,7 +13,7 @@ export default function Filme() {
   const [cenas, setCenas] = useState<string[]>(["aerea", "fachada", "entardecer"]);
   const { gen, error, busy, submit, cancel } = useJob();
   const toggle = (k: string) => setCenas((c) => (c.includes(k) ? c.filter((x) => x !== k) : c.length < 5 ? [...c, k] : c));
-  const cost = cenas.length * (COSTS.filmeImagemPorCena + COSTS.filmeVideoPorCena);
+  const cost = cenas.length * (COSTS.filmeImagemPorCena + COSTS.filmeAnimacaoPorCena);
   const faltaInterior = cenas.includes("interior") && !refs.interior;
 
   return (

@@ -88,7 +88,7 @@ export function useJob() {
 }
 
 // tempo típico de cada ferramenta (aviso ao usuário; o filme leva vários minutos)
-const ETA: Record<string, string> = { filme: "de 3 a 8 minutos", mapa: "cerca de 1 minuto", editor: "cerca de 1 minuto por região" };
+const ETA: Record<string, string> = { filme: "de 1 a 4 minutos", mapa: "cerca de 1 minuto", editor: "cerca de 1 minuto por região" };
 
 export function Progress({ gen, onCancel }: { gen: Gen; onCancel?: () => void }) {
   const t = useT();

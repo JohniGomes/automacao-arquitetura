@@ -74,7 +74,7 @@ export default function HomeView({ firstName }: { firstName: string }) {
   const featured = [
     { id: "render", text: "Do print do 3D ao render fotorrealista.", cost: t("a partir de {n} créditos", { n: COSTS.renderPorImagem }) },
     { id: "moodboard", text: "Paleta e materiais a partir do render da casa.", cost: t("a partir de {n} créditos", { n: COSTS.moodboard }) },
-    { id: "filme", text: "Vídeo do projeto a partir das suas imagens.", cost: t("{n} créditos por cena", { n: COSTS.filmeImagemPorCena + COSTS.filmeVideoPorCena }) },
+    { id: "filme", text: "Filme animado a partir das suas imagens.", cost: t("{n} créditos por cena", { n: COSTS.filmeImagemPorCena + COSTS.filmeAnimacaoPorCena }) },
   ];
 
   return (

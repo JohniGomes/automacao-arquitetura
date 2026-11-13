@@ -1,12 +1,12 @@
-/** Preço em créditos por unidade. Base: imagem ≈ R$ 0,25 (3 créditos), cena de filme ≈ R$ 3,3 (65 créditos); ver README. */
+/** Preço em créditos por unidade. Base: imagem ≈ R$ 0,25 (3 créditos), cena de filme animado = 15 créditos; ver README. */
 export const COSTS = {
   mapa: 3,
   moodboard: 3,
   renderPorImagem: 4,
   luz: 3,
   filmeImagemPorCena: 3,
-  /** cena completa = 3 (imagem) + 62 (vídeo 5 s) = 65 créditos; custo medido ≈ R$ 3,0 de vídeo (29 mil tokens) + R$ 0,25 de imagem; o clipe de 10 s em 1080p custou R$ 9,02 */
-  filmeVideoPorCena: 62,
+  /** cena completa = 3 (imagem) + 12 (animação) = 15 créditos. A animação roda no servidor (ffmpeg) e não gasta IA de vídeo; o vídeo de IA custava ≈ R$ 3,1 por clipe de 5 s e foi retirado do produto */
+  filmeAnimacaoPorCena: 12,
   /** modo Precisão do render (imagem em 2K) */
   renderPrecisaoPorImagem: 6,
   melhorarPorImagem: 3,

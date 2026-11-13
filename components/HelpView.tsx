@@ -15,7 +15,7 @@ const SECTIONS: Section[] = [
   { title: "Ferramentas", items: [
     { q: "Como faço um render?", a: "Em Ferramentas > Render, envie o print do modelo 3D, escolha o estilo, a luz e os elementos desejados e clique em Gerar. Use um print nítido, com câmera ampla e materiais já aplicados." },
     { q: "Como funciona o moodboard?", a: "Você envia o render da casa e escolhe um modelo da galeria (ou envia o seu) e o ambiente. O layout do modelo é reproduzido, e as cores e os materiais vêm do render da casa." },
-    { q: "O que é o filme do projeto?", a: "Cada cena gera uma imagem e um clipe de vídeo, e o filme final é montado em 1920x1080. O filme é liberado para quem tem plano ou já comprou créditos." },
+    { q: "O que é o filme do projeto?", a: "Cada cena gera uma imagem do seu projeto e ganha um movimento suave de câmera. As cenas são unidas em um filme MP4 de 1920x1080. O filme é liberado para quem tem plano ou já comprou créditos." },
     { q: "Como edito só uma parte da imagem?", a: "Em Editar por regiões, pinte a área que quer mudar, escreva a instrução e gere. O que está fora da região pintada permanece igual." },
     { q: "Como vejo o projeto por outro ângulo?", a: "Em Multi-ângulo, gire a câmera no disco ou escolha ângulos prontos. É possível gerar um mosaico com vários ângulos de uma vez." },
   ] },
