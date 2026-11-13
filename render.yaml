@@ -28,8 +28,8 @@ services:
         sync: false   # opcional: carteira (walletId) do sócio. Vazio = 100% fica na sua conta
       - key: ASAAS_PARTNER_PERCENT
         value: "30"   # só vale se o walletId acima estiver preenchido: % do valor líquido do sócio
-      - key: CLIP_SECONDS
-        value: "5"   # teto de cada clipe do filme (o excedente é cortado)
+      - key: FILME_CENA_SEGUNDOS
+        value: "8"   # duração de cada cena do filme animado (segundos)
       - key: GEMINI_IMAGE_MODEL
         value: gemini-nano-banana-2.1
       - key: GEMINI_VIDEO_MODEL

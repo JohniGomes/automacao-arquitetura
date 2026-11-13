@@ -12,7 +12,8 @@ export const env = {
   /** modelo de texto com visão (bíblia visual do filme); os nomes mudam, confira na documentação do Google */
   geminiTextModel: process.env.GEMINI_TEXT_MODEL || "gemini-3.8-flash",
   /** teto de cada clipe no filme final (o Omni só "pede" a duração no texto e pode devolver mais, e o vídeo é cobrado por segundo) */
-  get clipSeconds() { return Number(process.env.CLIP_SECONDS) > 0 ? Number(process.env.CLIP_SECONDS) : Number(process.env.GEMINI_VIDEO_SECONDS) > 0 ? Number(process.env.GEMINI_VIDEO_SECONDS) : 5; },
+  /** duração de cada cena do filme animado, em segundos (a animação não custa IA de vídeo, só tempo de servidor) */
+  get clipSeconds() { return Number(process.env.FILME_CENA_SEGUNDOS) > 0 ? Math.min(20, Number(process.env.FILME_CENA_SEGUNDOS)) : 8; },
   signupCredits: Number(process.env.SIGNUP_CREDITS || 15),
   appUrl: process.env.APP_URL || "http://localhost:3000",
   /** em produção o app não sobe sem SESSION_SECRET: um segredo conhecido permitiria forjar sessões */

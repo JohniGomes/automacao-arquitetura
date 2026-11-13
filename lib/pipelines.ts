@@ -4,7 +4,7 @@ import { Generation, Output, uid } from "./db";
 import { persist } from "./persist";
 import { store } from "./store";
 import { describeProject, generateImage, Img } from "./ai";
-import { concatClips, imageToClip } from "./ffmpeg";
+import { concatClips, imageToClip, Move } from "./ffmpeg";
 import { mockEdit, mockImage } from "./mock";
 import { composeEdit } from "./compose";
 import { satellite } from "./maps";
@@ -149,6 +149,9 @@ async function visualBible(c: Ctx): Promise<string | null> {
   }
 }
 
+/** Movimento de câmera de cada tipo de cena (o mesmo que o prompt de vídeo antigo pedia). */
+const MOVE_DA_CENA: Record<CenaKey, Move> = { aerea: "push", fachada: "panRight", acesso: "push", interior: "panLeft", materiais: "push", entardecer: "pull" };
+
 async function filme(c: Ctx) {
   const cenas: CenaKey[] = c.input.params.cenas;
   const n = cenas.length;
@@ -194,7 +197,7 @@ async function filme(c: Ctx) {
     progress(c, base + slice * 0.3, `Cena ${i + 1}/${n} (${cena.label}): animando a cena…`);
     c.gen.usage.videoClips++;
     try {
-      clips.push(await imageToClip(img, env.clipSeconds));
+      clips.push(await imageToClip(img, env.clipSeconds, MOVE_DA_CENA[cenas[i]] ?? "push"));
     } catch (e) {
       // a animação falhou: a cena fica só como imagem e o que ela custaria é devolvido; as outras seguem
       console.warn(`filme: cena ${cena.label} sem animação:`, (e as Error)?.message);

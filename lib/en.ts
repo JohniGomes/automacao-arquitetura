@@ -629,7 +629,7 @@ export const EN: Record<string, string> = {
   "Cancelar geração": "Cancel generation",
   "Tempo decorrido": "Elapsed time",
   "costuma levar": "usually takes",
-  "de 1 a 4 minutos": "1 to 4 minutes",
+  "de 2 a 5 minutos": "2 to 5 minutes",
   "cerca de 1 minuto": "about 1 minute",
   "cerca de 1 minuto por região": "about 1 minute per region",
   "Você pode sair desta tela: a geração continua e aparece em Gerações.": "You can leave this screen: the generation keeps going and shows up in Generations.",

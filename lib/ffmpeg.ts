@@ -37,14 +37,33 @@ async function withTmp<T>(fn: (dir: string) => Promise<T>): Promise<T> {
   finally { fs.rmSync(d, { recursive: true, force: true }); }
 }
 
-/** Clipe "Ken Burns" 1920x1080 a partir de uma imagem (modo mock e cena cujo vídeo de IA falhou). */
-export function imageToClip(img: Buffer, seconds: number): Promise<Buffer> {
+/** Movimentos de câmera do filme animado (todos com aceleração e desaceleração suaves). */
+export type Move = "push" | "pull" | "panRight" | "panLeft";
+
+/**
+ * Expressões do zoompan para cada movimento. `e` é o progresso suavizado de 0 a 1 (curva smoothstep):
+ * a câmera parte devagar, ganha ritmo no meio e desacelera no fim, em vez de andar em velocidade constante.
+ */
+function moveExpr(move: Move, frames: number) {
+  const t = `(on/${Math.max(1, frames - 1)})`;
+  const e = `(${t}*${t}*(3-2*${t}))`;
+  const cx = "x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'";
+  switch (move) {
+    case "pull": return `z='1.28-0.28*${e}':${cx}`;
+    case "panRight": return `z='1.18':x='(iw-iw/zoom)*${e}':y='(ih-ih/zoom)/2'`;
+    case "panLeft": return `z='1.18':x='(iw-iw/zoom)*(1-${e})':y='(ih-ih/zoom)/2'`;
+    default: return `z='1+0.28*${e}':${cx}`;
+  }
+}
+
+/** Cena animada 1920x1080 a partir de uma imagem: movimento de câmera suave, sem custo de IA de vídeo. */
+export function imageToClip(img: Buffer, seconds: number, move: Move = "push"): Promise<Buffer> {
   return withTmp(async (d) => {
     fs.writeFileSync(path.join(d, "i.png"), img);
     const frames = Math.round(seconds * 24);
-    // 2880 px de largura bastam para o zoom suave (antes 3840: quase o dobro da memória por quadro)
+    // 2880 px de largura bastam para o movimento suave (antes 3840: quase o dobro da memória por quadro)
     await run(["-i", path.join(d, "i.png"), "-vf",
-      `scale=2880:-2,zoompan=z='min(zoom+0.0012,1.25)':d=${frames}:s=1920x1080:fps=24,format=yuv420p`,
+      `scale=2880:-2,zoompan=${moveExpr(move, frames)}:d=${frames}:s=1920x1080:fps=24,format=yuv420p`,
       "-t", String(seconds), ...ENC, path.join(d, "o.mp4")]);
     return fs.readFileSync(path.join(d, "o.mp4"));
   });
@@ -62,7 +81,8 @@ export function concatClips(clips: Buffer[], seconds: number, onStep?: (done: nu
       const src = path.join(d, `c${i}.mp4`);
       const out = path.join(d, `n${i}.mp4`);
       fs.writeFileSync(src, clips[i]);
-      const vf = `${seconds > 0 ? `trim=duration=${seconds},` : ""}setpts=PTS-STARTPTS,scale=1920:1080:flags=bicubic:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=24,setsar=1,format=yuv420p`;
+      const fade = seconds > 1.2 ? `fade=t=in:st=0:d=0.4,fade=t=out:st=${(seconds - 0.4).toFixed(2)}:d=0.4,` : "";
+      const vf = `${seconds > 0 ? `trim=duration=${seconds},` : ""}setpts=PTS-STARTPTS,${fade}scale=1920:1080:flags=bicubic:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=24,setsar=1,format=yuv420p`;
       await run(["-i", src, "-vf", vf, ...ENC, "-movflags", "+faststart", out]);
       fs.rmSync(src, { force: true });
       norm.push(out);
