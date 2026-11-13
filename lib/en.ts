@@ -504,6 +504,7 @@ export const EN: Record<string, string> = {
   "Gerando nova iluminação…": "Generating new lighting…",
   "Gerando o mapa de situação…": "Generating the site map…",
   "Analisando o projeto para manter a continuidade entre as cenas…": "Analyzing the project to keep continuity between scenes…",
+  "Montando o filme: clipe {a} de {b}…": "Assembling the film: clip {a} of {b}…",
   "Montando o filme final com ffmpeg…": "Assembling the final film…",
   "Montando o mosaico…": "Assembling the mosaic…",
   "Gerando moodboard de {a}…": "Generating {a} moodboard…",

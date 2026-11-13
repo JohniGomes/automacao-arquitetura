@@ -213,7 +213,7 @@ async function filme(c: Ctx) {
   progress(c, 93, "Montando o filme final com ffmpeg…");
   let final: Buffer;
   try {
-    final = await concatClips(clips, env.clipSeconds);
+    final = await concatClips(clips, env.clipSeconds, (done, total) => progress(c, 93 + (done / total) * 5, `Montando o filme: clipe ${done} de ${total}…`));
   } catch (e) {
     // sem o MP4 final o usuário fica só com as imagens das cenas: devolve a parte de vídeo
     console.error("filme: montagem falhou:", (e as Error)?.message);
