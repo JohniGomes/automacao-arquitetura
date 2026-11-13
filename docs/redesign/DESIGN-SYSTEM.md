@@ -125,4 +125,34 @@ componentes legados para `ui.css`. Ver `AUDITORIA.md`.
 - Classes `rdesk` (só desktop) e `rmob` (só celular) decidem o que cada tamanho mostra. Estado de aba ativa é calculado
   pela rota (Projetos fica ativa também em Gerações).
 - Áreas seguras: o topo da página e a barra respeitam `env(safe-area-inset-*)`.
-- Pendência conhecida: na home em 360 px alguns links ("Ver todos", passos do onboarding) ficam abaixo de 44 px; entram na fase 5.
+
+## Fluxo das ferramentas (fase 4)
+
+- **Envio de imagem:** zona de toque grande (`.dz`) com ícone, aceita arrastar no desktop. Depois de escolhida mostra a prévia com
+  "Trocar" e "Limpar". "Usar do histórico" virou botão de texto discreto (`.textbtn`).
+- **Custo e Gerar:** barra escura no fim do formulário, em uma linha ("4 créditos" e o botão). O aviso "Preencha o que falta" aparece
+  dentro da barra só enquanto não dá para gerar.
+- **Ao gerar:** no celular a tela desce até o andamento e, ao terminar, até o resultado; um toast avisa "Geração pronta" ou
+  "A geração falhou".
+
+## Início, login e onboarding (fase 5)
+
+- Início no celular: atalhos escondidos (o "Criar" da barra já leva às ferramentas), saldo de créditos no topo, links com 44 px.
+- Login, cadastro e redefinir senha: senha com "Mostrar/Ocultar", teclado certo por campo (`inputMode`, `autoCapitalize`,
+  `enterKeyHint`), e no celular o formulário vem primeiro (o painel com a casa só aparece em telas largas).
+
+## Testes de responsividade (fase 6)
+
+Medido no navegador, sem rolagem lateral e sem elementos fora da tela:
+
+| Largura | Telas verificadas |
+|---|---|
+| 360 | landing, login, cadastro, início, ferramenta, conta, créditos, gerações, projetos, ajuda |
+| 390 | início, ferramenta (claro e escuro), conta, projetos, folha Criar |
+| 430 | início, ferramenta, créditos, gerações |
+| 768 | início, ferramenta, conta |
+| 1024 | ferramenta (layout de duas colunas) |
+| 1280 e 1440 | início, conta |
+
+Não medidos: 375, 414, e as demais telas (moodboard, filme, editor, suporte) fora de 360 e 390. Nenhum teste em aparelho real, em
+leitor de tela ou com Lighthouse.

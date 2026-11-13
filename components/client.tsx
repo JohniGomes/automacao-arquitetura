@@ -2,6 +2,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useT } from "./I18nProvider";
 import LineLoader from "./LineLoader";
+import Icon from "./icons";
+import { useToast } from "./Toast";
 
 export type Gen = {
   id: string; type: string; status: "queued" | "running" | "done" | "error"; progress: number; message: string;
@@ -15,6 +17,8 @@ const POLL_STEPS = [1500, 2000, 3000, 5000, 8000];
 
 /** Envia um job (multipart) e acompanha o progresso: intervalo cresce com o tempo e pausa com a aba escondida. */
 export function useJob() {
+  const t = useT();
+  const toast = useToast();
   const [gen, setGen] = useState<Gen | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -57,6 +61,7 @@ export function useJob() {
           window.dispatchEvent(new Event("credits-changed"));
           if (g.generation.status === "done" || g.generation.status === "error") {
             setBusy(false);
+            if (g.generation.status === "done") toast(t("Geração pronta")); else toast(t("A geração falhou"), "error");
             if (document.hidden || !document.hasFocus()) document.title = (g.generation.status === "done" ? "✓ " : "! ") + title.current;
             return;
           }
@@ -170,6 +175,7 @@ export function ImageInput({ label, value, onChange, history = true, hint, showP
   const [files, setFiles] = useState<{ file: string; label?: string }[]>([]);
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState("");
+  const [drag, setDrag] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -190,14 +196,30 @@ export function ImageInput({ label, value, onChange, history = true, hint, showP
     <div className="field" role="group" aria-labelledby={`${id}-l`}>
       <label id={`${id}-l`}>{t(label)}</label>
       {hint && <p className="muted small">{t(hint)}</p>}
-      <div className="row gap">
-        {/* botão próprio: o texto do seletor nativo segue o idioma do navegador, não o do app */}
-        <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" style={{ display: "none" }} aria-labelledby={`${id}-l`} onChange={(e) => onChange(e.target.files?.[0] ?? null)} />
-        <button type="button" className="ghost" onClick={() => fileRef.current?.click()}>{t("Escolher arquivo")}</button>
-        <span className="small muted filename" style={{ margin: 0 }}>{value instanceof File ? value.name : t("Nenhum arquivo escolhido")}</span>
-        {history && <button type="button" className="ghost" onClick={loadHistory} aria-expanded={open}>{t("Usar do histórico")}</button>}
-        {value && <button type="button" className="ghost" onClick={() => onChange(null)}>{t("Limpar")}</button>}
-      </div>
+      <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" style={{ display: "none" }} aria-labelledby={`${id}-l`} onChange={(e) => onChange(e.target.files?.[0] ?? null)} />
+      {value ? (
+        <div className="dz filled">
+          {showPreview && preview && <img className="dz-img" src={preview} alt={t("prévia")} decoding="async" />}
+          <div className="dz-row">
+            <span className="small muted filename">{value instanceof File ? value.name : t("Imagem do histórico")}</span>
+            <button type="button" className="ghost" onClick={() => fileRef.current?.click()}>{t("Trocar")}</button>
+            <button type="button" className="ghost" onClick={() => onChange(null)}>{t("Limpar")}</button>
+          </div>
+        </div>
+      ) : (
+        <div
+          className={`dz ${drag ? "over" : ""}`}
+          onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+          onDragLeave={() => setDrag(false)}
+          onDrop={(e) => { e.preventDefault(); setDrag(false); const f = e.dataTransfer.files?.[0]; if (f && /^image\/(png|jpeg|webp)$/.test(f.type)) onChange(f); }}
+        >
+          {/* botão próprio: o texto do seletor nativo segue o idioma do navegador, não o do app */}
+          <button type="button" className="dz-btn" onClick={() => fileRef.current?.click()}>
+            <Icon name="upload" /><strong>{t("Escolher imagem")}</strong><span>{t("PNG, JPG ou WebP. Toque ou arraste aqui.")}</span>
+          </button>
+        </div>
+      )}
+      {history && <button type="button" className="textbtn" onClick={loadHistory} aria-expanded={open}>{t("Usar do histórico")}</button>}
       {open && (
         <div className="thumbs">
           {files.length === 0 && <div className="empty">{t("Nenhuma imagem no histórico ainda.")}</div>}
@@ -208,7 +230,6 @@ export function ImageInput({ label, value, onChange, history = true, hint, showP
           ))}
         </div>
       )}
-      {showPreview && preview && <img className="preview" src={preview} alt={t("prévia")} decoding="async" />}
     </div>
   );
 }

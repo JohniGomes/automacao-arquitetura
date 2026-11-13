@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ToolIcon from "./ToolIcon";
+import Icon from "./icons";
 import { Gen } from "./client";
 import { useT } from "./I18nProvider";
 import { useCredits } from "./useCredits";
@@ -81,6 +82,7 @@ export default function HomeView({ firstName }: { firstName: string }) {
       <div className="homehead">
         {/* a saudação depende da hora do navegador: fica invisível até montar, sem piscar o texto errado */}
         <h1 style={{ visibility: hello ? "visible" : "hidden" }}>{hello ? t(hello) : "…"}, {firstName}.</h1>
+        <Link href="/app/creditos" className="chipcredits homecred" aria-label={t("Créditos")}><b>{credits ?? "…"}</b> {t("créditos")}</Link>
         <div className="hsearch">
           <input type="text" placeholder={t("Buscar ferramenta")} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t("Buscar ferramenta")}
             onKeyDown={(e) => { if (e.key === "Enter" && found[0]) router.push(found[0].href); }} />
@@ -112,7 +114,7 @@ export default function HomeView({ firstName }: { firstName: string }) {
                 <Link key={id} href={x.href} className="shortcut"><ToolIcon tool={x} size={52} /><span>{t(x.label)}</span></Link>
               ) : null; })}
               <button type="button" className="shortcut custom" onClick={() => setEdit(!edit)} aria-expanded={edit}>
-                <span className="ticon tn-0" style={{ width: 52, height: 52 }}><svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 5v4M8 15v4" /></svg></span>
+                <span className="ticon tn-0" style={{ width: 52, height: 52 }}><Icon name="tools" /></span>
                 <span>{t("Personalizar")}</span>
               </button>
             </div>

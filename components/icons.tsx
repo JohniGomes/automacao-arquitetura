@@ -2,7 +2,7 @@
  *  "m" é o traço principal (cor do contexto); "a" é o detalhe em terracota (classe .ia). Grade de 24 px. */
 export type IconName =
   | "home" | "folder" | "gallery" | "tools" | "user" | "support" | "help" | "lang" | "sun" | "moon" | "screen"
-  | "credits" | "close" | "mapa" | "moodboard" | "filme" | "render" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos" | "luz";
+  | "credits" | "upload" | "close" | "mapa" | "moodboard" | "filme" | "render" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos" | "luz";
 
 const ICONS: Record<IconName, { main: string; acc?: string }> = {
   home: { main: "M3.5 11.2 12 4l8.5 7.2M6 9.8V20h12V9.8", acc: "M10 20v-5h4v5" },
@@ -26,6 +26,7 @@ const ICONS: Record<IconName, { main: string; acc?: string }> = {
   ideias: { main: "M12 3.5a5.5 5.5 0 0 0-3.2 10c.6.5 1 1.1 1 1.9v.1h4.4v-.1c0-.8.4-1.4 1-1.9A5.5 5.5 0 0 0 12 3.5z", acc: "M10 18.5h4M10.8 21h2.4" },
   editor: { main: "M4.5 4.5h15v15h-15z", acc: "M8.5 15.5l5-5 2 2-5 5h-2z" },
   angulos: { main: "M3.5 12c0-2.2 3.8-4 8.5-4s8.5 1.8 8.5 4-3.8 4-8.5 4-8.5-1.8-8.5-4z", acc: "M12 8.5l3 1.7v3.6l-3 1.7-3-1.7v-3.6z" },
+  upload: { main: "M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3", acc: "M12 16V4M7.5 8.5 12 4l4.5 4.5" },
   close: { main: "M6 6l12 12M18 6 6 18" },
   luz: { main: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z", acc: "M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" },
 };

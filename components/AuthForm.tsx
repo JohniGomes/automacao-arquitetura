@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import Logo from "./Logo";
 import { useT } from "./I18nProvider";
+import PasswordInput from "./PasswordInput";
 
 const ERROS: Record<string, string> = {
   aceite: "Para criar conta com o Google, aceite os Termos de Uso e a Política de Privacidade.",
@@ -32,9 +33,9 @@ export default function AuthForm({ mode, erro }: { mode: "login" | "register"; e
     <form className="box" onSubmit={go}>
       <Link href="/" className="brand"><Logo />Croqui</Link>
       <h1>{reg ? t("Criar sua conta") : t("Entrar")}</h1>
-      {reg && <div className="field"><label htmlFor="nome">{t("Nome")}</label><input id="nome" type="text" autoComplete="name" value={f.name} onChange={set("name")} /></div>}
-      <div className="field"><label htmlFor="email">{t("E-mail")}</label><input id="email" type="email" required autoComplete="email" value={f.email} onChange={set("email")} /></div>
-      <div className="field"><label htmlFor="senha">{t("Senha")}</label><input id="senha" type="password" required minLength={8} autoComplete={reg ? "new-password" : "current-password"} value={f.password} onChange={set("password")} />
+      {reg && <div className="field"><label htmlFor="nome">{t("Nome")}</label><input id="nome" type="text" autoComplete="name" autoCapitalize="words" enterKeyHint="next" value={f.name} onChange={set("name")} /></div>}
+      <div className="field"><label htmlFor="email">{t("E-mail")}</label><input id="email" type="email" required autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false} enterKeyHint="next" value={f.email} onChange={set("email")} /></div>
+      <div className="field"><label htmlFor="senha">{t("Senha")}</label><PasswordInput id="senha" minLength={8} autoComplete={reg ? "new-password" : "current-password"} value={f.password} onChange={set("password")} />
         {reg ? <p className="small muted">{t("Mínimo de 8 caracteres.")}</p> : <p className="small"><Link href="/esqueci-senha">{t("Esqueci minha senha")}</Link></p>}</div>
       {reg && (
         <label className="accept" htmlFor="aceite">

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import Logo from "./Logo";
 import { useT } from "./I18nProvider";
+import PasswordInput from "./PasswordInput";
 
 /** Formulários de recuperação: "forgot" pede o link por e-mail; "reset" define a nova senha com o token do link. */
 export default function MailForm({ mode, token }: { mode: "forgot" | "reset"; token?: string }) {
@@ -35,7 +36,9 @@ export default function MailForm({ mode, token }: { mode: "forgot" | "reset"; to
           {forgot && <p className="muted">{t("Informe o e-mail da sua conta e enviaremos um link para criar uma nova senha.")}</p>}
           <div className="field">
             <label htmlFor="v">{forgot ? t("E-mail") : t("Nova senha")}</label>
-            <input id="v" type={forgot ? "email" : "password"} required minLength={forgot ? undefined : 8} autoComplete={forgot ? "email" : "new-password"} value={v} onChange={(e) => setV(e.target.value)} />
+            {forgot
+              ? <input id="v" type="email" required autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false} enterKeyHint="send" value={v} onChange={(e) => setV(e.target.value)} />
+              : <PasswordInput id="v" minLength={8} autoComplete="new-password" value={v} onChange={(e) => setV(e.target.value)} />}
             {!forgot && <p className="small muted">{t("Mínimo de 8 caracteres.")}</p>}
           </div>
           {err && <p className="err" role="alert">{err}</p>}
