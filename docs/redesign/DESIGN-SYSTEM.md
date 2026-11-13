@@ -112,3 +112,17 @@ toast(t("Não foi possível salvar"), "error");
 
 Navegação mobile (barra de 4 abas, folha "Criar", tela "Conta"), fluxo das ferramentas, início e onboarding, e a migração dos
 componentes legados para `ui.css`. Ver `AUDITORIA.md`.
+
+## Navegação (fase 3)
+
+- **Celular (até 860 px):** barra inferior de 4 abas: Início, Criar, Projetos, Conta. Gerações fica dentro de Projetos,
+  com a alternância "Projetos | Gerações" no topo (`SectionTabs`).
+- **Criar:** folha inferior (`.drawer` vira bottom sheet) com as ferramentas agrupadas e busca. Fecha pelo botão, pelo fundo
+  ou com Esc. Com a folha aberta, a página de trás não rola.
+- **Conta:** tela inteira em `/app/conta`, em lista agrupada (créditos, plano, preferências, legal, sair). Substitui o popover
+  no celular. No desktop o popover continua.
+- **Desktop:** menu lateral inalterado, com todos os destinos.
+- Classes `rdesk` (só desktop) e `rmob` (só celular) decidem o que cada tamanho mostra. Estado de aba ativa é calculado
+  pela rota (Projetos fica ativa também em Gerações).
+- Áreas seguras: o topo da página e a barra respeitam `env(safe-area-inset-*)`.
+- Pendência conhecida: na home em 360 px alguns links ("Ver todos", passos do onboarding) ficam abaixo de 44 px; entram na fase 5.

@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ProjectTile } from "@/components/HomeView";
 import { useT } from "@/components/I18nProvider";
+import SectionTabs from "@/components/SectionTabs";
 
 type Proj = { id: string; name: string; count: number; cover: string | null };
 
@@ -28,6 +29,7 @@ export default function Projetos() {
   const shown = (list || []).filter((p) => p.name.toLowerCase().includes(q.trim().toLowerCase()));
   return (
     <>
+      <SectionTabs />
       <div className="thead">
         <h1>{t("Projetos")}</h1>
         <button type="button" onClick={() => setNovo(true)}>{t("Novo projeto")}</button>

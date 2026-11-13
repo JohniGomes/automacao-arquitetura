@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Gen } from "@/components/client";
 import GenCard, { Proj } from "@/components/GenCard";
 import { useT } from "@/components/I18nProvider";
+import SectionTabs from "@/components/SectionTabs";
 import { TYPE_LABEL } from "@/lib/tools";
 
 const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -37,6 +38,7 @@ export default function Geracoes() {
 
   return (
     <>
+      <SectionTabs />
       <div className="thead"><h1>{t("Gerações")}</h1></div>
       <div className="row gap" style={{ marginBottom: 12 }}>
         <div className="chips">

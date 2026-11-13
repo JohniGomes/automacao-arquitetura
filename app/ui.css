@@ -37,3 +37,80 @@
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
 @media (max-width: 860px) { .toasts { bottom: calc(92px + env(safe-area-inset-bottom)); } }
 @media (prefers-reduced-motion: reduce) { .skel::after { animation: none; } .toast { animation: none; } }
+
+/* =====================================================================
+   NAVEGAÇÃO (fase 3): barra de 4 abas no celular, folha "Criar" e tela Conta
+   ===================================================================== */
+
+/* só no celular: estes elementos ficam escondidos no desktop */
+.rail .rmob, .lbl-m, .sectiontabs, .sheet-handle, .sheet-close { display: none; }
+.drawer-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.drawer-head h2 { margin: 0; }
+
+/* ---------- lista agrupada (estilo Ajustes) ---------- */
+.grouptitle { font-family: var(--font-sans); font-size: var(--text-xs); font-weight: var(--weight-medium); letter-spacing: .08em; text-transform: uppercase; color: var(--color-text-secondary); margin: var(--space-6) var(--space-2) var(--space-2); }
+.list { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+.list > * + * { border-top: 1px solid var(--color-border); }
+.row-link { display: flex; align-items: center; gap: var(--space-3); min-height: 52px; padding: 0 var(--space-4); color: var(--color-text); text-decoration: none; font-size: var(--text-base); transition: background var(--dur-fast); }
+.row-link:hover { background: color-mix(in srgb, var(--color-text) 5%, transparent); }
+.row-link:active { background: color-mix(in srgb, var(--color-text) 9%, transparent); }
+.row-link svg { width: 22px; height: 22px; flex: none; fill: none; stroke: var(--color-text); stroke-width: 1.6; }
+.row-link svg .ia { stroke: var(--color-accent); }
+.row-link::after {
+  content: ""; flex: none; width: 16px; height: 16px; margin-left: auto; background: var(--color-text-secondary);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 6 6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 6 6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.row-ctl { display: grid; gap: var(--space-2); padding: var(--space-3) var(--space-4); }
+.row-ctl .rl { font-size: var(--text-sm); color: var(--color-text-secondary); }
+
+/* ---------- tela Conta ---------- */
+.acchead { display: flex; align-items: center; gap: var(--space-4); margin: var(--space-2) 0 var(--space-5); }
+.avatar { width: 56px; height: 56px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--color-sand); color: var(--color-text); font: var(--weight-regular) var(--text-xl)/1 var(--font-serif); }
+.accwho { display: grid; min-width: 0; }
+.accwho strong { font-size: var(--text-md); font-weight: var(--weight-medium); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.accwho span { font-size: var(--text-sm); color: var(--color-text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.accbalance { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); display: grid; gap: var(--space-3); justify-items: start; }
+.accbalance .lbl { display: block; font-size: var(--text-sm); color: var(--color-text-secondary); margin-bottom: var(--space-1); }
+.accbalance b { font-family: var(--font-serif); font-size: var(--text-3xl); font-weight: var(--weight-regular); line-height: 1; letter-spacing: -.02em; }
+.accbalance .unit { margin-left: var(--space-2); color: var(--color-text-secondary); font-size: var(--text-sm); }
+.accbalance p { margin: 0; color: var(--color-text-secondary); font-size: var(--text-sm); }
+.signout { margin-top: var(--space-6); width: 100%; min-height: var(--control-h); }
+
+/* ---------- celular ---------- */
+@media (max-width: 860px) {
+  .shell .rail .rdesk { display: none; }
+  .shell .rail .rmob { display: flex; }
+  .lbl-d { display: none; }
+  .lbl-m { display: inline; }
+  .shell .wrap { padding-top: calc(16px + env(safe-area-inset-top)); }
+
+  /* 4 abas iguais: Início, Criar, Projetos, Conta */
+  .rail .ritems { flex: 3 1 0; min-width: 0; }
+  .rail .rfoot { flex: 1 1 0; width: auto; min-width: 0; }
+  .rail .ritems .ritem, .rail .rfoot .ritem { flex: 1 1 0; }
+  .rail .r-home { order: 1; } .rail .r-create { order: 2; } .rail .r-proj { order: 3; }
+
+  /* folha inferior "Criar" */
+  .dscrim { z-index: 55; }
+  .drawer {
+    inset: auto 0 0 0; width: auto; max-height: min(84dvh, 680px); z-index: var(--z-sheet);
+    border-radius: 22px 22px 0 0; border-bottom: 0; padding: var(--space-2) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
+    animation: sheet-up var(--dur-base) var(--ease-out);
+  }
+  .sheet-handle { display: block; width: 36px; height: 5px; border-radius: var(--radius-pill); background: var(--color-border-strong); margin: var(--space-1) auto var(--space-2); }
+  .sheet-close { display: inline-flex; width: var(--control-h); height: var(--control-h); padding: 0; border-radius: 50%; flex: none; }
+  .sheet-close svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+  .dtool { min-height: 52px; padding: var(--space-2); border-radius: var(--radius-md); }
+  .drawer .dgroup { padding-top: var(--space-4); }
+
+  /* alternância Projetos | Gerações */
+  .sectiontabs { display: flex; gap: var(--space-1); padding: var(--space-1); border-radius: var(--radius-md); background: color-mix(in srgb, var(--color-text) 7%, transparent); margin-bottom: var(--space-4); }
+  .sectiontabs a { flex: 1; min-height: var(--control-h); display: grid; place-items: center; border-radius: var(--radius-sm); color: var(--color-text-secondary); text-decoration: none; font-size: var(--text-sm); font-weight: var(--weight-medium); }
+  .sectiontabs a.on { background: var(--color-surface-elevated); color: var(--color-text); box-shadow: var(--shadow-1); }
+}
+@keyframes sheet-up { from { transform: translateY(24px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .drawer { animation: none; } }
+
+/* tela Conta: em telas largas a coluna não passa de 640 px */
+.acchead, .accbalance, .grouptitle, .list, .signout { max-width: 640px; }

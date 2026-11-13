@@ -2,14 +2,15 @@
  *  "m" é o traço principal (cor do contexto); "a" é o detalhe em terracota (classe .ia). Grade de 24 px. */
 export type IconName =
   | "home" | "folder" | "gallery" | "tools" | "user" | "support" | "help" | "lang" | "sun" | "moon" | "screen"
-  | "mapa" | "moodboard" | "filme" | "render" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos" | "luz";
+  | "credits" | "close" | "mapa" | "moodboard" | "filme" | "render" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos" | "luz";
 
 const ICONS: Record<IconName, { main: string; acc?: string }> = {
   home: { main: "M3.5 11.2 12 4l8.5 7.2M6 9.8V20h12V9.8", acc: "M10 20v-5h4v5" },
   folder: { main: "M3.5 7.5A1.5 1.5 0 0 1 5 6h4.2l1.8 2H19a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z", acc: "M3.5 11.5h17" },
   gallery: { main: "M5.5 5h13A1.5 1.5 0 0 1 20 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5v-11A1.5 1.5 0 0 1 5.5 5z", acc: "M4.5 16.5 9 12l3.5 3.5 2.5-2.5 5 5" },
   tools: { main: "M12 3.5v3M12 6.5 6.5 20M12 6.5 17.5 20", acc: "M8.7 14.5h6.6" },
-  user: { main: "M12 12a3.8 3.8 0 1 0 0-7.6 3.8 3.8 0 0 0 0 7.6z", acc: "M4.5 20a7.5 7.5 0 0 1 15 0" },
+  user: { main: "M12 12.8a4.4 4.4 0 1 0 0-8.8 4.4 4.4 0 0 0 0 8.8z", acc: "M4 20.5a8 8 0 0 1 16 0" },
+  credits: { main: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", acc: "M14.6 9.6c-.5-1-1.5-1.6-2.8-1.6-1.5 0-2.6.8-2.6 2s1.1 1.7 2.8 2 2.8.8 2.8 2-1.2 2-2.7 2c-1.2 0-2.3-.6-2.8-1.6M12 6.5V8M12 16v1.5" },
   support: { main: "M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v5H5.5A1.5 1.5 0 0 1 4 17.5zM20 14h-3v5h1.5a1.5 1.5 0 0 0 1.5-1.5z", acc: "M17 19c0 1.2-1.3 2-3 2h-2" },
   help: { main: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", acc: "M9.6 9.6a2.4 2.4 0 1 1 3.5 2.1c-.7.4-1.1.9-1.1 1.7M12 16.8h.01" },
   lang: { main: "M4 5h9M8.5 3v2M6 5c.6 3 2.7 5.6 5.5 7M12 5c-.6 3.2-3.4 6.4-7 8", acc: "M13 20l4-9 4 9M14.5 17h5" },
@@ -25,6 +26,7 @@ const ICONS: Record<IconName, { main: string; acc?: string }> = {
   ideias: { main: "M12 3.5a5.5 5.5 0 0 0-3.2 10c.6.5 1 1.1 1 1.9v.1h4.4v-.1c0-.8.4-1.4 1-1.9A5.5 5.5 0 0 0 12 3.5z", acc: "M10 18.5h4M10.8 21h2.4" },
   editor: { main: "M4.5 4.5h15v15h-15z", acc: "M8.5 15.5l5-5 2 2-5 5h-2z" },
   angulos: { main: "M3.5 12c0-2.2 3.8-4 8.5-4s8.5 1.8 8.5 4-3.8 4-8.5 4-8.5-1.8-8.5-4z", acc: "M12 8.5l3 1.7v3.6l-3 1.7-3-1.7v-3.6z" },
+  close: { main: "M6 6l12 12M18 6 6 18" },
   luz: { main: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z", acc: "M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" },
 };
 
