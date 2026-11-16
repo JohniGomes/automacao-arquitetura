@@ -121,6 +121,8 @@ export function montarDxf(inp: PranchaIn): Buffer {
   const x0 = cx - raio, y0 = cy + raio + H * 12;
   const linhas = [
     `MAPA DE SITUACAO${e.logradouro ? ` - ${e.logradouro}` : ""}${e.quadra ? `, Qd. ${e.quadra}` : ""}`,
+    ...(inp.marca?.nome ? [inp.marca.nome] : []),
+    ...(inp.marca?.nivel === "completa" && (inp.marca.responsavel || inp.marca.registro) ? [`Responsavel tecnico: ${[inp.marca.responsavel, inp.marca.registro].filter(Boolean).join(" - ")}`] : []),
     [e.bairro, [e.cidade, e.uf].filter(Boolean).join("/")].filter(Boolean).join(" - "),
     `Lote: ${Math.round(est.area).toLocaleString("pt-BR")} m2 (aprox.) - perimetro ${Math.round(est.perimeter)} m`,
     `Coordenadas UTM SIRGAS 2000, zona ${z.zona}${z.sul ? "S" : "N"}, em metros`,
