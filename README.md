@@ -193,3 +193,22 @@ Os prompts de todas as ferramentas foram substituídos pelos do documento "audit
 - **Multi-ângulo:** a vista de cima prevalece sobre o giro; sem giro nem altura o pedido é "mantenha a câmera". A tela avisa que os lados ocultos são inferidos.
 - **Filme:** primeiro cria uma "bíblia visual" (descrição de continuidade do projeto, por um modelo de texto com visão: `GEMINI_TEXT_MODEL` / `GROK_TEXT_MODEL`, nomes padrão não verificados) e a reaproveita em todas as cenas; se o modelo de texto falhar, as cenas seguem sem ela. A cena Interior exige uma imagem interior; Fachada e Acesso aceitam uma referência opcional (enviada como imagem 2).
 - **Validação:** só o Render foi testado com IA real depois da troca (Grok, câmera isométrica preservada). Os demais ainda não.
+
+
+## Mapa de situação (prancha e vista aérea)
+
+Fluxo: o cliente digita o endereço, vê o satélite com o pino, desenha o lote (pontos arrastáveis) e escolhe a saída:
+
+- **Prancha** (10 créditos, sem IA): desenho técnico por código (`lib/situacao/`) com lote em destaque e medidas, endereço, norte, ruas com nome, quadras, edificações, referências urbanas numeradas, escala gráfica e legenda. Ruas, quadras e prédios vêm do OpenStreetMap (Overpass); o PNG sai do `sharp`.
+- **Vista aérea ilustrativa** (10 créditos): o código monta o satélite (Google Static Maps) com o terreno tracejado e os pins nas posições exatas, e o Gemini só muda a perspectiva e o acabamento. Posições aproximadas; a imagem leva faixa de crédito do Google.
+- **As duas** (15 créditos): se a vista aérea falhar, a prancha já entregue fica e só 5 créditos voltam (15 − 10).
+
+Variáveis:
+
+| Variável | Para quê |
+|---|---|
+| `GOOGLE_MAPS_API_KEY` | Chave do **servidor** (Geocoding, Maps Static e, se usar, Places New). Restrinja por API. |
+| `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY` | (opcional) chave do **navegador**, restrita por site (referrer) à API Maps JavaScript. Com ela a tela usa o mapa interativo do Google; sem ela usa o satélite estático servido pelo app. |
+| `SITUACAO_POIS` | Fonte dos lugares de referência: `osm` (padrão, dados abertos, cobertura irregular no Brasil) ou `google` (Places, mais completa). **Atenção:** os termos do Google pedem que dados do Places apareçam em mapa do Google; confira antes de usar `google` na prancha, que é desenhada sobre mapa do OpenStreetMap. |
+
+Pontos de atenção em produção: o servidor público do Overpass pode demorar (de segundos a alguns minutos) e há cache por região por 24 h em memória; a prancha desenha texto com fontes do sistema (confira se o ambiente do Render tem fontes, como DejaVu); o uso de imagens de satélite do Google em obra derivada por IA precisa de revisão dos termos da Google Maps Platform.

@@ -1,6 +1,6 @@
 /** Preço em créditos por unidade. Base: imagem ≈ R$ 0,25 (3 créditos), cena de filme animado = 15 créditos; ver README. */
 export const COSTS = {
-  mapa: 3,
+  mapa: 10, mapaPrancha: 10, mapaAmbos: 15, // mapa = vista aérea ilustrativa (1 imagem de IA); mapaPrancha = prancha por código, sem IA; mapaAmbos = as duas juntas
   moodboard: 3,
   renderPorImagem: 4,
   luz: 3,
