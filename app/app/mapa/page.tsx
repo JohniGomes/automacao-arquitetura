@@ -14,7 +14,7 @@ export default function Mapa() {
   const t = useT();
   const [address, setAddress] = useState("");
   const [buscando, setBuscando] = useState(false);
-  const [erroBusca, setErroBusca] = useState("");
+  const [erroBusca, setErroBusca] = useState(""); const [mock, setMock] = useState(false);
   const [centro, setCentro] = useState<Pt | null>(null);
   const [marc, setMarc] = useState<Marcacao>({ pino: null, poligono: [] });
   const [form, setForm] = useState(VAZIO);
@@ -34,7 +34,7 @@ export default function Mapa() {
       const r = await fetch(`/api/maps/geocode?address=${encodeURIComponent(address.trim())}`);
       const j = await r.json().catch(() => ({}));
       if (!r.ok) { setErroBusca(j.error || "Não foi possível buscar o endereço."); return; }
-      const c: Pt = [j.lat, j.lon];
+      const c: Pt = [j.lat, j.lon]; setMock(!!j.mock);
       setCentro(c);
       setMarc({ pino: c, poligono: [] });
       const e = j.endereco || {};
@@ -73,7 +73,7 @@ export default function Mapa() {
             <input id="addr" type="text" style={{ flex: 1 }} value={address} onChange={(e) => setAddress(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void buscar(); } }} placeholder={t("Ex.: Rua Gamboa, Anápolis - GO")} />
             <button type="button" disabled={!address.trim() || buscando} onClick={buscar}>{buscando ? t("Buscando…") : t("Buscar")}</button>
           </div>
-          {erroBusca && <p className="alert err" role="alert">{t(erroBusca)}</p>}
+          {erroBusca && <p className="alert err" role="alert">{t(erroBusca)}</p>}{mock && <p className="alert err" role="alert">{t("Modo de teste: este servidor está sem a chave do Google Maps, então o satélite e a localização são fictícios.")}</p>}
         </div>
 
         {centro && (<>

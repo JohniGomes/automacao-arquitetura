@@ -97,7 +97,7 @@ function StaticPicker({ centro, m, onChange, modo }: { centro: Pt; m: Marcacao; 
 }
 
 // ------------------------------------------------------------------ Google Maps JavaScript (chave do navegador)
-declare global { interface Window { google?: any; __gmapsLoading?: Promise<void> } }
+declare global { interface Window { google?: any; __gmapsLoading?: Promise<void>; gm_authFailure?: () => void } }
 function carregarGoogle(): Promise<void> {
   if (window.google?.maps?.importLibrary) return Promise.resolve();
   return (window.__gmapsLoading ??= new Promise<void>((ok, err) => {
@@ -121,7 +121,7 @@ function GooglePicker({ centro, m, onChange, modo, onFail }: { centro: Pt; m: Ma
     let vivo = true;
     (async () => {
       try {
-        await carregarGoogle();
+        window.gm_authFailure = () => { if (vivo) onFail(); }; /* chave recusada (site fora da lista, API desativada): volta ao satélite estático */ await carregarGoogle();
         const { Map, Polygon } = await window.google.maps.importLibrary("maps");
         const { Marker } = await window.google.maps.importLibrary("marker");
         if (!vivo || !div.current) return;

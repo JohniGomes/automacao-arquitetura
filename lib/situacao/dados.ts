@@ -36,8 +36,8 @@ async function overpass(query: string, key: string): Promise<OsmEl[]> {
         if (cache.size > 40) cache.delete(cache.keys().next().value!);
         return data;
       }
-      last = `Overpass ${res.status}`;
-    } catch (e: any) { last = e?.message || String(e); }
+      last = `Overpass ${res.status}`; console.error(`overpass ${new URL(url).host}: HTTP ${res.status}`);
+    } catch (e: any) { last = e?.message || String(e); console.error(`overpass ${new URL(url).host}: ${last}`); }
   }
   console.error("overpass:", last);
   throw new UserError("Não conseguimos buscar os dados do mapa agora (servidor público de mapas ocupado). Tente de novo em alguns minutos; seus créditos foram devolvidos.");
@@ -45,18 +45,33 @@ async function overpass(query: string, key: string): Promise<OsmEl[]> {
 
 const r3 = (n: number) => n.toFixed(3);
 
-/** Ruas, edificações, áreas verdes e água ao redor do centro (raio em metros). */
-export async function buscarBase(lat: number, lon: number, raio: number): Promise<OsmEl[]> {
-  const a = `(around:${Math.round(raio)},${lat.toFixed(6)},${lon.toFixed(6)})`;
-  const q = `[out:json][timeout:60];(
+/** Caixa (sul,oeste,norte,leste) de `raio` metros ao redor do ponto. Mais leve que um círculo e cobre os cantos do mapa quadrado. */
+const caixa = (lat: number, lon: number, raio: number) => {
+  const dy = raio / 110574, dx = raio / (111320 * Math.cos((lat * Math.PI) / 180));
+  return `(${(lat - dy).toFixed(6)},${(lon - dx).toFixed(6)},${(lat + dy).toFixed(6)},${(lon + dx).toFixed(6)})`;
+};
+
+const CABECALHO = "[out:json][timeout:60][maxsize:134217728];";
+/** Ruas, edificações, áreas verdes e água (geometria completa). */
+const consultaBase = (a: string, predios: boolean) => `(
     way["highway"~"^(motorway|motorway_link|trunk|trunk_link|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|residential|unclassified|living_street)$"]${a};
-    way["building"]${a};
+    ${predios ? `way["building"]${a};` : ""}
     way["leisure"~"park|pitch|garden"]${a};
     way["landuse"~"grass|recreation_ground|forest"]${a};
     way["natural"="water"]${a};
     way["waterway"~"river|stream|canal"]${a};
   );out geom;`;
-  return overpass(q, `base:${r3(lat)}:${r3(lon)}:${Math.round(raio / 100)}`);
+/** Lugares de referência (só o ponto central de cada um). */
+const consultaPois = (a: string) => `(
+    nwr["amenity"~"school|kindergarten|college|university|pharmacy|hospital|clinic|doctors|dentist|place_of_worship|police|fire_station|townhall|community_centre|library|post_office"]${a};
+    nwr["shop"~"supermarket|convenience|mall|department_store|chemist"]${a};
+    nwr["healthcare"]${a};
+    nwr["leisure"~"park|garden|playground|fitness_centre|sports_centre|stadium"]${a};
+  );out center tags;`;
+
+/** Ruas, edificações, áreas verdes e água ao redor do centro (raio em metros). */
+export async function buscarBase(lat: number, lon: number, raio: number, predios = true): Promise<OsmEl[]> {
+  return overpass(CABECALHO + consultaBase(caixa(lat, lon, raio), predios), `base:${r3(lat)}:${r3(lon)}:${Math.round(raio / 100)}:${predios ? 1 : 0}`);
 }
 
 // ------------------------------------------------------------------ lugares de referência
@@ -87,15 +102,7 @@ function grupoOsm(t: Record<string, string>): Grupo | null {
   return null;
 }
 
-async function poisOsm(lat: number, lon: number, raio: number): Promise<Poi[]> {
-  const a = `(around:${Math.round(raio)},${lat.toFixed(6)},${lon.toFixed(6)})`;
-  const q = `[out:json][timeout:60];(
-    nwr["amenity"~"school|kindergarten|college|university|pharmacy|hospital|clinic|doctors|dentist|place_of_worship|police|fire_station|townhall|community_centre|library|post_office"]${a};
-    nwr["shop"~"supermarket|convenience|mall|department_store|chemist"]${a};
-    nwr["healthcare"]${a};
-    nwr["leisure"~"park|garden|playground|fitness_centre|sports_centre|stadium"]${a};
-  );out center tags;`;
-  const els = await overpass(q, `poi:${r3(lat)}:${r3(lon)}:${Math.round(raio / 100)}`);
+function poisDeElementos(els: OsmEl[]): Poi[] {
   const out: Poi[] = [];
   for (const e of els) {
     const t = e.tags || {}, grupo = grupoOsm(t);
@@ -104,6 +111,11 @@ async function poisOsm(lat: number, lon: number, raio: number): Promise<Poi[]> {
     out.push({ grupo, nome: t.name || "", lat: la, lon: lo });
   }
   return out;
+}
+
+async function poisOsm(lat: number, lon: number, raio: number): Promise<Poi[]> {
+  const els = await overpass(CABECALHO + consultaPois(caixa(lat, lon, raio)), `poi:${r3(lat)}:${r3(lon)}:${Math.round(raio / 100)}`);
+  return poisDeElementos(els);
 }
 
 const GOOGLE_TIPOS: Record<Grupo, string[]> = {
@@ -167,4 +179,19 @@ export function escolherLugares(pois: Poi[], centro: LatLon, meia: number, max =
     if (out.length >= max) break;
   }
   return out;
+}
+
+/**
+ * Ruas e lugares numa consulta só (a do OpenStreetMap leva as duas partes no mesmo pedido: o servidor público é lento e
+ * limita pedidos simultâneos, então um pedido a menos é o que mais ajuda). Com SITUACAO_POIS=google, os lugares vêm do Places.
+ */
+export async function buscarDados(lat: number, lon: number, area: number, predios: boolean): Promise<{ base: OsmEl[]; pois: Poi[]; fonte: "osm" | "google" }> {
+  const fonte = fonteLugares();
+  if (fonte === "google") {
+    const [base, pois] = await Promise.all([buscarBase(lat, lon, area, predios), poisGoogle(lat, lon, area).catch(() => [] as Poi[])]);
+    return { base, pois, fonte };
+  }
+  const a = caixa(lat, lon, area);
+  const els = await overpass(CABECALHO + consultaBase(a, predios) + consultaPois(a), `tudo:${r3(lat)}:${r3(lon)}:${Math.round(area / 100)}:${predios ? 1 : 0}`);
+  return { base: els, pois: poisDeElementos(els), fonte };
 }
