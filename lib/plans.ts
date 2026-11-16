@@ -19,18 +19,20 @@ export type PlanRules = {
   lugaresAerea: number;
   /** prancha do mapa de situação também em SVG vetorial */
   pranchaSvg: boolean;
+  /** exportação do mapa de situação em DXF (AutoCAD) */
+  pranchaDxf: boolean;
   /** gerações em andamento ao mesmo tempo */
   simultaneas: number;
 };
 
 /** O que cada plano libera. Mantenha alinhado com a lista de benefícios em lib/costs.ts (PLANOS). */
 export const RULES: Record<PlanId, PlanRules> = {
-  essencial: { projetos: 3, historicoDias: 30, prioridade: false, render2k: false, semMarca: false, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, simultaneas: 2 },
-  profissional: { projetos: Infinity, historicoDias: 365, prioridade: true, render2k: true, semMarca: true, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 1000, lugaresAerea: 9, pranchaSvg: true, simultaneas: 3 },
-  max: { projetos: Infinity, historicoDias: Infinity, prioridade: true, render2k: true, semMarca: true, cenasFilme: 5, suportePrioritario: true, alcanceMapaM: 1000, lugaresAerea: 9, pranchaSvg: true, simultaneas: 5 },
+  essencial: { projetos: 3, historicoDias: 30, prioridade: false, render2k: false, semMarca: false, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, pranchaDxf: false, simultaneas: 2 },
+  profissional: { projetos: Infinity, historicoDias: 365, prioridade: true, render2k: true, semMarca: true, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 1000, lugaresAerea: 9, pranchaSvg: true, pranchaDxf: false, simultaneas: 3 },
+  max: { projetos: Infinity, historicoDias: Infinity, prioridade: true, render2k: true, semMarca: true, cenasFilme: 5, suportePrioritario: true, alcanceMapaM: 1000, lugaresAerea: 9, pranchaSvg: true, pranchaDxf: true, simultaneas: 5 },
 };
 /** conta sem plano ativo (cadastro gratuito ou só créditos avulsos) */
-export const SEM_PLANO: PlanRules = { projetos: 3, historicoDias: 30, prioridade: false, render2k: false, semMarca: false, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, simultaneas: 2 };
+export const SEM_PLANO: PlanRules = { projetos: 3, historicoDias: 30, prioridade: false, render2k: false, semMarca: false, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, pranchaDxf: false, simultaneas: 2 };
 
 export const planById = (id?: string) => PLANOS.find((p) => p.id === id) ?? null;
 

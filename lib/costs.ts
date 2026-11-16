@@ -31,7 +31,7 @@ export const PLANOS = [
   { id: "profissional", nome: "Profissional", preco: 89.9, creditosMes: 1000, destaque: true,
     itens: ["Tudo do Essencial", "Projetos ilimitados", "Histórico de 12 meses", "Fila prioritária", "Render em 2K", "Download sem marca d'água", "Licença de uso comercial", "Mapa de situação até 1 km, vista aérea com 9 lugares", "Prancha do mapa em SVG vetorial", "3 gerações ao mesmo tempo", "Suporte por e-mail"] },
   { id: "max", nome: "Max", preco: 129.9, creditosMes: 1500, destaque: false,
-    itens: ["Tudo do Profissional", "Filme com até 5 cenas por pedido", "5 gerações ao mesmo tempo", "Suporte prioritário por WhatsApp", "Acesso antecipado às ferramentas novas"] },
+    itens: ["Tudo do Profissional", "Filme com até 5 cenas por pedido", "Mapa de situação em DXF para AutoCAD (UTM SIRGAS 2000)", "5 gerações ao mesmo tempo", "Suporte prioritário por WhatsApp", "Acesso antecipado às ferramentas novas"] },
 ] as const;
 
 export const COSTS_EDICAO = {

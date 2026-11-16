@@ -2,7 +2,7 @@ import { COSTS } from "../costs";
 import { LatLon, polygonStats, projector, selfIntersects } from "./geo";
 
 /** Lê e valida o pedido do mapa de situação (formulário multipart do /api/jobs). Lança Error com mensagem para o usuário. */
-export type LimitesMapa = { alcanceMapaM: number; lugaresAerea: number; pranchaSvg: boolean };
+export type LimitesMapa = { alcanceMapaM: number; lugaresAerea: number; pranchaSvg: boolean; pranchaDxf: boolean };
 
 export function lerPedidoSituacao(form: FormData, limites: LimitesMapa) {
   const str = (k: string) => String(form.get(k) || "").trim();
@@ -33,5 +33,5 @@ export function lerPedidoSituacao(form: FormData, limites: LimitesMapa) {
   const cost = modo === "ambos" ? COSTS.mapaAmbos : modo === "prancha" ? COSTS.mapaPrancha : COSTS.mapa;
   const rotulo = { prancha: "prancha", aerea: "vista aérea", ambos: "prancha e vista aérea" }[modo];
   const onde = [endereco.logradouro || "lote marcado", endereco.quadra ? `Qd. ${endereco.quadra}` : ""].filter(Boolean).join(", ");
-  return { params: { modo, polygon, raio, endereco, maxLugares: limites.lugaresAerea, vetor: limites.pranchaSvg }, cost, summary: `Mapa de situação — ${onde} (${rotulo})` };
+  return { params: { modo, polygon, raio, endereco, maxLugares: limites.lugaresAerea, vetor: limites.pranchaSvg, dxf: limites.pranchaDxf }, cost, summary: `Mapa de situação — ${onde} (${rotulo})` };
 }

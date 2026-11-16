@@ -7,7 +7,7 @@ import { useToast } from "./Toast";
 
 export type Gen = {
   id: string; type: string; status: "queued" | "running" | "done" | "error"; progress: number; message: string;
-  summary: string; outputs: { file: string; kind: "image" | "video"; label?: string }[];
+  summary: string; outputs: { file: string; kind: "image" | "video" | "file"; label?: string }[];
   cost: number; mock: boolean; error?: string; createdAt: string; usage: { images: number; videoClips: number };
   projectId?: string | null; favorite?: boolean;
 };
@@ -146,7 +146,9 @@ export function Results({ gen }: { gen: Gen }) {
       <div className="grid">
         {gen.outputs.map((o) => (
           <figure key={o.file}>
-            {o.kind === "video"
+            {o.kind === "file"
+              ? <div className="filecard" style={{ display: "grid", placeItems: "center", minHeight: 120, background: "var(--card, #fbfaf6)", border: "1px solid var(--line)", borderRadius: 10, fontWeight: 700, letterSpacing: 2 }}>{(o.file.split(".").pop() || "ARQUIVO").toUpperCase()}</div>
+              : o.kind === "video"
               ? <video src={`/api/files/${o.file}`} controls preload="metadata" />
               : <button type="button" className="zoom" aria-label={t("Ampliar imagem")} onClick={() => setBig({ src: `/api/files/${o.file}`, alt: t(o.label || "") })}><img src={`/api/files/${o.file}?w=900`} alt={t(o.label || "")} loading="lazy" decoding="async" /></button>}
             <figcaption><span>{t(o.label || "")}</span><a href={`/api/files/${o.file}?dl=1`}>{t("Baixar")}</a></figcaption>
