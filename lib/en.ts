@@ -813,4 +813,5 @@ export const EN: Record<string, string> = {
   "Dica: a prancha é um desenho técnico (lote, quadras, ruas, norte, escala e legenda), sem IA. A vista aérea é uma ilustração com IA: as posições são aproximadas, então confira antes de usar.": "Tip: the sheet is a technical drawing (lot, blocks, streets, north, scale and legend), with no AI. The aerial view is an AI illustration: positions are approximate, so check before using it.",
   "Não foi possível buscar o endereço.": "We could not look up the address.",
   "Modo de teste: este servidor está sem a chave do Google Maps, então o satélite e a localização são fictícios.": "Test mode: this server has no Google Maps key, so the satellite and location are fake.",
+  "Ver mais": "Show more",
 };
