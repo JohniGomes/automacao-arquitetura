@@ -29,9 +29,9 @@ export const PLANOS = [
   { id: "essencial", nome: "Essencial", preco: 49.9, creditosMes: 500, destaque: false,
     itens: ["Todas as ferramentas", "3 projetos ativos", "Histórico de 30 dias", "Fila normal", "Mapa de situação até 600 m, vista aérea com 5 lugares", "2 gerações ao mesmo tempo", "Suporte por e-mail"] },
   { id: "profissional", nome: "Profissional", preco: 89.9, creditosMes: 1000, destaque: true,
-    itens: ["Tudo do Essencial", "Projetos ilimitados", "Histórico de 12 meses", "Fila prioritária", "Render em 2K", "Download sem marca d'água", "Licença de uso comercial", "Mapa de situação até 1 km, vista aérea com 9 lugares", "Prancha do mapa em SVG vetorial", "Logo e nome do escritório na prancha", "3 gerações ao mesmo tempo", "Suporte por e-mail"] },
+    itens: ["Tudo do Essencial", "Projetos ilimitados", "Histórico de 12 meses", "Fila prioritária", "Render em 2K", "Download sem marca d'água", "Licença de uso comercial", "Mapa de situação até 1 km, vista aérea com 9 lugares", "Prancha do mapa em SVG vetorial", "Logo e nome do escritório na prancha", "1 link de apresentação para o cliente", "15% de desconto em créditos avulsos", "3 gerações ao mesmo tempo", "Suporte por e-mail"] },
   { id: "max", nome: "Max", preco: 129.9, creditosMes: 1500, destaque: false,
-    itens: ["Tudo do Profissional", "Filme com até 5 cenas por pedido", "Mapa de situação em DXF para AutoCAD (UTM SIRGAS 2000)", "Responsável técnico e cor própria na prancha", "5 gerações ao mesmo tempo", "Suporte prioritário por WhatsApp", "Acesso antecipado às ferramentas novas"] },
+    itens: ["Tudo do Profissional", "Filme com até 5 cenas por pedido", "Mapa de situação em DXF para AutoCAD (UTM SIRGAS 2000)", "Responsável técnico e cor própria na prancha", "Links de apresentação ilimitados", "25% de desconto em créditos avulsos", "5 gerações ao mesmo tempo", "Suporte prioritário por WhatsApp", "Acesso antecipado às ferramentas novas"] },
 ] as const;
 
 export const COSTS_EDICAO = {
