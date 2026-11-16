@@ -3,7 +3,7 @@ import { env } from "./config";
 import { PACOTES, PLANOS } from "./costs";
 import type { User } from "./db";
 import { UserError } from "./errors";
-import { activePlan, planById } from "./plans";
+import { activePlan, FATOR_MINIMO_PACOTE, planById, precoPacote } from "./plans";
 import { store } from "./store";
 
 /**
@@ -45,19 +45,26 @@ function splitRule() {
 }
 
 // ------------------------------------------------------------------ referência do pedido
-export type Ref = { userId: string; kind: "pacote" | "plano" | "troca"; item: string };
-const encodeRef = (r: Ref) => `${r.userId}|${r.kind === "pacote" ? "pack" : r.kind === "troca" ? "up" : "plan"}|${r.item}`;
+export type Ref = { userId: string; kind: "pacote" | "plano" | "troca"; item: string; /** pacote: valor cobrado, em centavos (inclui o desconto do plano na hora da compra) */ cents?: number };
+const encodeRef = (r: Ref) => `${r.userId}|${r.kind === "pacote" ? "pack" : r.kind === "troca" ? "up" : "plan"}|${r.item}${r.kind === "pacote" && r.cents ? `|${r.cents}` : ""}`;
 export function parseRef(s: unknown): Ref | null {
-  const [userId, kind, item] = String(s || "").split("|");
+  const [userId, kind, item, centsRaw] = String(s || "").split("|");
   if (!userId || !item) return null;
-  if (kind === "pack" && PACOTES.some((p) => p.id === item)) return { userId, kind: "pacote", item };
+  if (kind === "pack") {
+    const p = PACOTES.find((x) => x.id === item);
+    if (!p) return null;
+    // valor cobrado: só vale entre o preço de catálogo e o do maior desconto; fora disso usa o catálogo (nunca libera por menos)
+    const cents = Number(centsRaw);
+    const ok = Number.isInteger(cents) && cents >= Math.round(p.preco * FATOR_MINIMO_PACOTE * 100) && cents <= Math.round(p.preco * 100);
+    return { userId, kind: "pacote", item, ...(ok ? { cents } : {}) };
+  }
   if (kind === "plan" && planById(item)) return { userId, kind: "plano", item };
   if (kind === "up" && planById(item)) return { userId, kind: "troca", item };
   return null;
 }
 // troca de plano: a cobrança é só a diferença proporcional (mínimo do cartão no Asaas: R$ 5)
 const MIN_CARD = 5;
-const priceOf = (r: Ref) => (r.kind === "pacote" ? PACOTES.find((p) => p.id === r.item)!.preco : r.kind === "troca" ? MIN_CARD : planById(r.item)!.preco);
+const priceOf = (r: Ref) => (r.kind === "pacote" ? (r.cents ? r.cents / 100 : PACOTES.find((p) => p.id === r.item)!.preco) : r.kind === "troca" ? MIN_CARD : planById(r.item)!.preco);
 
 // ------------------------------------------------------------------ cliente e checkout
 /** Valida CPF ou CNPJ pelos dígitos verificadores. */
@@ -172,9 +179,10 @@ export async function createCheckout(u: User, id: string, method: Method, cpfCnp
   const cardPart = method === "CREDIT_CARD" ? cardFields(u, cpfCnpj, card!, ip || "0.0.0.0") : {};
   try {
     if (pack) {
-      const ref: Ref = { userId: u.id, kind: "pacote", item: pack.id };
+      const preco = precoPacote(pack.preco, u);
+      const ref: Ref = { userId: u.id, kind: "pacote", item: pack.id, cents: Math.round(preco * 100) };
       const p = await asaas("/payments", { method: "POST", body: {
-        customer, billingType: method, value: pack.preco, dueDate: today(), description: `ArqIA — ${pack.creditos} créditos`,
+        customer, billingType: method, value: preco, dueDate: today(), description: `ArqIA — ${pack.creditos} créditos`,
         externalReference: encodeRef(ref), split, ...cardPart,
       } });
       return await present(p, method);

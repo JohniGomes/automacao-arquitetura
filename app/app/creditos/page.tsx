@@ -1,7 +1,7 @@
 import { currentUser } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { COSTS, PACOTES, PLANOS } from "@/lib/costs";
-import { activePlan } from "@/lib/plans";
+import { activePlan, precoPacote, rulesOf } from "@/lib/plans";
 import { billingEnabled } from "@/lib/billing";
 import { getLang, getT } from "@/lib/i18n-server";
 import BuyButton from "./BuyButton";
@@ -18,6 +18,7 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
   const u = (await currentUser())!;
   const txs = await store.listTxs(u.id, 30);
   const plan = activePlan(u);
+  const desconto = rulesOf(u).descontoPacotes;
   const enabled = billingEnabled();
   const until = u.planUntil ? new Date(u.planUntil).toLocaleDateString(lang === "en" ? "en-US" : "pt-BR") : "";
   return (
@@ -42,7 +43,7 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
       </div>
       <div className="card"><h2>{t("Créditos avulsos")}</h2>
         <div className="tools">{PACOTES.map((p) => (
-          <div key={p.id} className="card"><h2>{t(p.rotulo)}</h2><p>{p.creditos} {t("créditos")} · <b>{brl(p.preco)}</b></p>
+          <div key={p.id} className="card"><h2>{t(p.rotulo)}</h2><p>{p.creditos} {t("créditos")} · <b>{brl(precoPacote(p.preco, u))}</b>{desconto > 0 && <> <s className="muted">{brl(p.preco)}</s></>}</p>{desconto > 0 && <p className="small muted" style={{ margin: "0 0 8px" }}>{t("{n}% de desconto do seu plano", { n: desconto })}</p>}
             {enabled ? <BuyButton id={p.id} label="Comprar" t={t} /> : <button type="button" disabled>{t("Em breve")}</button>}</div>
         ))}</div></div>
       <div className="card"><h2>{t("Extrato")}</h2>

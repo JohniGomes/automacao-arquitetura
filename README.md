@@ -225,6 +225,7 @@ Tudo é definido em `lib/plans.ts` (regras) e `lib/costs.ts` (preços, créditos
 | Vista aérea: lugares no mapa | 5 | 9 | 9 |
 | Prancha em SVG vetorial | não | sim | sim |
 | Prancha em DXF (AutoCAD, UTM SIRGAS 2000) | não | não | sim |
+| Desconto nos créditos avulsos | 0% | 15% | 25% |
 | Gerações ao mesmo tempo | 2 | 3 | 5 |
 | Filme (cenas por pedido) | 3 | 3 | 5 |
 | Suporte | e-mail | e-mail | prioritário por WhatsApp |
