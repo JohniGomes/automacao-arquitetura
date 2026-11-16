@@ -9,7 +9,7 @@ import CancelPlan from "./CancelPlan";
 import PlanPicker from "./PlanPicker";
 
 export const dynamic = "force-dynamic";
-const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 
 export default async function Creditos({ searchParams }: { searchParams: Promise<{ pagamento?: string }> }) {
   const { t } = await getT();
