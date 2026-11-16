@@ -46,7 +46,7 @@ export interface Store {
   fileUrl(userId: string, name: string, download: boolean): Promise<string | null>;
 }
 
-const TYPES: Record<string, string> = { png: "image/png", jpg: "image/jpeg", webp: "image/webp", mp4: "video/mp4", svg: "image/svg+xml" };
+const TYPES: Record<string, string> = { png: "image/png", jpg: "image/jpeg", webp: "image/webp", mp4: "video/mp4", svg: "image/svg+xml", dxf: "application/dxf" };
 export const contentType = (name: string) => TYPES[name.split(".").pop() || ""] || "application/octet-stream";
 
 // ---------------------------------------------------------------- local

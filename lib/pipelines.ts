@@ -10,6 +10,7 @@ import { composeEdit } from "./compose";
 import { reverse, satellite } from "./maps";
 import { buscarDados } from "./situacao/dados";
 import { Endereco, montarPrancha, renderPrancha } from "./situacao/prancha";
+import { montarDxf } from "./situacao/dxf";
 import { comAtribuicao, comLegenda, montarEntradaAerea, PROMPT_AEREA } from "./situacao/aerea";
 import type { LatLon } from "./situacao/geo";
 import { AMBIENTES, AmbienteKey, CENAS, CenaDef, CenaKey, PROMPT_BIBLIA, PROMPT_MAPA, promptLuz, promptMoodboard, REF_PREFIX } from "./prompts";
@@ -97,7 +98,7 @@ async function mapa(c: Ctx): Promise<void> { if (c.input.params.modo) return sit
  * falhar, a prancha já entregue fica e só o custo da aérea volta.
  */
 async function situacao(c: Ctx) {
-  const p = c.input.params as { modo: "prancha" | "aerea" | "ambos"; polygon: LatLon[]; raio: number; endereco: Endereco; maxLugares?: number; vetor?: boolean };
+  const p = c.input.params as { modo: "prancha" | "aerea" | "ambos"; polygon: LatLon[]; raio: number; endereco: Endereco; maxLugares?: number; vetor?: boolean; dxf?: boolean };
   const lat0 = p.polygon.reduce((s, q) => s + q[0], 0) / p.polygon.length, lon0 = p.polygon.reduce((s, q) => s + q[1], 0) / p.polygon.length;
   const quer = { prancha: p.modo !== "aerea", aerea: p.modo !== "prancha" };
 
@@ -123,14 +124,16 @@ async function situacao(c: Ctx) {
     }
   }
 
-  const resultados: { buf: Buffer; ext: string; label: string }[] = [];
+  const resultados: { buf: Buffer; ext: string; label: string; kind?: Output["kind"] }[] = [];
   let entrada: { buf: Buffer; ext: string; label: string } | null = null;
 
   if (quer.prancha) {
     progress(c, 40, "Desenhando a prancha do mapa de situação…");
-    const svg = montarPrancha({ polygon: p.polygon, raio: p.raio, endereco, base, pois: lugares.pois, fonte: lugares.fonte });
+    const entradaPrancha = { polygon: p.polygon, raio: p.raio, endereco, base, pois: lugares.pois, fonte: lugares.fonte };
+    const svg = montarPrancha(entradaPrancha);
     resultados.push({ buf: await renderPrancha(svg), ext: "png", label: "Mapa de situação (prancha)" });
     if (p.vetor) resultados.push({ buf: Buffer.from(svg), ext: "svg", label: "Mapa de situação (SVG vetorial)" });
+    if (p.dxf) resultados.push({ buf: montarDxf(entradaPrancha), ext: "dxf", label: "Mapa de situação (DXF para AutoCAD)", kind: "file" });
   }
 
   if (quer.aerea) {
@@ -150,7 +153,7 @@ async function situacao(c: Ctx) {
       c.gen.message = "Concluído. A vista aérea falhou — os créditos dessa parte foram devolvidos.";
     }
   }
-  for (const r of resultados) await addOutput(c, r.buf, r.ext, "image", r.label);
+  for (const r of resultados) await addOutput(c, r.buf, r.ext, r.kind ?? "image", r.label);
   if (entrada) await addOutput(c, entrada.buf, entrada.ext, "image", entrada.label);
 }
 

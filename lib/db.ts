@@ -9,7 +9,7 @@ export type User = { id: string; email: string; name: string; passHash?: string;
   plan?: string; planUntil?: string; planStatus?: "ativo" | "cancelado"; planNext?: string; asaasCustomerId?: string; asaasSubscriptionId?: string };
 export type Payment = { provider: string; refId: string; userId: string; kind: "pacote" | "plano"; item: string; amount: number; createdAt: string };
 export type PlanFields = Pick<User, "plan" | "planUntil" | "planStatus" | "planNext" | "asaasCustomerId" | "asaasSubscriptionId">;
-export type Output = { file: string; kind: "image" | "video"; label?: string };
+export type Output = { file: string; kind: "image" | "video" | "file"; label?: string };
 export type Generation = {
   id: string; userId: string; type: GenType; status: "queued" | "running" | "done" | "error";
   progress: number; message: string; createdAt: string; finishedAt?: string;
