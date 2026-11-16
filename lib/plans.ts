@@ -23,16 +23,23 @@ export type PlanRules = {
   pranchaDxf: boolean;
   /** gerações em andamento ao mesmo tempo */
   simultaneas: number;
+  /** desconto, em %, na compra de créditos avulsos */
+  descontoPacotes: number;
 };
 
 /** O que cada plano libera. Mantenha alinhado com a lista de benefícios em lib/costs.ts (PLANOS). */
 export const RULES: Record<PlanId, PlanRules> = {
-  essencial: { projetos: 3, historicoDias: 30, prioridade: false, render2k: false, semMarca: false, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, pranchaDxf: false, simultaneas: 2 },
-  profissional: { projetos: Infinity, historicoDias: 365, prioridade: true, render2k: true, semMarca: true, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 1000, lugaresAerea: 9, pranchaSvg: true, pranchaDxf: false, simultaneas: 3 },
-  max: { projetos: Infinity, historicoDias: Infinity, prioridade: true, render2k: true, semMarca: true, cenasFilme: 5, suportePrioritario: true, alcanceMapaM: 1000, lugaresAerea: 9, pranchaSvg: true, pranchaDxf: true, simultaneas: 5 },
+  essencial: { projetos: 3, historicoDias: 30, prioridade: false, render2k: false, semMarca: false, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, pranchaDxf: false, simultaneas: 2, descontoPacotes: 0 },
+  profissional: { projetos: Infinity, historicoDias: 365, prioridade: true, render2k: true, semMarca: true, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 1000, lugaresAerea: 9, pranchaSvg: true, pranchaDxf: false, simultaneas: 3, descontoPacotes: 15 },
+  max: { projetos: Infinity, historicoDias: Infinity, prioridade: true, render2k: true, semMarca: true, cenasFilme: 5, suportePrioritario: true, alcanceMapaM: 1000, lugaresAerea: 9, pranchaSvg: true, pranchaDxf: true, simultaneas: 5, descontoPacotes: 25 },
 };
 /** conta sem plano ativo (cadastro gratuito ou só créditos avulsos) */
-export const SEM_PLANO: PlanRules = { projetos: 3, historicoDias: 30, prioridade: false, render2k: false, semMarca: false, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, pranchaDxf: false, simultaneas: 2 };
+export const SEM_PLANO: PlanRules = { projetos: 3, historicoDias: 30, prioridade: false, render2k: false, semMarca: false, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, pranchaDxf: false, simultaneas: 2, descontoPacotes: 0 };
+
+/** Menor preço possível de um pacote (o maior desconto de qualquer plano): o webhook nunca aceita um valor abaixo disso. */
+export const FATOR_MINIMO_PACOTE = 1 - Math.max(...Object.values(RULES).map((r) => r.descontoPacotes)) / 100;
+/** Preço do pacote para a conta: o do catálogo menos o desconto do plano ativo, em reais com centavos. */
+export const precoPacote = (preco: number, u: Pick<User, "plan" | "planUntil">) => Math.round(preco * (1 - rulesOf(u).descontoPacotes / 100) * 100) / 100;
 
 export const planById = (id?: string) => PLANOS.find((p) => p.id === id) ?? null;
 

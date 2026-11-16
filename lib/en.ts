@@ -814,6 +814,7 @@ export const EN: Record<string, string> = {
   "Não foi possível buscar o endereço.": "We could not look up the address.",
   "Modo de teste: este servidor está sem a chave do Google Maps, então o satélite e a localização são fictícios.": "Test mode: this server has no Google Maps key, so the satellite and location are fake.",
   "Ver mais": "Show more",
+  "{n}% de desconto do seu plano": "{n}% off with your plan",
   "Mapa de situação em DXF para AutoCAD (UTM SIRGAS 2000)": "Site plan as DXF for AutoCAD (UTM SIRGAS 2000)",
   "O alcance de 1 km faz parte dos planos Profissional e Max.": "The 1 km range is part of the Professional and Max plans.",
   "Suporte prioritário por WhatsApp": "Priority support on WhatsApp",
