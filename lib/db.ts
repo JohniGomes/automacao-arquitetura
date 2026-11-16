@@ -23,10 +23,12 @@ export type Generation = {
   /** pedido de cancelamento (só o filme para no meio); não vai para o banco */
   cancel?: boolean;
 };
+/** Marca do escritório usada nas pranchas (planos Profissional e Max). `logo` é o nome do arquivo guardado. */
+export type Escritorio = { userId: string; nome: string; responsavel: string; registro: string; cor: string; logo: string | null };
 export type Project = { id: string; userId: string; name: string; createdAt: string };
 export type Tx = { id: string; userId: string; delta: number; reason: string; genId?: string; at: string };
 export type SupportMsg = { id: string; userId: string; email: string; subject: string; message: string; createdAt: string };
-type DB = { users: User[]; generations: Generation[]; txs: Tx[]; projects: Project[]; support?: SupportMsg[]; payments?: Payment[] };
+type DB = { users: User[]; generations: Generation[]; txs: Tx[]; projects: Project[]; support?: SupportMsg[]; payments?: Payment[]; offices?: Escritorio[] };
 
 export const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data"); // no Render: disco persistente, ex. /var/data
 const FILE = path.join(DATA_DIR, "db.json");
@@ -40,6 +42,7 @@ export function db(): DB {
   g.__db!.projects ??= [];
   g.__db!.support ??= [];
   g.__db!.payments ??= [];
+  g.__db!.offices ??= [];
   return g.__db!;
 }
 export function save() {

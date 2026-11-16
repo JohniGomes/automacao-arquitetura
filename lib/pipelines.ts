@@ -9,7 +9,7 @@ import { mockEdit, mockImage } from "./mock";
 import { composeEdit } from "./compose";
 import { reverse, satellite } from "./maps";
 import { buscarDados } from "./situacao/dados";
-import { Endereco, montarPrancha, renderPrancha } from "./situacao/prancha";
+import { Endereco, Marca, montarPrancha, renderPrancha } from "./situacao/prancha";
 import { montarDxf } from "./situacao/dxf";
 import { comAtribuicao, comLegenda, montarEntradaAerea, PROMPT_AEREA } from "./situacao/aerea";
 import type { LatLon } from "./situacao/geo";
@@ -98,7 +98,7 @@ async function mapa(c: Ctx): Promise<void> { if (c.input.params.modo) return sit
  * falhar, a prancha já entregue fica e só o custo da aérea volta.
  */
 async function situacao(c: Ctx) {
-  const p = c.input.params as { modo: "prancha" | "aerea" | "ambos"; polygon: LatLon[]; raio: number; endereco: Endereco; maxLugares?: number; vetor?: boolean; dxf?: boolean };
+  const p = c.input.params as { modo: "prancha" | "aerea" | "ambos"; polygon: LatLon[]; raio: number; endereco: Endereco; maxLugares?: number; vetor?: boolean; dxf?: boolean; marca?: "nenhuma" | "basica" | "completa" };
   const lat0 = p.polygon.reduce((s, q) => s + q[0], 0) / p.polygon.length, lon0 = p.polygon.reduce((s, q) => s + q[1], 0) / p.polygon.length;
   const quer = { prancha: p.modo !== "aerea", aerea: p.modo !== "prancha" };
 
@@ -129,7 +129,18 @@ async function situacao(c: Ctx) {
 
   if (quer.prancha) {
     progress(c, 40, "Desenhando a prancha do mapa de situação…");
-    const entradaPrancha = { polygon: p.polygon, raio: p.raio, endereco, base, pois: lugares.pois, fonte: lugares.fonte };
+    // marca do escritório (Profissional e Max): se faltar o cadastro ou o SQL novo, a prancha sai sem marca
+    let marca: Marca | undefined;
+    if (p.marca && p.marca !== "nenhuma") {
+      try {
+        const o = await store.getOffice(c.gen.userId);
+        if (o && (o.nome || o.logo)) {
+          const logoBuf = o.logo ? await store.getFile(c.gen.userId, o.logo) : null;
+          marca = { nivel: p.marca, nome: o.nome, logo: logoBuf ? `data:image/png;base64,${logoBuf.toString("base64")}` : undefined, responsavel: o.responsavel, registro: o.registro, cor: o.cor };
+        }
+      } catch (e) { console.error("marca do escritório indisponível:", (e as Error)?.message); }
+    }
+    const entradaPrancha = { polygon: p.polygon, raio: p.raio, endereco, base, pois: lugares.pois, fonte: lugares.fonte, marca };
     const svg = montarPrancha(entradaPrancha);
     resultados.push({ buf: await renderPrancha(svg), ext: "png", label: "Mapa de situação (prancha)" });
     if (p.vetor) resultados.push({ buf: Buffer.from(svg), ext: "svg", label: "Mapa de situação (SVG vetorial)" });

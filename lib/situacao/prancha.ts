@@ -8,7 +8,9 @@ import { distM, escolherLugares, GRUPOS, OsmEl, Poi } from "./dados";
  * porque o renderizador de SVG do sharp (librsvg) não suporta <textPath>.
  */
 export type Endereco = { logradouro?: string; numero?: string; quadra?: string; bairro?: string; cidade?: string; uf?: string; cep?: string };
-export type PranchaIn = { polygon: LatLon[]; raio: number; endereco: Endereco; base: OsmEl[]; pois: Poi[]; fonte: "osm" | "google" };
+/** Marca do escritório na prancha: logo e nome (básica) ou também responsável técnico e cor de destaque (completa). `logo` é um data URI PNG. */
+export type Marca = { nivel: "basica" | "completa"; nome?: string; logo?: string; responsavel?: string; registro?: string; cor?: string };
+export type PranchaIn = { polygon: LatLon[]; raio: number; endereco: Endereco; base: OsmEl[]; pois: Poi[]; fonte: "osm" | "google"; marca?: Marca };
 
 const esc = (s: unknown) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const FONT = "Segoe UI, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans-serif";
@@ -179,11 +181,17 @@ export function montarPrancha(inp: PranchaIn): string {
   // ---------------- painel lateral ----------------
   const e = inp.endereco;
   const PXL = MX + MW + 40, PW = W - PXL - 40;
+  const ACENTO = inp.marca?.nivel === "completa" && /^#[0-9a-f]{6}$/i.test(inp.marca.cor || "") ? inp.marca.cor! : "#d6402f";
   let y = 52, pn = "";
-  const sec = (t: string) => { y += 10; pn += `<text x="${PXL}" y="${y}" font-size="12.5" letter-spacing="2.2" font-weight="700" fill="#d6402f">${t}</text><line x1="${PXL}" y1="${y + 8}" x2="${PXL + PW}" y2="${y + 8}" stroke="#ddd6c8"/>`; y += 30; };
+  if (inp.marca && (inp.marca.logo || inp.marca.nome)) {
+    if (inp.marca.logo) { pn += `<image href="${inp.marca.logo}" x="${PXL}" y="${y - 22}" width="300" height="70" preserveAspectRatio="xMinYMid meet"/>`; y += 58; }
+    if (inp.marca.nome) { pn += `<text x="${PXL}" y="${y + 6}" font-size="21" font-weight="700" fill="#1f1d1a">${esc(inp.marca.nome)}</text>`; y += 34; }
+    pn += `<line x1="${PXL}" y1="${y}" x2="${PXL + PW}" y2="${y}" stroke="#ddd6c8"/>`; y += 34;
+  }
+  const sec = (t: string) => { y += 10; pn += `<text x="${PXL}" y="${y}" font-size="12.5" letter-spacing="2.2" font-weight="700" fill="${ACENTO}">${t}</text><line x1="${PXL}" y1="${y + 8}" x2="${PXL + PW}" y2="${y + 8}" stroke="#ddd6c8"/>`; y += 30; };
   const lin = (t: string, o: { x?: number; s?: number; b?: boolean; c?: string; h?: number } = {}) => { pn += `<text x="${PXL + (o.x || 0)}" y="${y}" font-size="${o.s || 16}" ${o.b ? 'font-weight="700"' : ""} fill="${o.c || "#1f1d1a"}">${esc(t)}</text>`; y += o.h || 23; };
   const titulo = [e.logradouro, quadraNum ? `Qd. ${quadraNum}` : ""].filter(Boolean).join(", ") || "Mapa de situação";
-  pn += `<text x="${PXL}" y="${y}" font-size="14" letter-spacing="4" font-weight="700" fill="#d6402f">MAPA DE SITUAÇÃO</text>`; y += 38;
+  pn += `<text x="${PXL}" y="${y}" font-size="14" letter-spacing="4" font-weight="700" fill="${ACENTO}">MAPA DE SITUAÇÃO</text>`; y += 38;
   pn += `<text x="${PXL}" y="${y}" font-size="${titulo.length > 28 ? 24 : 30}" font-family="${SERIF}" fill="#1f1d1a">${esc(titulo)}</text>`; y += 12;
   sec("1 · IDENTIFICAÇÃO DO LOTE");
   pn += `<rect x="${PXL}" y="${y - 16}" width="34" height="22" fill="url(#hach)" fill-opacity="0.7" stroke="#d6402f" stroke-width="3"/>`; lin("Lote do projeto (destacado em vermelho)", { x: 48 });
@@ -221,6 +229,12 @@ export function montarPrancha(inp: PranchaIn): string {
     if (lgx + w > PXL + PW) { lgx = PXL; lgy += 24; }
     pn += `<circle cx="${lgx + 8}" cy="${lgy - 5}" r="7" fill="${cor}"/><text x="${lgx + 22}" y="${lgy}" font-size="14" fill="#4b463d">${esc(nome)}</text>`;
     lgx += w;
+  }
+  if (inp.marca?.nivel === "completa" && (inp.marca.responsavel || inp.marca.registro)) {
+    y = lgy + 24;
+    sec("RESPONSÁVEL TÉCNICO");
+    if (inp.marca.responsavel) lin(inp.marca.responsavel, { b: true });
+    if (inp.marca.registro) lin(inp.marca.registro, { s: 14.5, c: "#4b463d" });
   }
   const fonte = inp.fonte === "google" ? "Base: © colaboradores do OpenStreetMap (ODbL). Locais: Google Places." : "Base e locais: © colaboradores do OpenStreetMap (ODbL).";
   pn += `<text x="${PXL}" y="${H - 66}" font-size="12" fill="#8a8372">${esc(fonte)}</text>

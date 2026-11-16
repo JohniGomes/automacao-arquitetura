@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { env } from "./config";
-import { DATA_DIR, db, Generation, Payment, PlanFields, Project, save, SupportMsg, Tx, uid, User } from "./db";
+import { DATA_DIR, db, Escritorio, Generation, Payment, PlanFields, Project, save, SupportMsg, Tx, uid, User } from "./db";
 
 /** Camada de dados. Produção = Supabase (Postgres + Storage). Desenvolvimento sem Supabase = arquivos locais (data/). */
 export interface Store {
@@ -40,6 +40,9 @@ export interface Store {
   setGenMeta(id: string, userId: string, meta: { favorite?: boolean; projectId?: string | null }): Promise<Generation | null>;
   /** mensagem para o suporte (lida pelo dono do app no banco) */
   addSupport(m: { userId: string; email: string; subject: string; message: string }): Promise<void>;
+  /** marca do escritório do usuário (null se ainda não preencheu ou se o SQL novo não foi executado) */
+  getOffice(userId: string): Promise<Escritorio | null>;
+  saveOffice(o: Escritorio): Promise<void>;
   putFile(userId: string, name: string, data: Buffer): Promise<void>;
   getFile(userId: string, name: string): Promise<Buffer | null>;
   /** URL temporária para o navegador baixar/streamar direto do Storage; null no modo local */
@@ -105,6 +108,12 @@ const localStore: Store = {
   async listGens(userId) { return db().generations.filter((g) => g.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
   async listTxs(userId, limit) { return db().txs.filter((t) => t.userId === userId).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit); },
   async staleGens() { return db().generations.filter((g) => g.status === "queued" || g.status === "running"); },
+  async getOffice(userId) { return db().offices!.find((o) => o.userId === userId) ?? null; },
+  async saveOffice(o) {
+    const list = db().offices!, i = list.findIndex((x) => x.userId === o.userId);
+    if (i >= 0) list[i] = o; else list.push(o);
+    save();
+  },
   async listProjects(userId) { return db().projects.filter((p) => p.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
   async getProject(id, userId) { return db().projects.find((p) => p.id === id && p.userId === userId) ?? null; },
   async createProject(userId, name) {
@@ -155,9 +164,10 @@ const toGen = (r: any): Generation => ({
   mock: r.mock, error: r.error ?? undefined, usage: r.usage ?? { images: 0, videoClips: 0 },
   projectId: r.project_id ?? null, favorite: r.favorite ?? false,
 });
+const toOffice = (r: any): Escritorio => ({ userId: r.user_id, nome: r.nome ?? "", responsavel: r.responsavel ?? "", registro: r.registro ?? "", cor: r.cor ?? "", logo: r.logo ?? null });
 const toProject = (r: any): Project => ({ id: r.id, userId: r.user_id, name: r.name, createdAt: r.created_at });
 /** erro de coluna/tabela inexistente: o SQL novo (supabase/schema.sql) ainda não foi executado */
-const missingSchema = (e: { message: string } | null) => !!e && /project_id|favorite|projects|schema cache|does not exist/i.test(e.message);
+const missingSchema = (e: { message: string } | null) => !!e && /project_id|favorite|projects|offices|shares|schema cache|does not exist/i.test(e.message);
 
 const supabaseStore: Store = {
   kind: "supabase",
@@ -262,6 +272,17 @@ const supabaseStore: Store = {
     const { data, error } = await sb().from("generations").select("*").in("status", ["queued", "running"]);
     check(error, "staleGens");
     return (data ?? []).map(toGen);
+  },
+  async getOffice(userId) {
+    const { data, error } = await sb().from("offices").select("*").eq("user_id", userId).maybeSingle();
+    if (missingSchema(error)) return null;
+    check(error, "getOffice");
+    return data ? toOffice(data) : null;
+  },
+  async saveOffice(o) {
+    const { error } = await sb().from("offices").upsert({ user_id: o.userId, nome: o.nome, responsavel: o.responsavel, registro: o.registro, cor: o.cor, logo: o.logo, updated_at: new Date().toISOString() });
+    if (missingSchema(error)) throw new Error("A marca do escritório ainda não está disponível: execute o SQL novo (supabase/migracao-escritorio.sql) no Supabase.");
+    check(error, "saveOffice");
   },
   async listProjects(userId) {
     const { data, error } = await sb().from("projects").select("*").eq("user_id", userId).order("created_at", { ascending: false });

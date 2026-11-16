@@ -1,7 +1,9 @@
 import { currentUser } from "@/lib/auth";
 import { activePlan } from "@/lib/plans";
 import { getLang, getT, getTheme } from "@/lib/i18n-server";
+import Link from "next/link";
 import AccountView from "@/components/AccountView";
+import { rulesOf } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +20,7 @@ export default async function Conta() {
     <>
       <h1>{t("Conta")}</h1>
       <AccountView name={u.name} email={u.email} credits={u.credits} planLine={planLine} theme={await getTheme()} />
+      <div className="card"><h2>{t("Marca do escritório")}</h2><p className="small muted">{t("Aparece nas pranchas do mapa de situação.")}</p><Link href={rulesOf(u).marcaEscritorio === "nenhuma" ? "/app/creditos" : "/app/escritorio"} className="chip on">{rulesOf(u).marcaEscritorio === "nenhuma" ? t("Ver os planos") : t("Marca do escritório")}</Link></div>
     </>
   );
 }
