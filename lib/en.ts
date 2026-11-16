@@ -814,6 +814,8 @@ export const EN: Record<string, string> = {
   "Não foi possível buscar o endereço.": "We could not look up the address.",
   "Modo de teste: este servidor está sem a chave do Google Maps, então o satélite e a localização são fictícios.": "Test mode: this server has no Google Maps key, so the satellite and location are fake.",
   "Ver mais": "Show more",
+  "15% de desconto em créditos avulsos": "15% off extra credits",
+  "25% de desconto em créditos avulsos": "25% off extra credits",
   "1 link de apresentação para o cliente": "1 presentation link for the client",
   "Links de apresentação ilimitados": "Unlimited presentation links",
   "Compartilhar com o cliente": "Share with the client",
