@@ -2,7 +2,9 @@ import { COSTS } from "../costs";
 import { LatLon, polygonStats, projector, selfIntersects } from "./geo";
 
 /** Lê e valida o pedido do mapa de situação (formulário multipart do /api/jobs). Lança Error com mensagem para o usuário. */
-export function lerPedidoSituacao(form: FormData) {
+export type LimitesMapa = { alcanceMapaM: number; lugaresAerea: number; pranchaSvg: boolean };
+
+export function lerPedidoSituacao(form: FormData, limites: LimitesMapa) {
   const str = (k: string) => String(form.get(k) || "").trim();
   const modo = str("modo");
   if (modo !== "prancha" && modo !== "aerea" && modo !== "ambos") throw new Error("Escolha o que gerar: a prancha, a vista aérea ou as duas.");
@@ -23,6 +25,7 @@ export function lerPedidoSituacao(form: FormData) {
   if (selfIntersects(m)) throw new Error("Os lados do lote se cruzam. Ajuste os pontos para formar uma figura simples.");
 
   const raio = [300, 600, 1000].includes(Number(str("raio"))) ? Number(str("raio")) : 600;
+  if (raio > limites.alcanceMapaM) throw new Error("O alcance de 1 km faz parte dos planos Profissional e Max. Escolha 300 ou 600 m.");
   const endereco = {
     logradouro: str("logradouro").slice(0, 80), numero: str("numero").slice(0, 12), quadra: str("quadra").slice(0, 10),
     bairro: str("bairro").slice(0, 60), cidade: str("cidade").slice(0, 60), uf: str("uf").slice(0, 2).toUpperCase(), cep: str("cep").slice(0, 12),
@@ -30,5 +33,5 @@ export function lerPedidoSituacao(form: FormData) {
   const cost = modo === "ambos" ? COSTS.mapaAmbos : modo === "prancha" ? COSTS.mapaPrancha : COSTS.mapa;
   const rotulo = { prancha: "prancha", aerea: "vista aérea", ambos: "prancha e vista aérea" }[modo];
   const onde = [endereco.logradouro || "lote marcado", endereco.quadra ? `Qd. ${endereco.quadra}` : ""].filter(Boolean).join(", ");
-  return { params: { modo, polygon, raio, endereco }, cost, summary: `Mapa de situação — ${onde} (${rotulo})` };
+  return { params: { modo, polygon, raio, endereco, maxLugares: limites.lugaresAerea, vetor: limites.pranchaSvg }, cost, summary: `Mapa de situação — ${onde} (${rotulo})` };
 }

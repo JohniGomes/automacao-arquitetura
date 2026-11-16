@@ -49,6 +49,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ name: st
     headers: {
       "Content-Type": contentType(name),
       "Cache-Control": "private, max-age=3600",
+      ...(/\.svg$/i.test(name) ? { "Content-Security-Policy": "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:", "X-Content-Type-Options": "nosniff" } : {}),
       ...(dl ? { "Content-Disposition": `attachment; filename="${name.replace(/[^A-Za-z0-9._-]/g, "_")}"` } : {}),
     },
   });

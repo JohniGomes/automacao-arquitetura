@@ -25,6 +25,8 @@ export const env = {
   },
   /** e-mail do suporte: cada mensagem enviada em /suporte também chega aqui (quando o envio estiver configurado) */
   supportEmail: process.env.SUPPORT_EMAIL || "",
+  /** WhatsApp do suporte prioritário (plano Max), só dígitos com DDI e DDD */
+  supportWhatsapp: (process.env.SUPPORT_WHATSAPP || "5562981834833").replace(/\D/g, ""),
 };
 
 const flag = () => (process.env.MOCK_MODE || "auto").toLowerCase();
