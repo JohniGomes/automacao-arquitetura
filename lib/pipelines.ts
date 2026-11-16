@@ -10,7 +10,7 @@ import { composeEdit } from "./compose";
 import { reverse, satellite } from "./maps";
 import { buscarDados } from "./situacao/dados";
 import { Endereco, montarPrancha, renderPrancha } from "./situacao/prancha";
-import { comAtribuicao, montarEntradaAerea, PROMPT_AEREA } from "./situacao/aerea";
+import { comAtribuicao, comLegenda, montarEntradaAerea, PROMPT_AEREA } from "./situacao/aerea";
 import type { LatLon } from "./situacao/geo";
 import { AMBIENTES, AmbienteKey, CENAS, CenaDef, CenaKey, PROMPT_BIBLIA, PROMPT_MAPA, promptLuz, promptMoodboard, REF_PREFIX } from "./prompts";
 import { refund } from "./credits";
@@ -141,7 +141,7 @@ async function situacao(c: Ctx) {
       const prompt = PROMPT_AEREA(ent.pins);
       c.gen.prompt = snap(c, prompt, { modo: p.modo, zoomSatelite: ent.zoom });
       const out = await makeImage(c, "Vista aérea ilustrativa", prompt, [{ data: ent.marcada, mime: "image/jpeg" }], "1:1");
-      resultados.push({ buf: await comAtribuicao(out), ext: "jpg", label: "Vista aérea ilustrativa" });
+      resultados.push({ buf: await comLegenda(await comAtribuicao(out), ent.pins), ext: "jpg", label: "Vista aérea ilustrativa" });
     } catch (e) {
       if (p.modo !== "ambos") throw e;
       console.error("vista aérea falhou (a prancha foi entregue):", (e as Error)?.message);
