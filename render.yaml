@@ -54,6 +54,10 @@ services:
         sync: false
       - key: GOOGLE_MAPS_API_KEY
         sync: false
+      - key: NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY
+        sync: false   # chave do NAVEGADOR (Maps JavaScript API, restrita por site). Só vale no próximo build. Vazia = satélite estático
+      - key: SITUACAO_POIS
+        value: osm   # lugares da prancha: osm (dados abertos) ou google (Places; veja o README)
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET

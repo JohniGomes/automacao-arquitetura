@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
-import { geocode } from "@/lib/maps";
+import { geocode } from "@/lib/maps"; import { mockMaps } from "@/lib/config";
 import { limited } from "@/lib/ratelimit";
 
 /** Endereço digitado → coordenada e partes do endereço (a chave do Google fica no servidor; cada chamada é cobrada, então tem limite por usuário). */
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   try {
     const g = await geocode(address);
     if (!g) return NextResponse.json({ error: "Não encontramos esse endereço. Tente incluir a cidade e o estado." }, { status: 404 });
-    return NextResponse.json(g);
+    return NextResponse.json({ ...g, mock: mockMaps() });
   } catch (e: any) {
     console.error("geocode:", e?.message);
     return NextResponse.json({ error: "Não foi possível buscar o endereço agora." }, { status: 502 });
