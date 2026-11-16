@@ -110,8 +110,18 @@ async function situacao(c: Ctx) {
   progress(c, 14, "Buscando ruas, quadras e lugares do entorno…");
   // um pedido de cada vez e só a área do mapa (caixa): o servidor público do Overpass recusa quem pede demais
   const area = p.raio * 1.08 + 80;
-  const dados = await buscarDados(lat0, lon0, area, p.raio <= 300);
-  const base = dados.base, lugares = { pois: dados.pois, fonte: dados.fonte };
+  // sem os dados de mapa não há prancha, mas a vista aérea (só Google e IA) não depende deles: só a prancha falha
+  let dados: Awaited<ReturnType<typeof buscarDados>> | null = null;
+  try { dados = await buscarDados(lat0, lon0, area, p.raio <= 300); }
+  catch (e) { if (p.modo === "prancha") throw e; console.error("dados do mapa indisponíveis; segue só com a vista aérea:", (e as Error)?.message); }
+  const base = dados?.base ?? [], lugares = { pois: dados?.pois ?? [], fonte: dados?.fonte ?? ("osm" as const) };
+  if (!dados) {
+    quer.prancha = false;
+    if (p.modo === "ambos") {
+      await refundPart(c, COSTS.mapaAmbos - COSTS.mapa, "Estorno: prancha não gerada");
+      c.gen.message = "Concluído. A prancha não pôde ser gerada (servidores de mapas ocupados) — os créditos dessa parte foram devolvidos.";
+    }
+  }
 
   const resultados: { buf: Buffer; ext: string; label: string }[] = [];
   let entrada: { buf: Buffer; ext: string; label: string } | null = null;
