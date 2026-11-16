@@ -142,7 +142,7 @@ export function Results({ gen }: { gen: Gen }) {
   return (
     <div className="results">
       {gen.mock && <p className="warn">{t("Modo mock: estas são imagens/vídeos de exemplo, não saídas reais de IA.")}</p>}
-      {gen.type === "mapa" && <p className="attr">{t("Imagens de satélite © Google · Dados do mapa © Google e provedores. Uso sujeito aos Termos da Google Maps Platform.")}</p>}
+      {gen.type === "mapa" && gen.outputs.some((o) => /aérea|Satélite/.test(o.label || "")) && <p className="attr">{t("Imagens de satélite © Google · Dados do mapa © Google e provedores. Uso sujeito aos Termos da Google Maps Platform.")}</p>}
       <div className="grid">
         {gen.outputs.map((o) => (
           <figure key={o.file}>

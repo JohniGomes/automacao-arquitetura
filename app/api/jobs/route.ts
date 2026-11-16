@@ -18,6 +18,7 @@ import { env, mockGemini, mockMaps } from "@/lib/config";
 import { store } from "@/lib/store";
 import { pub } from "@/lib/public";
 import { AMBIENTES, AmbienteKey, CENAS, CenaKey, LUZES, LuzKey } from "@/lib/prompts";
+import { lerPedidoSituacao } from "@/lib/situacao/pedido";
 
 export const runtime = "nodejs";
 const bad = (m: string, s = 400) => NextResponse.json({ error: m }, { status: s });
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
   };
 
   try {
-    if (type === "mapa") {
+    if (type === "mapa" && str("modo")) { ({ params, cost, summary } = lerPedidoSituacao(form)); } else if (type === "mapa") {
       const address = str("address").slice(0, 200);
       const up = await readImage(u.id, form, "upload");
       if (up) images.upload = up;
@@ -217,7 +218,7 @@ export async function POST(req: NextRequest) {
   const gen: Generation = {
     id, userId: u.id, type, status: "queued", progress: 0, message: "Na fila…", createdAt: new Date().toISOString(),
     summary, outputs: [], cost, usage: { images: 0, videoClips: 0 }, projectId, favorite: false,
-    mock: mockGemini() || (type === "mapa" && mockMaps() && !images.upload),
+    mock: str("modo") === "prancha" ? false : mockGemini() || (type === "mapa" && mockMaps() && !images.upload),
   };
   try { await store.saveGen(gen); }
   catch (e) {
