@@ -8,7 +8,7 @@ import { concatClips, imageToClip, Move } from "./ffmpeg";
 import { mockEdit, mockImage } from "./mock";
 import { composeEdit } from "./compose";
 import { reverse, satellite } from "./maps";
-import { buscarBase, buscarLugares } from "./situacao/dados";
+import { buscarDados } from "./situacao/dados";
 import { Endereco, montarPrancha, renderPrancha } from "./situacao/prancha";
 import { comAtribuicao, montarEntradaAerea, PROMPT_AEREA } from "./situacao/aerea";
 import type { LatLon } from "./situacao/geo";
@@ -108,7 +108,10 @@ async function situacao(c: Ctx) {
   const endereco: Endereco = { bairro: rev.bairro, cidade: rev.cidade, uf: rev.uf, cep: rev.cep, ...(digitado.logradouro ? {} : { logradouro: rev.logradouro, numero: rev.numero }), ...digitado };
   // o logradouro/número que o usuário digitou prevalecem; o resto vem do geocoder quando não foi informado
   progress(c, 14, "Buscando ruas, quadras e lugares do entorno…");
-  const [base, lugares] = await Promise.all([buscarBase(lat0, lon0, p.raio * 1.5), buscarLugares(lat0, lon0, p.raio * 1.4)]);
+  // um pedido de cada vez e só a área do mapa (caixa): o servidor público do Overpass recusa quem pede demais
+  const area = p.raio * 1.08 + 80;
+  const dados = await buscarDados(lat0, lon0, area, p.raio <= 300);
+  const base = dados.base, lugares = { pois: dados.pois, fonte: dados.fonte };
 
   const resultados: { buf: Buffer; ext: string; label: string }[] = [];
   let entrada: { buf: Buffer; ext: string; label: string } | null = null;
