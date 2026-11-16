@@ -19,8 +19,6 @@ const fmtDist = (d: number) => (d < 1000 ? `${Math.round(d / 10) * 10} m` : `${(
 export type PinAereo = { n: number; rotulo: string; grupo: Grupo; nome: string; d: number };
 export type EntradaAerea = { marcada: Buffer; pins: PinAereo[]; zoom: number };
 
-const MAX_PINS = 9;
-
 /** Maior zoom (mais detalhe) em que o lote cabe com folga e entram os lugares de referência. */
 function escolherZoom(poly: LatLon[], centro: LatLon, pois: Poi[]): number {
   const pj = projector(centro[0], centro[1]);
@@ -36,12 +34,12 @@ function escolherZoom(poly: LatLon[], centro: LatLon, pois: Poi[]): number {
   return 15;
 }
 
-export async function montarEntradaAerea(poly: LatLon[], pois: Poi[]): Promise<EntradaAerea> {
+export async function montarEntradaAerea(poly: LatLon[], pois: Poi[], maxPins = 9): Promise<EntradaAerea> {
   const lat0 = poly.reduce((s, p) => s + p[0], 0) / poly.length, lon0 = poly.reduce((s, p) => s + p[1], 0) / poly.length;
   const centro: LatLon = [lat0, lon0];
   const pj = projector(lat0, lon0);
   // os lugares mais próximos, no máximo 2 de cada tipo
-  const escolhidos = escolherLugares(pois, centro, 800, MAX_PINS, 2);
+  const escolhidos = escolherLugares(pois, centro, 800, maxPins, 2);
   const zoom = escolherZoom(poly, centro, escolhidos);
   const m = mpp(lat0, zoom);
   const toPx = (lat: number, lon: number): [number, number] => { const [x, y] = pj.toM(lat, lon); return [640 + x / m, 640 - y / m]; };

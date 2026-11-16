@@ -97,7 +97,7 @@ async function mapa(c: Ctx): Promise<void> { if (c.input.params.modo) return sit
  * falhar, a prancha já entregue fica e só o custo da aérea volta.
  */
 async function situacao(c: Ctx) {
-  const p = c.input.params as { modo: "prancha" | "aerea" | "ambos"; polygon: LatLon[]; raio: number; endereco: Endereco };
+  const p = c.input.params as { modo: "prancha" | "aerea" | "ambos"; polygon: LatLon[]; raio: number; endereco: Endereco; maxLugares?: number; vetor?: boolean };
   const lat0 = p.polygon.reduce((s, q) => s + q[0], 0) / p.polygon.length, lon0 = p.polygon.reduce((s, q) => s + q[1], 0) / p.polygon.length;
   const quer = { prancha: p.modo !== "aerea", aerea: p.modo !== "prancha" };
 
@@ -130,12 +130,13 @@ async function situacao(c: Ctx) {
     progress(c, 40, "Desenhando a prancha do mapa de situação…");
     const svg = montarPrancha({ polygon: p.polygon, raio: p.raio, endereco, base, pois: lugares.pois, fonte: lugares.fonte });
     resultados.push({ buf: await renderPrancha(svg), ext: "png", label: "Mapa de situação (prancha)" });
+    if (p.vetor) resultados.push({ buf: Buffer.from(svg), ext: "svg", label: "Mapa de situação (SVG vetorial)" });
   }
 
   if (quer.aerea) {
     try {
       progress(c, 55, "Buscando a imagem de satélite (Google Maps)…");
-      const ent = await montarEntradaAerea(p.polygon, lugares.pois);
+      const ent = await montarEntradaAerea(p.polygon, lugares.pois, p.maxLugares ?? 5);
       entrada = { buf: ent.marcada, ext: "jpg", label: "Satélite com marcações (entrada)" };
       progress(c, 70, "Gerando a vista aérea ilustrativa…");
       const prompt = PROMPT_AEREA(ent.pins);

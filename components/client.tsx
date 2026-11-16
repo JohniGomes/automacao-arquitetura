@@ -192,7 +192,7 @@ export function ImageInput({ label, value, onChange, history = true, hint, showP
     setShown(5);
     if (!open) {
       const j = await fetch("/api/jobs").then((r) => r.json());
-      setFiles((j.generations as Gen[]).filter((g) => g.status === "done").flatMap((g) => g.outputs.filter((o) => o.kind === "image" && !o.label?.includes("entrada")).map((o) => ({ file: o.file, label: o.label }))));
+      setFiles((j.generations as Gen[]).filter((g) => g.status === "done").flatMap((g) => g.outputs.filter((o) => o.kind === "image" && !o.label?.includes("entrada") && !/\.svg$/i.test(o.file)).map((o) => ({ file: o.file, label: o.label }))));
     }
   }
   return (

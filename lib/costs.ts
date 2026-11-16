@@ -27,11 +27,11 @@ export const PACOTES = [
 /** Assinaturas mensais (não há plano anual). Os créditos do mês não acumulam além de 1 mês de saldo. */
 export const PLANOS = [
   { id: "essencial", nome: "Essencial", preco: 49.9, creditosMes: 500, destaque: false,
-    itens: ["Todas as ferramentas", "3 projetos ativos", "Histórico de 30 dias", "Fila normal"] },
+    itens: ["Todas as ferramentas", "3 projetos ativos", "Histórico de 30 dias", "Fila normal", "Mapa de situação até 600 m, vista aérea com 5 lugares", "2 gerações ao mesmo tempo", "Suporte por e-mail"] },
   { id: "profissional", nome: "Profissional", preco: 89.9, creditosMes: 1000, destaque: true,
-    itens: ["Tudo do Essencial", "Projetos ilimitados", "Histórico de 12 meses", "Fila prioritária", "Render em 2K", "Download sem marca d'água", "Licença de uso comercial"] },
+    itens: ["Tudo do Essencial", "Projetos ilimitados", "Histórico de 12 meses", "Fila prioritária", "Render em 2K", "Download sem marca d'água", "Licença de uso comercial", "Mapa de situação até 1 km, vista aérea com 9 lugares", "Prancha do mapa em SVG vetorial", "3 gerações ao mesmo tempo", "Suporte por e-mail"] },
   { id: "max", nome: "Max", preco: 129.9, creditosMes: 1500, destaque: false,
-    itens: ["Tudo do Profissional", "2 a 3 assentos de equipe (em breve)", "Filme com até 5 cenas por pedido", "Suporte prioritário", "Acesso antecipado às ferramentas novas"] },
+    itens: ["Tudo do Profissional", "Filme com até 5 cenas por pedido", "5 gerações ao mesmo tempo", "Suporte prioritário por WhatsApp", "Acesso antecipado às ferramentas novas"] },
 ] as const;
 
 export const COSTS_EDICAO = {

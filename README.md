@@ -214,3 +214,18 @@ Variáveis:
 Pontos de atenção em produção: o servidor público do Overpass pode demorar (de segundos a alguns minutos) e há cache por região por 24 h em memória; a prancha desenha texto com fontes do sistema (confira se o ambiente do Render tem fontes, como DejaVu); o uso de imagens de satélite do Google em obra derivada por IA precisa de revisão dos termos da Google Maps Platform.
 
 **Fonte dos dados do mapa.** A prancha busca ruas, quadras e lugares em duas fontes e usa a que responder: a API do OpenStreetMap (`api.openstreetmap.org`, rápida, tentada primeiro em mapas de 300 e 600 m) e o Overpass (servidores públicos, tentados primeiro no mapa de 1 km). Os servidores públicos do Overpass costumam ser lentos e podem ser inacessíveis a partir de nuvens como o Render (nos logs aparece `fetch failed` ou timeout). `OVERPASS_URL` (separados por vírgula) troca a lista de servidores por um próprio ou pago. Se nenhuma fonte responder, a prancha falha com estorno; a vista aérea não depende disso.
+
+## O que cada plano libera
+
+Tudo é definido em `lib/plans.ts` (regras) e `lib/costs.ts` (preços, créditos e a lista exibida na tela). As regras são validadas no servidor.
+
+| | Essencial | Profissional | Max |
+|---|---|---|---|
+| Mapa de situação: alcance máximo | 600 m | 1 km | 1 km |
+| Vista aérea: lugares no mapa | 5 | 9 | 9 |
+| Prancha em SVG vetorial | não | sim | sim |
+| Gerações ao mesmo tempo | 2 | 3 | 5 |
+| Filme (cenas por pedido) | 3 | 3 | 5 |
+| Suporte | e-mail | e-mail | prioritário por WhatsApp |
+
+O WhatsApp do suporte vem de `SUPPORT_WHATSAPP` (só dígitos, com DDI e DDD; padrão `5562981834833`) e aparece na tela de Suporte só para quem tem o plano Max.
