@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Gen } from "@/components/client";
 import GenCard, { Proj } from "@/components/GenCard";
+import ShareProject from "@/components/ShareProject";
 import { useT } from "@/components/I18nProvider";
 
 export default function Projeto() {
@@ -69,6 +70,7 @@ export default function Projeto() {
         )}
       </div>
       {erro && <p className="err">{erro}</p>}
+      <ShareProject projectId={id} />
       {mine.length === 0 ? (
         <p className="muted">{t("Este projeto ainda não tem gerações. Escolha-o no painel de qualquer ferramenta, no campo Projeto.")}</p>
       ) : mine.map((g) => <GenCard key={g.id} gen={g} projects={projects} onChange={(u) => setGens((a) => a.map((x) => (x.id === u.id ? u : x)))} />)}

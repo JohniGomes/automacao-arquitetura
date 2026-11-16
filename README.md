@@ -227,6 +227,7 @@ Tudo é definido em `lib/plans.ts` (regras) e `lib/costs.ts` (preços, créditos
 | Prancha em DXF (AutoCAD, UTM SIRGAS 2000) | não | não | sim |
 | Desconto nos créditos avulsos | 0% | 15% | 25% |
 | Marca do escritório na prancha | não | logo e nome | + responsável técnico e cor |
+| Links de apresentação para o cliente | não | 1 | ilimitados |
 | Gerações ao mesmo tempo | 2 | 3 | 5 |
 | Filme (cenas por pedido) | 3 | 3 | 5 |
 | Suporte | e-mail | e-mail | prioritário por WhatsApp |
