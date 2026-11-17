@@ -113,9 +113,6 @@ export default async function Landing() {
             </div>
             <p className="lp-sub lp-subr">{t("Apresentar um projeto com qualidade sempre exigiu máquinas caras e muito tempo. Com a IA do Croqui você otimiza o seu tempo e ganha um salto de qualidade e agilidade nas apresentações.")}</p>
           </div>
-          <div className="lp-shot">
-            <img src="/landing/app-desktop.jpg" width={800} height={508} alt={t("O Croqui no computador")} loading="lazy" />
-          </div>
         </section>
 
         {temVideo && (
