@@ -205,12 +205,6 @@ export default async function Landing() {
               </div>
             ))}
           </div>
-          <div className="lp-packs">
-            <div><h3>{t("Precisa só de alguns créditos?")}</h3><p>{t("Créditos avulsos: Pix ou cartão, sem assinatura.")}</p></div>
-            <ul>
-              {PACOTES.map((p) => <li key={p.id}><b>{p.creditos}</b> {t("créditos")} <span>{brl(p.preco)}</span></li>)}
-            </ul>
-          </div>
         </section>
 
         {/* ---------- perguntas ---------- */}

@@ -36,10 +36,7 @@ export default function Benefits() {
               </div>
               <div className="lp-mac-base"><i /></div>
             </div>
-            <div className="lp-iph">
-              <span className="lp-iph-island" />
-              <img src="/landing/app-iphone.jpg" width={780} height={1688} alt={t("O Croqui no celular")} loading="lazy" />
-            </div>
+            <img className="lp-iph" src="/landing/iphone.png" width={928} height={1828} alt={t("O Croqui no celular")} loading="lazy" />
           </div>
         )}
         {a === 1 && (
