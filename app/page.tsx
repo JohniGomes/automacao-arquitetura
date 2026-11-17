@@ -52,7 +52,8 @@ type Faq = [string, string, Record<string, string | number>?];
 export default async function Landing() {
   const u = await currentUser();
   const { t } = await getT();
-  const bonus = env.signupCredits;
+  // a oferta da landing vem do que a conta realmente recebe (SIGNUP_CREDITS), em renders inteiros
+  const bonus = Math.floor(env.signupCredits / COSTS.renderPorImagem);
   const start = u ? "/app" : "/cadastro";
   const startLabel = u ? "Abrir o app" : "Criar conta grátis";
   const temVideo = fs.existsSync(path.join(process.cwd(), "public", "demo", "croqui.mp4"));
@@ -63,7 +64,7 @@ export default async function Landing() {
   const faq: Faq[] = [
     ["O que é o Croqui?", "O Croqui é uma plataforma de IA para arquitetos: gera render, moodboard, variações de luz, mapa de situação e filme do projeto a partir das suas imagens."],
     ["Preciso de um computador potente?", "Não. O processamento acontece na nuvem: basta um navegador, no computador ou no celular."],
-    ["O Croqui tem teste grátis?", bonus > 0 ? "Ao criar a conta você recebe créditos de boas-vindas para testar, sem cartão de crédito." : "Criar a conta é grátis e não pede cartão de crédito. Você paga só pelos créditos que usar."],
+    ["O Croqui tem teste grátis?", bonus > 0 ? "Sim. Ao criar a conta você ganha renders grátis para testar, sem cartão de crédito." : "Criar a conta é grátis e não pede cartão de crédito. Você paga só pelos créditos que usar."],
     ["Quanto custa?", "Os planos mensais vão de {a} a {b} por mês. Também há créditos avulsos a partir de {c}.", { a: brl(Math.min(...precos)), b: brl(Math.max(...precos)), c: brl(Math.min(...PACOTES.map((p) => p.preco))) }],
     ["Funciona com SketchUp, Revit e ArchiCAD?", "Sim. O Croqui trabalha a partir de imagens: envie o print do seu modelo, seja qual for o programa em que ele foi feito."],
     ["Preciso saber escrever prompts?", "Não. Você escolhe estilo, luz, ambiente e elementos nas opções de cada ferramenta. Há um campo de orientação adicional, mas ele é opcional."],
@@ -92,7 +93,7 @@ export default async function Landing() {
               <Link className="btn lg" href={start}>{t(startLabel)}</Link>
             </div>
             <p className="lp-note">
-              {bonus > 0 ? t("Ganhe {n} créditos de boas-vindas ao criar a conta.", { n: bonus }) : t("Criar a conta é grátis.")}
+              {bonus === 1 ? t("Ganhe 1 render grátis ao criar a conta.") : bonus > 1 ? t("Ganhe {n} renders grátis ao criar a conta.", { n: bonus }) : t("Criar a conta é grátis.")}
               <br /><b>{t("Sem necessidade de cartão de crédito")}</b>
             </p>
             <div className="lp-hero-vis">
