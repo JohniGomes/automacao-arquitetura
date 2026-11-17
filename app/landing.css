@@ -111,25 +111,7 @@ section[id] { scroll-margin-top: 84px; }
 .lp-note b { color: #fff; font-weight: var(--weight-medium); }
 
 /* celular com cartões de vidro flutuando */
-.lp-hero-vis { position: relative; width: 100%; max-width: 940px; margin-top: var(--space-12); display: grid; justify-items: center; }
-.lp-phone { position: relative; width: min(300px, 74vw); aspect-ratio: 780 / 1388; padding: 10px; border-radius: 44px; background: linear-gradient(160deg, #3a3342, #0d0a10); box-shadow: 0 50px 120px -20px rgba(0, 0, 0, .85), 0 0 90px -10px rgba(240, 100, 80, .45), inset 0 0 0 1px rgba(255, 255, 255, .2); }
-.lp-phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 34px; background: #fff; }
-.lp-float { position: absolute; z-index: 3; width: 232px; padding: var(--space-4); border-radius: 20px; text-align: left; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .24); -webkit-backdrop-filter: blur(22px) saturate(160%); backdrop-filter: blur(22px) saturate(160%); box-shadow: 0 24px 60px -18px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .22); animation: lp-bob 7s ease-in-out infinite alternate; }
-.lp-float .t { display: flex; align-items: center; gap: var(--space-3); }
-.lp-float .t b { display: block; font-weight: var(--weight-medium); color: #fff; font-size: var(--text-base); line-height: 1.25; }
-.lp-float .t small { display: block; margin-top: 2px; font-size: var(--text-sm); color: var(--lp-mute); line-height: 1.3; }
-.lp-float.f1 { left: 2%; top: 16%; }
-.lp-float.f2 { left: 8%; bottom: 14%; animation-delay: -2.5s; animation-duration: 8.5s; }
-.lp-float.f3 { right: 0; top: 10%; width: 300px; animation-delay: -4s; animation-duration: 9s; }
-@keyframes lp-bob { from { transform: translateY(-8px); } to { transform: translateY(10px); } }
-.lp-planlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.lp-planlist li { display: flex; align-items: center; gap: var(--space-2); padding: 8px 10px; min-width: 0; border-radius: 12px; font-size: var(--text-sm); color: var(--lp-ink); background: rgba(255, 255, 255, .06); }
-.lp-planlist li::before { content: ""; width: 14px; height: 14px; flex: none; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .45); }
-.lp-planlist li.on { background: rgba(255, 122, 89, .22); border: 1px solid rgba(255, 150, 110, .55); }
-.lp-planlist li.on::before { background: #fff; border-color: #FF9A6B; box-shadow: inset 0 0 0 3px #E2573A; }
-.lp-planlist span { margin-left: auto; font-weight: var(--weight-medium); white-space: nowrap; }
-.lp-float .ti { flex: none; }
-.lp-stagehead { margin: var(--space-16) 0 var(--space-6); }
+.lp-stagehead { margin: var(--space-12) 0 var(--space-6); }
 .lp-stage { width: 100%; text-align: left; position: relative; }
 .lp-stage::before { content: ""; position: absolute; inset: -30px; z-index: -1; border-radius: 40px; background: var(--lp-grad); opacity: .22; filter: blur(60px); }
 .lp-stage .house { aspect-ratio: 1920 / 1072; width: 100%; border-radius: 24px; border: 1px solid var(--lp-line-2); box-shadow: 0 40px 100px -30px rgba(0, 0, 0, .8); }
@@ -292,9 +274,6 @@ section[id] { scroll-margin-top: 84px; }
   .lp-footgrid > div:first-child { grid-column: 1 / -1; }
   .lp-benvis { min-height: 0; }
   /* cartões flutuantes: viram uma coluna sob o celular */
-  .lp-hero-vis { gap: var(--space-4); }
-  .lp-float { position: static; width: 100%; max-width: 360px; animation: none; }
-  .lp-float.f3 { width: 100%; }
 }
 /* ---------- celular ---------- */
 @media (max-width: 560px) {
@@ -317,4 +296,4 @@ section[id] { scroll-margin-top: 84px; }
   .lp-aurora .b3 { width: 380px; height: 380px; }
   .lp-stagehead { margin-top: var(--space-12); }
 }
-@media (prefers-reduced-motion: reduce) { .lp-aurora i, .lp-float, .lp-menu { animation: none; } .lp-tool, .lp-who > div { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .lp-aurora i, .lp-menu { animation: none; } .lp-tool, .lp-who > div { transition: none; } }
