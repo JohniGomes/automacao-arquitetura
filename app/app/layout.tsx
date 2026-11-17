@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { getTheme } from "@/lib/i18n-server";
 import Rail from "@/components/Rail";
+import MobileTop from "@/components/MobileTop";
 import VerifyBanner from "@/components/VerifyBanner";
 import { needsVerification } from "@/lib/verify";
 
@@ -14,6 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="shell">
       <Rail name={u.name} credits={u.credits} theme={await getTheme()} />
       <div className="main">
+        <MobileTop name={u.name || u.email} credits={u.credits} />
         <div className="wrap">
           {needsVerification(u) && <VerifyBanner email={u.email} />}
           {children}

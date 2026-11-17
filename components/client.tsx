@@ -7,8 +7,8 @@ import { useToast } from "./Toast";
 
 export type Gen = {
   id: string; type: string; status: "queued" | "running" | "done" | "error"; progress: number; message: string;
-  summary: string; outputs: { file: string; kind: "image" | "video"; label?: string }[];
-  cost: number; mock: boolean; error?: string; createdAt: string; usage: { images: number; videoClips: number };
+  summary: string; outputs: { file: string; kind: "image" | "video" | "file"; label?: string }[];
+  cost: number; mock: boolean; error?: string; createdAt: string; finishedAt?: string; usage: { images: number; videoClips: number };
   projectId?: string | null; favorite?: boolean;
 };
 export type Val = File | string | null;
@@ -142,11 +142,13 @@ export function Results({ gen }: { gen: Gen }) {
   return (
     <div className="results">
       {gen.mock && <p className="warn">{t("Modo mock: estas são imagens/vídeos de exemplo, não saídas reais de IA.")}</p>}
-      {gen.type === "mapa" && <p className="attr">{t("Imagens de satélite © Google · Dados do mapa © Google e provedores. Uso sujeito aos Termos da Google Maps Platform.")}</p>}
+      {gen.type === "mapa" && gen.outputs.some((o) => /aérea|Satélite/.test(o.label || "")) && <p className="attr">{t("Imagens de satélite © Google · Dados do mapa © Google e provedores. Uso sujeito aos Termos da Google Maps Platform.")}</p>}
       <div className="grid">
         {gen.outputs.map((o) => (
           <figure key={o.file}>
-            {o.kind === "video"
+            {o.kind === "file"
+              ? <div className="filecard" style={{ display: "grid", placeItems: "center", minHeight: 120, background: "var(--card, #fbfaf6)", border: "1px solid var(--line)", borderRadius: 10, fontWeight: 700, letterSpacing: 2 }}>{(o.file.split(".").pop() || "ARQUIVO").toUpperCase()}</div>
+              : o.kind === "video"
               ? <video src={`/api/files/${o.file}`} controls preload="metadata" />
               : <button type="button" className="zoom" aria-label={t("Ampliar imagem")} onClick={() => setBig({ src: `/api/files/${o.file}`, alt: t(o.label || "") })}><img src={`/api/files/${o.file}?w=900`} alt={t(o.label || "")} loading="lazy" decoding="async" /></button>}
             <figcaption><span>{t(o.label || "")}</span><a href={`/api/files/${o.file}?dl=1`}>{t("Baixar")}</a></figcaption>
@@ -174,6 +176,8 @@ export function ImageInput({ label, value, onChange, history = true, hint, showP
   const id = useId();
   const [files, setFiles] = useState<{ file: string; label?: string }[]>([]);
   const [open, setOpen] = useState(false);
+  /** imagens do histórico à mostra: 5 de cada vez, "Ver mais" acrescenta mais 5 */
+  const [shown, setShown] = useState(5);
   const [preview, setPreview] = useState("");
   const [drag, setDrag] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -187,9 +191,10 @@ export function ImageInput({ label, value, onChange, history = true, hint, showP
 
   async function loadHistory() {
     setOpen(!open);
+    setShown(5);
     if (!open) {
       const j = await fetch("/api/jobs").then((r) => r.json());
-      setFiles((j.generations as Gen[]).filter((g) => g.status === "done").flatMap((g) => g.outputs.filter((o) => o.kind === "image" && !o.label?.includes("entrada")).map((o) => ({ file: o.file, label: o.label }))));
+      setFiles((j.generations as Gen[]).filter((g) => g.status === "done").flatMap((g) => g.outputs.filter((o) => o.kind === "image" && !o.label?.includes("entrada") && !/\.svg$/i.test(o.file)).map((o) => ({ file: o.file, label: o.label }))));
     }
   }
   return (
@@ -221,14 +226,17 @@ export function ImageInput({ label, value, onChange, history = true, hint, showP
       )}
       {history && <button type="button" className="textbtn" onClick={loadHistory} aria-expanded={open}>{t("Usar do histórico")}</button>}
       {open && (
-        <div className="thumbs">
-          {files.length === 0 && <div className="empty">{t("Nenhuma imagem no histórico ainda.")}</div>}
-          {files.map((f) => (
-            <button key={f.file} type="button" className="thumb" title={f.label} aria-label={t(f.label || "Imagem")} onClick={() => { onChange("ref:" + f.file); setOpen(false); }}>
-              <img src={`/api/files/${f.file}?w=320`} alt="" loading="lazy" decoding="async" />
-            </button>
-          ))}
-        </div>
+        <>
+          <div className="thumbs">
+            {files.length === 0 && <div className="empty">{t("Nenhuma imagem no histórico ainda.")}</div>}
+            {files.slice(0, shown).map((f) => (
+              <button key={f.file} type="button" className="thumb" title={f.label} aria-label={t(f.label || "Imagem")} onClick={() => { onChange("ref:" + f.file); setOpen(false); }}>
+                <img src={`/api/files/${f.file}?w=320`} alt="" loading="lazy" decoding="async" />
+              </button>
+            ))}
+          </div>
+          {files.length > shown && <button type="button" className="ghost" onClick={() => setShown((n) => n + 5)}>{t("Ver mais")}</button>}
+        </>
       )}
     </div>
   );

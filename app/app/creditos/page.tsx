@@ -1,7 +1,7 @@
 import { currentUser } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { COSTS, PACOTES, PLANOS } from "@/lib/costs";
-import { activePlan } from "@/lib/plans";
+import { activePlan, precoPacote, rulesOf } from "@/lib/plans";
 import { billingEnabled } from "@/lib/billing";
 import { getLang, getT } from "@/lib/i18n-server";
 import BuyButton from "./BuyButton";
@@ -9,7 +9,7 @@ import CancelPlan from "./CancelPlan";
 import PlanPicker from "./PlanPicker";
 
 export const dynamic = "force-dynamic";
-const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 
 export default async function Creditos({ searchParams }: { searchParams: Promise<{ pagamento?: string }> }) {
   const { t } = await getT();
@@ -18,6 +18,7 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
   const u = (await currentUser())!;
   const txs = await store.listTxs(u.id, 30);
   const plan = activePlan(u);
+  const desconto = rulesOf(u).descontoPacotes;
   const enabled = billingEnabled();
   const until = u.planUntil ? new Date(u.planUntil).toLocaleDateString(lang === "en" ? "en-US" : "pt-BR") : "";
   return (
@@ -38,11 +39,11 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
       <div className="card"><h2>{t("Planos")}</h2>
         {!enabled && <p className="warn">{t("A cobrança online ainda não está ativa. Fale com o suporte para contratar.")}</p>}
         <PlanPicker plans={PLANOS.map((p) => ({ ...p }))} enabled={enabled} current={plan?.id} />
-        <p className="small muted">{t("Os créditos do mês não acumulam além de 1 mês de saldo. O filme do projeto ({n} créditos por cena) fica disponível para quem tem plano ou já comprou créditos.", { n: COSTS.filmeImagemPorCena + COSTS.filmeAnimacaoPorCena })} {t("Créditos avulsos: Pix ou cartão. Planos: cartão de crédito, com renovação automática. Pagamentos processados pelo Asaas.")}</p>
+        <p className="small muted">{t("Créditos não cumulativos")}</p>
       </div>
       <div className="card"><h2>{t("Créditos avulsos")}</h2>
         <div className="tools">{PACOTES.map((p) => (
-          <div key={p.id} className="card"><h2>{t(p.rotulo)}</h2><p>{p.creditos} {t("créditos")} · <b>{brl(p.preco)}</b></p>
+          <div key={p.id} className="card"><h2>{t(p.rotulo)}</h2><p>{p.creditos} {t("créditos")} · <b>{brl(precoPacote(p.preco, u))}</b>{desconto > 0 && <> <s className="muted">{brl(p.preco)}</s></>}</p>{desconto > 0 && <p className="small muted" style={{ margin: "0 0 8px" }}>{t("{n}% de desconto do seu plano", { n: desconto })}</p>}
             {enabled ? <BuyButton id={p.id} label="Comprar" t={t} /> : <button type="button" disabled>{t("Em breve")}</button>}</div>
         ))}</div></div>
       <div className="card"><h2>{t("Extrato")}</h2>

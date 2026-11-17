@@ -193,3 +193,47 @@ Os prompts de todas as ferramentas foram substituídos pelos do documento "audit
 - **Multi-ângulo:** a vista de cima prevalece sobre o giro; sem giro nem altura o pedido é "mantenha a câmera". A tela avisa que os lados ocultos são inferidos.
 - **Filme:** primeiro cria uma "bíblia visual" (descrição de continuidade do projeto, por um modelo de texto com visão: `GEMINI_TEXT_MODEL` / `GROK_TEXT_MODEL`, nomes padrão não verificados) e a reaproveita em todas as cenas; se o modelo de texto falhar, as cenas seguem sem ela. A cena Interior exige uma imagem interior; Fachada e Acesso aceitam uma referência opcional (enviada como imagem 2).
 - **Validação:** só o Render foi testado com IA real depois da troca (Grok, câmera isométrica preservada). Os demais ainda não.
+
+
+## Mapa de situação (prancha e vista aérea)
+
+Fluxo: o cliente digita o endereço, vê o satélite com o pino, desenha o lote (pontos arrastáveis) e escolhe a saída:
+
+- **Prancha** (10 créditos, sem IA): desenho técnico por código (`lib/situacao/`) com lote em destaque e medidas, endereço, norte, ruas com nome, quadras, edificações, referências urbanas numeradas, escala gráfica e legenda. Ruas, quadras e prédios vêm do OpenStreetMap (Overpass); o PNG sai do `sharp`.
+- **Vista aérea ilustrativa** (10 créditos): o código monta o satélite (Google Static Maps) com o terreno tracejado e os pins nas posições exatas, e o Gemini só muda a perspectiva e o acabamento. Posições aproximadas; a imagem leva faixa de crédito do Google.
+- **As duas** (15 créditos): se a vista aérea falhar, a prancha já entregue fica e só 5 créditos voltam (15 − 10).
+
+Variáveis:
+
+| Variável | Para quê |
+|---|---|
+| `GOOGLE_MAPS_API_KEY` | Chave do **servidor** (Geocoding, Maps Static e, se usar, Places New). Restrinja por API. |
+| `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY` | (opcional) chave do **navegador**, restrita por site (referrer) à API Maps JavaScript. Com ela a tela usa o mapa interativo do Google; sem ela usa o satélite estático servido pelo app. |
+| `SITUACAO_POIS` | Fonte dos lugares de referência: `osm` (padrão, dados abertos, cobertura irregular no Brasil) ou `google` (Places, mais completa). **Atenção:** os termos do Google pedem que dados do Places apareçam em mapa do Google; confira antes de usar `google` na prancha, que é desenhada sobre mapa do OpenStreetMap. |
+
+Pontos de atenção em produção: o servidor público do Overpass pode demorar (de segundos a alguns minutos) e há cache por região por 24 h em memória; a prancha desenha texto com fontes do sistema (confira se o ambiente do Render tem fontes, como DejaVu); o uso de imagens de satélite do Google em obra derivada por IA precisa de revisão dos termos da Google Maps Platform.
+
+**Fonte dos dados do mapa.** A prancha busca ruas, quadras e lugares em duas fontes e usa a que responder: a API do OpenStreetMap (`api.openstreetmap.org`, rápida, tentada primeiro em mapas de 300 e 600 m) e o Overpass (servidores públicos, tentados primeiro no mapa de 1 km). Os servidores públicos do Overpass costumam ser lentos e podem ser inacessíveis a partir de nuvens como o Render (nos logs aparece `fetch failed` ou timeout). `OVERPASS_URL` (separados por vírgula) troca a lista de servidores por um próprio ou pago. Se nenhuma fonte responder, a prancha falha com estorno; a vista aérea não depende disso.
+
+## O que cada plano libera
+
+Tudo é definido em `lib/plans.ts` (regras) e `lib/costs.ts` (preços, créditos e a lista exibida na tela). As regras são validadas no servidor.
+
+| | Essencial | Profissional | Max |
+|---|---|---|---|
+| Mapa de situação: alcance máximo | 600 m | 1 km | 1 km |
+| Vista aérea: lugares no mapa | 5 | 9 | 9 |
+| Prancha em SVG vetorial | não | sim | sim |
+| Prancha em DXF (AutoCAD, UTM SIRGAS 2000) | não | não | sim |
+| Desconto nos créditos avulsos | 0% | 15% | 25% |
+| Marca do escritório na prancha | não | logo e nome | + responsável técnico e cor |
+| Links de apresentação para o cliente | não | 1 | ilimitados |
+| Gerações ao mesmo tempo | 2 | 3 | 5 |
+| Filme (cenas por pedido) | 3 | 3 | 5 |
+| Suporte | e-mail | e-mail | prioritário por WhatsApp |
+
+O WhatsApp do suporte vem de `SUPPORT_WHATSAPP` (só dígitos, com DDI e DDD; padrão `5562981834833`) e aparece na tela de Suporte só para quem tem o plano Max.
+
+**Notificações no celular (Web Push).** Quando uma geração termina, o aparelho inscrito recebe um aviso, mesmo com o app fechado. Variáveis: `VAPID_PUBLIC_KEY` e `VAPID_PRIVATE_KEY` (gere com `npx web-push generate-vapid-keys`) e `VAPID_SUBJECT` (por exemplo `mailto:contato@seudominio.com.br`). Sem elas o botão de ativar não aparece. Tabela nova: `supabase/migracao-push.sql`. No iPhone o aviso só funciona com o app instalado na Tela de Início (iOS 16.4 ou mais novo).
+
+**Créditos do plano não acumulam.** Na renovação mensal, o que sobrou do pacote do mês anterior expira (lançamento "Créditos do mês anterior expirados" no extrato) e entra o pacote novo. Créditos avulsos comprados e os de boas-vindas não expiram. Como o saldo é um número só, a sobra do plano é calculada pelo extrato (`lib/planCredits.ts`): pacote do mês + créditos proporcionais de troca − gasto desde então (gerações menos estornos), limitado ao saldo.

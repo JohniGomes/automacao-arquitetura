@@ -9,7 +9,9 @@ export async function GET(req: NextRequest) {
   const u = await currentUser();
   if (!u) return new NextResponse("Não autenticado", { status: 401 });
   if (await limited(`maps:${u.id}`, 30, 10 * 60_000)) return new NextResponse("Muitas pré-visualizações. Aguarde alguns minutos.", { status: 429 });
-  const address = req.nextUrl.searchParams.get("address")?.trim().slice(0, 200);
+  const lat = Number(req.nextUrl.searchParams.get("lat")), lon = Number(req.nextUrl.searchParams.get("lon"));
+  const coord = Number.isFinite(lat) && Number.isFinite(lon) && req.nextUrl.searchParams.has("lat") && Math.abs(lat) <= 85 && Math.abs(lon) <= 180;
+  const address = coord ? `${lat.toFixed(6)},${lon.toFixed(6)}` : req.nextUrl.searchParams.get("address")?.trim().slice(0, 200);
   if (!address) return new NextResponse("Informe o endereço", { status: 400 });
   try {
     const buf = await satellite(address, Number(req.nextUrl.searchParams.get("zoom")) || 18);

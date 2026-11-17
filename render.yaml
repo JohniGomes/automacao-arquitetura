@@ -26,6 +26,12 @@ services:
         sync: false   # token que você cadastra no webhook do Asaas (32 a 255 caracteres)
       - key: ASAAS_PARTNER_WALLET_ID
         sync: false   # opcional: carteira (walletId) do sócio. Vazio = 100% fica na sua conta
+      - key: VAPID_PUBLIC_KEY
+        sync: false   # avisos no celular: npx web-push generate-vapid-keys
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false   # mailto:seu@email
       - key: ASAAS_PARTNER_PERCENT
         value: "30"   # só vale se o walletId acima estiver preenchido: % do valor líquido do sócio
       - key: FILME_CENA_SEGUNDOS
@@ -54,6 +60,10 @@ services:
         sync: false
       - key: GOOGLE_MAPS_API_KEY
         sync: false
+      - key: NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY
+        sync: false   # chave do NAVEGADOR (Maps JavaScript API, restrita por site). Só vale no próximo build. Vazia = satélite estático
+      - key: SITUACAO_POIS
+        value: osm   # lugares da prancha: osm (dados abertos) ou google (Places; veja o README)
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET

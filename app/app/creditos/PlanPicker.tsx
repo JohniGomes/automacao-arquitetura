@@ -3,7 +3,7 @@ import { useT } from "@/components/I18nProvider";
 import BuyButton from "./BuyButton";
 
 export type PlanCard = { id: string; nome: string; preco: number; creditosMes: number; destaque: boolean; itens: readonly string[] };
-const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 
 /** Os planos (todos mensais) e o botão de assinar de cada um. */
 export default function PlanPicker({ plans, enabled, current }: { plans: PlanCard[]; enabled: boolean; current?: string }) {

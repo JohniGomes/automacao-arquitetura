@@ -2,9 +2,11 @@
  *  "m" é o traço principal (cor do contexto); "a" é o detalhe em terracota (classe .ia). Grade de 24 px. */
 export type IconName =
   | "home" | "folder" | "gallery" | "tools" | "user" | "support" | "help" | "lang" | "sun" | "moon" | "screen"
-  | "credits" | "upload" | "mail" | "check" | "close" | "mapa" | "moodboard" | "filme" | "render" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos" | "luz";
+  | "plus" | "bell" | "credits" | "upload" | "mail" | "check" | "close" | "mapa" | "moodboard" | "filme" | "render" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos" | "luz";
 
 const ICONS: Record<IconName, { main: string; acc?: string }> = {
+  plus: { main: "M12 5v14M5 12h14" },
+  bell: { main: "M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z", acc: "M10 20.5a2 2 0 0 0 4 0" },
   home: { main: "M3.5 11.2 12 4l8.5 7.2M6 9.8V20h12V9.8", acc: "M10 20v-5h4v5" },
   folder: { main: "M3.5 7.5A1.5 1.5 0 0 1 5 6h4.2l1.8 2H19a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z", acc: "M3.5 11.5h17" },
   gallery: { main: "M5.5 5h13A1.5 1.5 0 0 1 20 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5v-11A1.5 1.5 0 0 1 5.5 5z", acc: "M4.5 16.5 9 12l3.5 3.5 2.5-2.5 5 5" },

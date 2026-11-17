@@ -30,10 +30,10 @@ const TIPS = [
   "Dica: use a imagem na maior resolução que você tiver, sem borrões.",
 ];
 
-export default function HomeView({ firstName }: { firstName: string }) {
+export default function HomeView({ firstName, planName = "", creditsInit }: { firstName: string; planName?: string; creditsInit?: number }) {
   const router = useRouter();
   const t = useT();
-  const credits = useCredits();
+  const credits = useCredits(creditsInit);
   const { pins, toggle } = usePins();
   const [hello, setHello] = useState("");
   const [q, setQ] = useState("");
@@ -92,6 +92,19 @@ export default function HomeView({ firstName }: { firstName: string }) {
             </div>
           )}
         </div>
+      </div>
+
+      {/* só no celular: cartão de créditos e resumo (o desktop usa o cartão lateral) */}
+      <section className="mhero" aria-label={t("Seu saldo")}>
+        <p className="mh-l">{t("Seu saldo")}</p>
+        <p className="mh-n">{credits ?? "…"}<small>{t("créditos")}</small></p>
+        <p className="mh-p">{planName ? `${t("Plano")} ${t(planName)}` : t("Você ainda não tem um plano.")}</p>
+        <Link href="/app/creditos" className="mh-btn">{t("Ver planos")}</Link>
+      </section>
+      <div className="mstats" aria-label={t("Resumo")}>
+        <div className="mstat-card"><span>{t("Projetos")}</span><b>{projects === null ? "…" : projects.length}</b></div>
+        <div className="mstat-card"><span>{t("Gerações")}</span><b>{gens === null ? "…" : gens.length}</b></div>
+        <div className="mstat-card"><span>{t("Plano")}</span><b>{planName ? t(planName) : "—"}</b></div>
       </div>
 
       <section aria-label={t("Comece por aqui")}>

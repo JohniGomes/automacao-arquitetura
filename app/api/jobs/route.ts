@@ -7,7 +7,7 @@ import { charge, COSTS } from "@/lib/credits";
 import { renderCost, COSTS_EDICAO } from "@/lib/costs";
 import { ANGULOS, angleLabel, composeAngle, LENTES, LenteKey, MAX_REGIOES, composeEsboco, composeIdeia, composeMelhorar, composeRender, ESTILOS, ESTILOS_ARQ, EstiloKey, Env, MELHORIAS, MelhoriaKey, TIPOS_IDEIA } from "@/lib/compose";
 import { Generation, GenType, uid } from "@/lib/db";
-import { activeJobs, enqueue, live, MAX_ACTIVE_PER_USER, recoverStale } from "@/lib/jobs";
+import { activeJobs, enqueue, live, recoverStale } from "@/lib/jobs";
 import { limited } from "@/lib/ratelimit";
 import { activePlan, rulesOf } from "@/lib/plans";
 import { needsVerification, VERIFY_MSG } from "@/lib/verify";
@@ -18,6 +18,7 @@ import { env, mockGemini, mockMaps } from "@/lib/config";
 import { store } from "@/lib/store";
 import { pub } from "@/lib/public";
 import { AMBIENTES, AmbienteKey, CENAS, CenaKey, LUZES, LuzKey } from "@/lib/prompts";
+import { lerPedidoSituacao } from "@/lib/situacao/pedido";
 
 export const runtime = "nodejs";
 const bad = (m: string, s = 400) => NextResponse.json({ error: m }, { status: s });
@@ -67,7 +68,8 @@ export async function POST(req: NextRequest) {
   // limites antes de ler o corpo: o formData carrega tudo na memória
   if (Number(req.headers.get("content-length") || 0) > MAX_BODY) return bad("Os arquivos enviados são grandes demais.", 413);
   if (await limited(`jobs:${u.id}`, 20, 10 * 60_000)) return bad("Muitos pedidos em pouco tempo. Aguarde um pouco e tente de novo.", 429);
-  if (activeJobs(u.id) >= MAX_ACTIVE_PER_USER) return bad(`Você já tem ${MAX_ACTIVE_PER_USER} gerações em andamento. Aguarde uma terminar para pedir outra.`, 429);
+  const simultaneas = rulesOf(u).simultaneas;
+  if (activeJobs(u.id) >= simultaneas) return bad(`Seu plano permite ${simultaneas} gerações ao mesmo tempo e você já tem ${simultaneas} em andamento. Aguarde uma terminar para pedir outra.`, 429);
   const form = await req.formData();
   const type = String(form.get("type")) as GenType;
   const str = (k: string) => String(form.get(k) || "").trim();
@@ -83,7 +85,7 @@ export async function POST(req: NextRequest) {
   };
 
   try {
-    if (type === "mapa") {
+    if (type === "mapa" && str("modo")) { ({ params, cost, summary } = lerPedidoSituacao(form, rulesOf(u))); } else if (type === "mapa") {
       const address = str("address").slice(0, 200);
       const up = await readImage(u.id, form, "upload");
       if (up) images.upload = up;
@@ -217,7 +219,7 @@ export async function POST(req: NextRequest) {
   const gen: Generation = {
     id, userId: u.id, type, status: "queued", progress: 0, message: "Na fila…", createdAt: new Date().toISOString(),
     summary, outputs: [], cost, usage: { images: 0, videoClips: 0 }, projectId, favorite: false,
-    mock: mockGemini() || (type === "mapa" && mockMaps() && !images.upload),
+    mock: str("modo") === "prancha" ? false : mockGemini() || (type === "mapa" && mockMaps() && !images.upload),
   };
   try { await store.saveGen(gen); }
   catch (e) {

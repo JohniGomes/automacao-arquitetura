@@ -5,6 +5,7 @@ import "./croqui.css";
 import "./ui.css";
 import "./landing.css";
 import "./dark.css";
+import "./mobile.css";
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { I18nProvider } from "@/components/I18nProvider";

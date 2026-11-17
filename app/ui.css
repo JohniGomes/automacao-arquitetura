@@ -66,7 +66,12 @@
 
 /* ---------- tela Conta ---------- */
 .acchead { display: flex; align-items: center; gap: var(--space-4); margin: var(--space-2) 0 var(--space-5); }
-.avatar { width: 56px; height: 56px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--color-sand); color: var(--color-text); font: var(--weight-regular) var(--text-xl)/1 var(--font-serif); }
+.avatar-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.avatar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: calc(-1 * var(--space-3)) 0 var(--space-5); }
+.pushbox { margin: 6px 0; }
+.mnotif .pushbox { margin: 6px 0 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.pushbox p { margin: 0 0 8px; }
+.avatar { position: relative; overflow: hidden; width: 56px; height: 56px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--color-sand); color: var(--color-text); font: var(--weight-regular) var(--text-xl)/1 var(--font-serif); }
 .accwho { display: grid; min-width: 0; }
 .accwho strong { font-size: var(--text-md); font-weight: var(--weight-medium); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .accwho span { font-size: var(--text-sm); color: var(--color-text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

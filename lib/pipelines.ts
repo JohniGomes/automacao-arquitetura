@@ -7,7 +7,12 @@ import { describeProject, generateImage, Img } from "./ai";
 import { concatClips, imageToClip, Move } from "./ffmpeg";
 import { mockEdit, mockImage } from "./mock";
 import { composeEdit } from "./compose";
-import { satellite } from "./maps";
+import { reverse, satellite } from "./maps";
+import { buscarDados } from "./situacao/dados";
+import { Endereco, Marca, montarPrancha, renderPrancha } from "./situacao/prancha";
+import { montarDxf } from "./situacao/dxf";
+import { comAtribuicao, comLegenda, montarEntradaAerea, PROMPT_AEREA } from "./situacao/aerea";
+import type { LatLon } from "./situacao/geo";
 import { AMBIENTES, AmbienteKey, CENAS, CenaDef, CenaKey, PROMPT_BIBLIA, PROMPT_MAPA, promptLuz, promptMoodboard, REF_PREFIX } from "./prompts";
 import { refund } from "./credits";
 import { UserError } from "./errors";
@@ -71,7 +76,7 @@ function snap(c: Ctx, prompt: string, extra?: Record<string, unknown>): string {
   return `[Modelo: ${env.imageModel}]\n[Opções: ${JSON.stringify({ ...opts, ...extra })}]\n\n${prompt}`;
 }
 
-async function mapa(c: Ctx) {
+async function mapa(c: Ctx): Promise<void> { if (c.input.params.modo) return situacao(c);
   const { address, zoom } = c.input.params;
   let sat: Img;
   if (c.input.images.upload) sat = c.input.images.upload;
@@ -85,6 +90,82 @@ async function mapa(c: Ctx) {
   const out = await makeImage(c, "Mapa de situação", PROMPT_MAPA, [sat], await nearestAspect(sat.data, "1:1"));
   await addOutput(c, out, ext(out), "image", "Mapa de situação");
   c.gen.outputs.reverse(); // resultado primeiro
+}
+
+/**
+ * Mapa de situação a partir do lote marcado no mapa. "prancha": desenho técnico por código (sem IA). "aerea": vista aérea
+ * ilustrativa (satélite + terreno + pins por código, e o Gemini só muda a perspectiva). "ambos": as duas; se a aérea
+ * falhar, a prancha já entregue fica e só o custo da aérea volta.
+ */
+async function situacao(c: Ctx) {
+  const p = c.input.params as { modo: "prancha" | "aerea" | "ambos"; polygon: LatLon[]; raio: number; endereco: Endereco; maxLugares?: number; vetor?: boolean; dxf?: boolean; marca?: "nenhuma" | "basica" | "completa" };
+  const lat0 = p.polygon.reduce((s, q) => s + q[0], 0) / p.polygon.length, lon0 = p.polygon.reduce((s, q) => s + q[1], 0) / p.polygon.length;
+  const quer = { prancha: p.modo !== "aerea", aerea: p.modo !== "prancha" };
+
+  progress(c, 6, "Identificando o endereço…");
+  const rev: Endereco = await reverse(lat0, lon0).catch((): Endereco => ({}));
+  const digitado = Object.fromEntries(Object.entries(p.endereco || {}).filter(([, v]) => v)) as Endereco;
+  // bairro, cidade, UF e CEP vêm do geocoder quando faltam; rua e número só se o usuário não digitou a rua (o número do geocoder é de outra rua)
+  const endereco: Endereco = { bairro: rev.bairro, cidade: rev.cidade, uf: rev.uf, cep: rev.cep, ...(digitado.logradouro ? {} : { logradouro: rev.logradouro, numero: rev.numero }), ...digitado };
+  // o logradouro/número que o usuário digitou prevalecem; o resto vem do geocoder quando não foi informado
+  progress(c, 14, "Buscando ruas, quadras e lugares do entorno…");
+  // um pedido de cada vez e só a área do mapa (caixa): o servidor público do Overpass recusa quem pede demais
+  const area = p.raio * 1.08 + 80;
+  // sem os dados de mapa não há prancha, mas a vista aérea (só Google e IA) não depende deles: só a prancha falha
+  let dados: Awaited<ReturnType<typeof buscarDados>> | null = null;
+  try { dados = await buscarDados(lat0, lon0, area, p.raio <= 300); }
+  catch (e) { if (p.modo === "prancha") throw e; console.error("dados do mapa indisponíveis; segue só com a vista aérea:", (e as Error)?.message); }
+  const base = dados?.base ?? [], lugares = { pois: dados?.pois ?? [], fonte: dados?.fonte ?? ("osm" as const) };
+  if (!dados) {
+    quer.prancha = false;
+    if (p.modo === "ambos") {
+      await refundPart(c, COSTS.mapaAmbos - COSTS.mapa, "Estorno: prancha não gerada");
+      c.gen.message = "Concluído. A prancha não pôde ser gerada (servidores de mapas ocupados) — os créditos dessa parte foram devolvidos.";
+    }
+  }
+
+  const resultados: { buf: Buffer; ext: string; label: string; kind?: Output["kind"] }[] = [];
+  let entrada: { buf: Buffer; ext: string; label: string } | null = null;
+
+  if (quer.prancha) {
+    progress(c, 40, "Desenhando a prancha do mapa de situação…");
+    // marca do escritório (Profissional e Max): se faltar o cadastro ou o SQL novo, a prancha sai sem marca
+    let marca: Marca | undefined;
+    if (p.marca && p.marca !== "nenhuma") {
+      try {
+        const o = await store.getOffice(c.gen.userId);
+        if (o && (o.nome || o.logo)) {
+          const logoBuf = o.logo ? await store.getFile(c.gen.userId, o.logo) : null;
+          marca = { nivel: p.marca, nome: o.nome, logo: logoBuf ? `data:image/png;base64,${logoBuf.toString("base64")}` : undefined, responsavel: o.responsavel, registro: o.registro, cor: o.cor };
+        }
+      } catch (e) { console.error("marca do escritório indisponível:", (e as Error)?.message); }
+    }
+    const entradaPrancha = { polygon: p.polygon, raio: p.raio, endereco, base, pois: lugares.pois, fonte: lugares.fonte, marca };
+    const svg = montarPrancha(entradaPrancha);
+    resultados.push({ buf: await renderPrancha(svg), ext: "png", label: "Mapa de situação (prancha)" });
+    if (p.vetor) resultados.push({ buf: Buffer.from(svg), ext: "svg", label: "Mapa de situação (SVG vetorial)" });
+    if (p.dxf) resultados.push({ buf: montarDxf(entradaPrancha), ext: "dxf", label: "Mapa de situação (DXF para AutoCAD)", kind: "file" });
+  }
+
+  if (quer.aerea) {
+    try {
+      progress(c, 55, "Buscando a imagem de satélite (Google Maps)…");
+      const ent = await montarEntradaAerea(p.polygon, lugares.pois, p.maxLugares ?? 5);
+      entrada = { buf: ent.marcada, ext: "jpg", label: "Satélite com marcações (entrada)" };
+      progress(c, 70, "Gerando a vista aérea ilustrativa…");
+      const prompt = PROMPT_AEREA(ent.pins);
+      c.gen.prompt = snap(c, prompt, { modo: p.modo, zoomSatelite: ent.zoom });
+      const out = await makeImage(c, "Vista aérea ilustrativa", prompt, [{ data: ent.marcada, mime: "image/jpeg" }], "1:1");
+      resultados.push({ buf: await comLegenda(await comAtribuicao(out), ent.pins), ext: "jpg", label: "Vista aérea ilustrativa" });
+    } catch (e) {
+      if (p.modo !== "ambos") throw e;
+      console.error("vista aérea falhou (a prancha foi entregue):", (e as Error)?.message);
+      await refundPart(c, COSTS.mapaAmbos - COSTS.mapaPrancha, "Estorno: vista aérea não gerada");
+      c.gen.message = "Concluído. A vista aérea falhou — os créditos dessa parte foram devolvidos.";
+    }
+  }
+  for (const r of resultados) await addOutput(c, r.buf, r.ext, r.kind ?? "image", r.label);
+  if (entrada) await addOutput(c, entrada.buf, entrada.ext, "image", entrada.label);
 }
 
 async function moodboard(c: Ctx) {

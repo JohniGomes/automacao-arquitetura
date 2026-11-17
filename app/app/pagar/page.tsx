@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { billingEnabled, changeQuote } from "@/lib/billing";
 import { PACOTES, PLANOS } from "@/lib/costs";
-import { activePlan } from "@/lib/plans";
+import { activePlan, precoPacote } from "@/lib/plans";
 import { getT } from "@/lib/i18n-server";
 import CheckoutForm from "./CheckoutForm";
 
@@ -26,7 +26,7 @@ export default async function Pagar({ searchParams }: { searchParams: Promise<{ 
       itemId={(pack?.id || plan!.id)}
       isPlan={!!plan}
       title={pack ? `${pack.creditos} ${t("créditos")} · ${t(pack.rotulo)}` : `${t("Plano")} ${t(plan!.nome)}`}
-      price={pack ? pack.preco : plan!.preco}
+      price={pack ? precoPacote(pack.preco, u) : plan!.preco}
       detail={pack ? "" : `${plan!.creditosMes} ${t("créditos por mês")}`}
       needsDoc={!u.asaasCustomerId}
       blocked={blocked}

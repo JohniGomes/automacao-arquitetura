@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { env } from "./config";
-import { DATA_DIR, db, Generation, Payment, PlanFields, Project, save, SupportMsg, Tx, uid, User } from "./db";
+import { DATA_DIR, db, Escritorio, Generation, Payment, PlanFields, Project, PushSub, save, Share, SupportMsg, Tx, uid, User } from "./db";
 
 /** Camada de dados. Produção = Supabase (Postgres + Storage). Desenvolvimento sem Supabase = arquivos locais (data/). */
 export interface Store {
@@ -40,13 +40,26 @@ export interface Store {
   setGenMeta(id: string, userId: string, meta: { favorite?: boolean; projectId?: string | null }): Promise<Generation | null>;
   /** mensagem para o suporte (lida pelo dono do app no banco) */
   addSupport(m: { userId: string; email: string; subject: string; message: string }): Promise<void>;
+  /** marca do escritório do usuário (null se ainda não preencheu ou se o SQL novo não foi executado) */
+  getOffice(userId: string): Promise<Escritorio | null>;
+  /** aparelhos inscritos para notificação push (vazio se o SQL novo não foi executado) */
+  listPushes(userId: string): Promise<PushSub[]>;
+  addPush(s: PushSub): Promise<void>;
+  removePush(endpoint: string): Promise<void>;
+  /** links de apresentação ativos do usuário (vazio se o SQL novo não foi executado) */
+  listShares(userId: string): Promise<Share[]>;
+  /** link ativo pelo token (null se não existe ou foi revogado) */
+  getShare(token: string): Promise<Share | null>;
+  createShare(userId: string, projectId: string, token: string): Promise<Share>;
+  revokeShare(userId: string, token: string): Promise<void>;
+  saveOffice(o: Escritorio): Promise<void>;
   putFile(userId: string, name: string, data: Buffer): Promise<void>;
   getFile(userId: string, name: string): Promise<Buffer | null>;
   /** URL temporária para o navegador baixar/streamar direto do Storage; null no modo local */
   fileUrl(userId: string, name: string, download: boolean): Promise<string | null>;
 }
 
-const TYPES: Record<string, string> = { png: "image/png", jpg: "image/jpeg", webp: "image/webp", mp4: "video/mp4" };
+const TYPES: Record<string, string> = { png: "image/png", jpg: "image/jpeg", webp: "image/webp", mp4: "video/mp4", svg: "image/svg+xml", dxf: "application/dxf" };
 export const contentType = (name: string) => TYPES[name.split(".").pop() || ""] || "application/octet-stream";
 
 // ---------------------------------------------------------------- local
@@ -105,6 +118,26 @@ const localStore: Store = {
   async listGens(userId) { return db().generations.filter((g) => g.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
   async listTxs(userId, limit) { return db().txs.filter((t) => t.userId === userId).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit); },
   async staleGens() { return db().generations.filter((g) => g.status === "queued" || g.status === "running"); },
+  async listPushes(userId) { return db().pushes!.filter((p) => p.userId === userId); },
+  async addPush(s) { const l = db().pushes!.filter((p) => p.endpoint !== s.endpoint); l.push(s); db().pushes = l; save(); },
+  async removePush(endpoint) { db().pushes = db().pushes!.filter((p) => p.endpoint !== endpoint); save(); },
+  async listShares(userId) { return db().shares!.filter((s) => s.userId === userId && !s.revokedAt); },
+  async getShare(token) { return db().shares!.find((s) => s.token === token && !s.revokedAt) ?? null; },
+  async createShare(userId, projectId, token) {
+    const s: Share = { token, userId, projectId, createdAt: new Date().toISOString(), revokedAt: null };
+    db().shares!.push(s); save();
+    return s;
+  },
+  async revokeShare(userId, token) {
+    const s = db().shares!.find((x) => x.token === token && x.userId === userId);
+    if (s) { s.revokedAt = new Date().toISOString(); save(); }
+  },
+  async getOffice(userId) { return db().offices!.find((o) => o.userId === userId) ?? null; },
+  async saveOffice(o) {
+    const list = db().offices!, i = list.findIndex((x) => x.userId === o.userId);
+    if (i >= 0) list[i] = o; else list.push(o);
+    save();
+  },
   async listProjects(userId) { return db().projects.filter((p) => p.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
   async getProject(id, userId) { return db().projects.find((p) => p.id === id && p.userId === userId) ?? null; },
   async createProject(userId, name) {
@@ -155,9 +188,12 @@ const toGen = (r: any): Generation => ({
   mock: r.mock, error: r.error ?? undefined, usage: r.usage ?? { images: 0, videoClips: 0 },
   projectId: r.project_id ?? null, favorite: r.favorite ?? false,
 });
+const toPush = (r: any): PushSub => ({ endpoint: r.endpoint, userId: r.user_id, p256dh: r.p256dh, auth: r.auth, createdAt: r.created_at });
+const toShare = (r: any): Share => ({ token: r.token, userId: r.user_id, projectId: r.project_id, createdAt: r.created_at, revokedAt: r.revoked_at ?? null });
+const toOffice = (r: any): Escritorio => ({ userId: r.user_id, nome: r.nome ?? "", responsavel: r.responsavel ?? "", registro: r.registro ?? "", cor: r.cor ?? "", logo: r.logo ?? null });
 const toProject = (r: any): Project => ({ id: r.id, userId: r.user_id, name: r.name, createdAt: r.created_at });
 /** erro de coluna/tabela inexistente: o SQL novo (supabase/schema.sql) ainda não foi executado */
-const missingSchema = (e: { message: string } | null) => !!e && /project_id|favorite|projects|schema cache|does not exist/i.test(e.message);
+const missingSchema = (e: { message: string } | null) => !!e && /project_id|favorite|projects|offices|shares|push_subs|schema cache|does not exist/i.test(e.message);
 
 const supabaseStore: Store = {
   kind: "supabase",
@@ -262,6 +298,56 @@ const supabaseStore: Store = {
     const { data, error } = await sb().from("generations").select("*").in("status", ["queued", "running"]);
     check(error, "staleGens");
     return (data ?? []).map(toGen);
+  },
+  async listPushes(userId) {
+    const { data, error } = await sb().from("push_subs").select("*").eq("user_id", userId);
+    if (missingSchema(error)) return [];
+    check(error, "listPushes");
+    return (data ?? []).map(toPush);
+  },
+  async addPush(s) {
+    const { error } = await sb().from("push_subs").upsert({ endpoint: s.endpoint, user_id: s.userId, p256dh: s.p256dh, auth: s.auth });
+    if (missingSchema(error)) throw new Error("As notificações ainda não estão disponíveis: execute o SQL novo (supabase/migracao-push.sql) no Supabase.");
+    check(error, "addPush");
+  },
+  async removePush(endpoint) {
+    const { error } = await sb().from("push_subs").delete().eq("endpoint", endpoint);
+    if (missingSchema(error)) return;
+    check(error, "removePush");
+  },
+  async listShares(userId) {
+    const { data, error } = await sb().from("shares").select("*").eq("user_id", userId).is("revoked_at", null);
+    if (missingSchema(error)) return [];
+    check(error, "listShares");
+    return (data ?? []).map(toShare);
+  },
+  async getShare(token) {
+    const { data, error } = await sb().from("shares").select("*").eq("token", token).is("revoked_at", null).maybeSingle();
+    if (missingSchema(error)) return null;
+    check(error, "getShare");
+    return data ? toShare(data) : null;
+  },
+  async createShare(userId, projectId, token) {
+    const { data, error } = await sb().from("shares").insert({ token, user_id: userId, project_id: projectId }).select("*").single();
+    if (missingSchema(error)) throw new Error("Os links de apresentação ainda não estão disponíveis: execute o SQL novo (supabase/migracao-links.sql) no Supabase.");
+    check(error, "createShare");
+    return toShare(data);
+  },
+  async revokeShare(userId, token) {
+    const { error } = await sb().from("shares").update({ revoked_at: new Date().toISOString() }).eq("token", token).eq("user_id", userId);
+    if (missingSchema(error)) return;
+    check(error, "revokeShare");
+  },
+  async getOffice(userId) {
+    const { data, error } = await sb().from("offices").select("*").eq("user_id", userId).maybeSingle();
+    if (missingSchema(error)) return null;
+    check(error, "getOffice");
+    return data ? toOffice(data) : null;
+  },
+  async saveOffice(o) {
+    const { error } = await sb().from("offices").upsert({ user_id: o.userId, nome: o.nome, responsavel: o.responsavel, registro: o.registro, cor: o.cor, logo: o.logo, updated_at: new Date().toISOString() });
+    if (missingSchema(error)) throw new Error("A marca do escritório ainda não está disponível: execute o SQL novo (supabase/migracao-escritorio.sql) no Supabase.");
+    check(error, "saveOffice");
   },
   async listProjects(userId) {
     const { data, error } = await sb().from("projects").select("*").eq("user_id", userId).order("created_at", { ascending: false });

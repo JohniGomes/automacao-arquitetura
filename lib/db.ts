@@ -9,7 +9,7 @@ export type User = { id: string; email: string; name: string; passHash?: string;
   plan?: string; planUntil?: string; planStatus?: "ativo" | "cancelado"; planNext?: string; asaasCustomerId?: string; asaasSubscriptionId?: string };
 export type Payment = { provider: string; refId: string; userId: string; kind: "pacote" | "plano"; item: string; amount: number; createdAt: string };
 export type PlanFields = Pick<User, "plan" | "planUntil" | "planStatus" | "planNext" | "asaasCustomerId" | "asaasSubscriptionId">;
-export type Output = { file: string; kind: "image" | "video"; label?: string };
+export type Output = { file: string; kind: "image" | "video" | "file"; label?: string };
 export type Generation = {
   id: string; userId: string; type: GenType; status: "queued" | "running" | "done" | "error";
   progress: number; message: string; createdAt: string; finishedAt?: string;
@@ -23,10 +23,16 @@ export type Generation = {
   /** pedido de cancelamento (só o filme para no meio); não vai para o banco */
   cancel?: boolean;
 };
+/** Marca do escritório usada nas pranchas (planos Profissional e Max). `logo` é o nome do arquivo guardado. */
+export type Escritorio = { userId: string; nome: string; responsavel: string; registro: string; cor: string; logo: string | null };
+/** Link público de apresentação de um projeto (somente leitura, revogável). */
+export type Share = { token: string; userId: string; projectId: string; createdAt: string; revokedAt?: string | null };
+/** Inscrição de notificação push de um aparelho (Web Push). */
+export type PushSub = { endpoint: string; userId: string; p256dh: string; auth: string; createdAt: string };
 export type Project = { id: string; userId: string; name: string; createdAt: string };
 export type Tx = { id: string; userId: string; delta: number; reason: string; genId?: string; at: string };
 export type SupportMsg = { id: string; userId: string; email: string; subject: string; message: string; createdAt: string };
-type DB = { users: User[]; generations: Generation[]; txs: Tx[]; projects: Project[]; support?: SupportMsg[]; payments?: Payment[] };
+type DB = { users: User[]; generations: Generation[]; txs: Tx[]; projects: Project[]; support?: SupportMsg[]; payments?: Payment[]; offices?: Escritorio[]; shares?: Share[]; pushes?: PushSub[] };
 
 export const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data"); // no Render: disco persistente, ex. /var/data
 const FILE = path.join(DATA_DIR, "db.json");
@@ -40,6 +46,9 @@ export function db(): DB {
   g.__db!.projects ??= [];
   g.__db!.support ??= [];
   g.__db!.payments ??= [];
+  g.__db!.offices ??= [];
+  g.__db!.shares ??= [];
+  g.__db!.pushes ??= [];
   return g.__db!;
 }
 export function save() {
