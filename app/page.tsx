@@ -9,7 +9,7 @@ import { toolById } from "@/lib/tools";
 import HouseSplit from "@/components/HouseSplit";
 import Icon, { IconName } from "@/components/icons";
 import Logo from "@/components/Logo";
-import ToolIcon from "@/components/ToolIcon";
+import ToolGlyph from "@/components/landing/ToolGlyph";
 import Benefits from "@/components/landing/Benefits";
 import Nav from "@/components/landing/Nav";
 import Savings from "@/components/landing/Savings";
@@ -137,7 +137,7 @@ export default async function Landing() {
                 const x = toolById(id);
                 return x ? (
                   <div key={id} className="lp-tool">
-                    <ToolIcon tool={x} size={44} />
+                    <ToolGlyph id={id} size={68} />
                     <h3>{t(x.label)}</h3>
                     <p>{t(desc)}</p>
                   </div>
