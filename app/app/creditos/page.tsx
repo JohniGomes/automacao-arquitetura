@@ -39,7 +39,7 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
       <div className="card"><h2>{t("Planos")}</h2>
         {!enabled && <p className="warn">{t("A cobrança online ainda não está ativa. Fale com o suporte para contratar.")}</p>}
         <PlanPicker plans={PLANOS.map((p) => ({ ...p }))} enabled={enabled} current={plan?.id} />
-        <p className="small muted">{t("Os créditos do mês não acumulam além de 1 mês de saldo. O filme do projeto ({n} créditos por cena) fica disponível para quem tem plano ou já comprou créditos.", { n: COSTS.filmeImagemPorCena + COSTS.filmeAnimacaoPorCena })} {t("Créditos avulsos: Pix ou cartão. Planos: cartão de crédito, com renovação automática. Pagamentos processados pelo Asaas.")}</p>
+        <p className="small muted">{t("Créditos não cumulativos")}</p>
       </div>
       <div className="card"><h2>{t("Créditos avulsos")}</h2>
         <div className="tools">{PACOTES.map((p) => (
