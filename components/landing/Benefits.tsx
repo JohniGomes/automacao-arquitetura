@@ -29,8 +29,17 @@ export default function Benefits() {
       <div className="lp-benvis" role="tabpanel">
         {a === 0 && (
           <div className="lp-devices">
-            <img className="d" src="/landing/app-desktop.jpg" width={800} height={508} alt={t("O Croqui no computador")} loading="lazy" />
-            <img className="m" src="/landing/app-mobile.jpg" width={780} height={1388} alt={t("O Croqui no celular")} loading="lazy" />
+            <div className="lp-mac">
+              <div className="lp-mac-lid">
+                <span className="lp-mac-cam" />
+                <img src="/landing/app-mac.jpg" width={1800} height={1125} alt={t("O Croqui no computador")} loading="lazy" />
+              </div>
+              <div className="lp-mac-base"><i /></div>
+            </div>
+            <div className="lp-iph">
+              <span className="lp-iph-island" />
+              <img src="/landing/app-iphone.jpg" width={780} height={1688} alt={t("O Croqui no celular")} loading="lazy" />
+            </div>
           </div>
         )}
         {a === 1 && (

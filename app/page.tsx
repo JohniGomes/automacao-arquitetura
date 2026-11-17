@@ -84,7 +84,6 @@ export default async function Landing() {
         {/* ---------- herói ---------- */}
         <section className="lp-hero">
           <div className="lp-in lp-herow">
-            <p className="lp-pill">{t("Plataforma de IA para arquitetura")}</p>
             <h1>{t("Faça renders fotorrealistas em segundos com")} <em>{t("IA para arquitetura")}</em></h1>
             <p className="lp-lead">{t("O Croqui é a plataforma de IA para arquitetos que transforma o print do seu modelo 3D em render fotorrealista, sem hardware caro. Use pelo celular ou pelo computador, com SketchUp, Revit, ArchiCAD e outros programas.")}</p>
             <div className="lp-cta">
@@ -96,10 +95,6 @@ export default async function Landing() {
             </p>
             <div className="lp-stage lp-stagehead">
               <HouseSplit />
-              <svg className="cota" viewBox="0 0 600 22" preserveAspectRatio="none" aria-hidden="true">
-                <path d="M1 4v14M599 4v14M1 11h262M337 11h262" stroke="currentColor" strokeWidth="1" fill="none" vectorEffect="non-scaling-stroke" />
-                <text x="300" y="15" textAnchor="middle">{t("do croqui ao render")}</text>
-              </svg>
             </div>
           </div>
         </section>
@@ -225,10 +220,6 @@ export default async function Landing() {
               <p className="lp-pill">{t("Tem dúvidas sobre o Croqui?")}</p>
               <h2>{t("Perguntas frequentes")}</h2>
               <p className="lp-sub">{t("Tudo o que você precisa saber sobre o Croqui, da compra ao uso.")}</p>
-              <div className="lp-help">
-                <div><span className="lp-hi"><Icon name="support" /></span><h3>{t("Suporte")}</h3><p>{t("Entre na sua conta e fale com a nossa equipe pelo botão Suporte.")}</p><Link className="btn ghost" href={u ? "/app/suporte" : "/login"}>{t("Abrir suporte")}</Link></div>
-                {CONTACT_EMAIL && <div><span className="lp-hi"><Icon name="mail" /></span><h3>{t("E-mail")}</h3><p>{t("Prefere escrever? Responderemos por e-mail.")}</p><a className="btn ghost" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></div>}
-              </div>
             </div>
             <div className="lp-faq">
               {faq.map(([q, a, vars]) => (
@@ -257,7 +248,6 @@ export default async function Landing() {
           <div className="lp-footgrid">
             <div>
               <p className="lp-tag">{t("A IA que transforma o jeito de criar projetos de arquitetura.")}</p>
-              {CONTACT_EMAIL && <p><a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>}
             </div>
             <div>
               <h4>{t("Funcionalidades")}</h4>
@@ -279,6 +269,8 @@ export default async function Landing() {
               <h4>{t("Legal")}</h4>
               <Link href="/termos">{t("Termos de Uso")}</Link>
               <Link href="/privacidade">{t("Política de Privacidade")}</Link>
+              <Link href={u ? "/app/suporte" : "/login"}>{t("Suporte")}</Link>
+              {CONTACT_EMAIL && <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>}
             </div>
           </div>
           <p className="lp-copy">© {new Date().getFullYear()} Croqui. {t("Todos os direitos reservados.")}</p>

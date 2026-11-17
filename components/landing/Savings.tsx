@@ -41,13 +41,29 @@ export default function Savings() {
   return (
     <div className="lp-save">
       <div className="lp-savein">
-        <div className="field">
-          <label htmlFor="sv-r">{t("Renders por mês")}: <b>{renders}</b></label>
-          <input id="sv-r" type="range" min={1} max={200} step={1} value={renders} onChange={(e) => setRenders(+e.target.value)} />
+        <div className="lp-fld">
+          <div className="lp-fldhead">
+            <label htmlFor="sv-r">{t("Renders por mês")}</label>
+            <output className="lp-bignum" htmlFor="sv-r">{renders}</output>
+          </div>
+          <input id="sv-r" className="lp-range" type="range" min={1} max={200} step={1} value={renders} style={{ "--p": `${((renders - 1) / 199) * 100}%` } as React.CSSProperties} onChange={(e) => setRenders(+e.target.value)} />
+          <div className="lp-scale" aria-hidden="true"><span>1</span><span>100</span><span>200</span></div>
         </div>
-        <div className="field">
-          <label htmlFor="sv-p">{t("Quanto você paga por render hoje (R$)")}</label>
-          <input id="sv-p" type="number" inputMode="numeric" min={0} max={5000} value={preco} onChange={(e) => setPreco(Math.max(0, Math.min(5000, Number(e.target.value) || 0)))} />
+        <div className="lp-fld">
+          <label htmlFor="sv-p">{t("Quanto você paga por render hoje")}</label>
+          <div className="lp-money">
+            <button type="button" className="lp-step" aria-label={t("Diminuir")} onClick={() => setPreco((p) => Math.max(0, p - 10))}>−</button>
+            <div className="lp-money-in">
+              <span>R$</span>
+              <input id="sv-p" type="number" inputMode="numeric" min={0} max={5000} value={preco} onChange={(e) => setPreco(Math.max(0, Math.min(5000, Number(e.target.value) || 0)))} />
+            </div>
+            <button type="button" className="lp-step" aria-label={t("Aumentar")} onClick={() => setPreco((p) => Math.min(5000, p + 10))}>+</button>
+          </div>
+          <div className="lp-chips" role="group" aria-label={t("Valores de exemplo")}>
+            {[50, 100, 150, 250, 400].map((v) => (
+              <button key={v} type="button" className={preco === v ? "on" : ""} aria-pressed={preco === v} onClick={() => setPreco(v)}>R$ {v}</button>
+            ))}
+          </div>
           <p className="small muted">{t("Valor de exemplo: ajuste ao seu caso.")}</p>
         </div>
       </div>
