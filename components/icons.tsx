@@ -1,6 +1,7 @@
 /** Conjunto de ícones do Croqui: traço fino de 1,6 px em duas camadas.
  *  "m" é o traço principal (cor do contexto); "a" é o detalhe em terracota (classe .ia). Grade de 24 px. */
 export type IconName =
+  | "school" | "building" | "laptop" | "cloud" | "bolt" | "chevron" | "menu" | "play"
   | "home" | "folder" | "gallery" | "tools" | "user" | "support" | "help" | "lang" | "sun" | "moon" | "screen"
   | "plus" | "bell" | "credits" | "upload" | "mail" | "check" | "close" | "mapa" | "moodboard" | "filme" | "render" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos" | "luz";
 
@@ -31,6 +32,14 @@ const ICONS: Record<IconName, { main: string; acc?: string }> = {
   upload: { main: "M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3", acc: "M12 16V4M7.5 8.5 12 4l4.5 4.5" },
   mail: { main: "M3.5 6.5h17v11h-17z", acc: "M3.5 7.5 12 13.5l8.5-6" },
   check: { main: "M5 12.5l4.5 4.5L19 7.5" },
+  school: { main: "M2.5 9 12 4.5 21.5 9 12 13.5z", acc: "M6.5 11.2V16c0 1.2 2.5 2.5 5.5 2.5s5.5-1.3 5.5-2.5v-4.8M21.5 9v5" },
+  building: { main: "M5 20.5V5.5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v15M3.5 20.5h17M15 10.5h3.5a1 1 0 0 1 1 1v9", acc: "M8.5 8.5h3M8.5 12h3M8.5 15.5h3" },
+  laptop: { main: "M5 6.5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v9H5z", acc: "M3 18.5h18" },
+  cloud: { main: "M7 18.5a4 4 0 0 1-.7-7.9 5.5 5.5 0 0 1 10.6-1.1A4.5 4.5 0 0 1 17.5 18.5z", acc: "M12 12v5M9.8 14.8 12 17l2.2-2.2" },
+  bolt: { main: "M13 3.5 5.5 13.5H12L11 20.5 18.5 10.5H12z" },
+  chevron: { main: "m6 9 6 6 6-6" },
+  menu: { main: "M4 7h16M4 12h16M4 17h16" },
+  play: { main: "M8 5.5v13l11-6.5z" },
   close: { main: "M6 6l12 12M18 6 6 18" },
   luz: { main: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z", acc: "M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" },
 };
