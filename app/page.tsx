@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { currentUser } from "@/lib/auth";
 import { env } from "@/lib/config";
-import { PACOTES, PLANOS } from "@/lib/costs";
+import { COSTS, PACOTES, PLANOS } from "@/lib/costs";
 import { TOOLS, toolById } from "@/lib/tools";
 import HouseSplit from "@/components/HouseSplit";
 import Icon from "@/components/icons";
@@ -12,7 +12,7 @@ import { getT } from "@/lib/i18n-server";
 
 export const dynamic = "force-dynamic";
 
-const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 });
 
 const ETAPAS = [
   ["Mapa de situação", "Digite o endereço e receba o entorno em uma vista aérea realista, fiel às ruas e quadras do satélite. Se preferir, envie o seu próprio print."],
@@ -24,7 +24,7 @@ const ETAPAS = [
 
 /** Uma frase por ferramenta, em linguagem de escritório (a ordem segue o fluxo do projeto). */
 const FERRAMENTAS: [string, string][] = [
-  ["mapa", "Vista aérea realista do entorno a partir do endereço do lote."],
+  ["mapa", "Prancha técnica e vista aérea ilustrativa do entorno, a partir do endereço."],
   ["moodboard", "Paleta e materiais a partir do render da casa, por ambiente."],
   ["render", "Do print do 3D ao render fotorrealista, com até 4 versões por pedido."],
   ["melhorar", "Refine um render pronto: mais nitidez, textura e realismo."],
@@ -33,7 +33,7 @@ const FERRAMENTAS: [string, string][] = [
   ["luz", "Manhã, golden hour, noite ou uma luz descrita por você."],
   ["editor", "Pincele só a região que quer mudar. O resto da imagem fica intacto."],
   ["angulos", "Novos ângulos do mesmo ambiente para uma apresentação completa."],
-  ["filme", "Filme animado do projeto, de 1 a 5 cenas em Full HD."],
+  ["filme", "Filme animado do projeto em Full HD, de 1 a 3 cenas (até 5 no plano Max)."],
 ];
 
 const FAQ: [string, string][] = [
@@ -41,6 +41,7 @@ const FAQ: [string, string][] = [
   ["Funciona com SketchUp, Revit e ArchiCAD?", "Sim. O Croqui trabalha a partir de imagens: envie o print do seu modelo, seja qual for o programa em que ele foi feito."],
   ["A IA altera o meu projeto?", "As ferramentas foram feitas para preservar a geometria e a câmera do seu modelo. Resultados de IA podem ter pequenas variações, então confira cada imagem antes de apresentar ao cliente."],
   ["Como funcionam os créditos?", "Cada geração consome créditos, e o custo aparece antes de você gerar. Se uma geração falhar, os créditos são devolvidos."],
+  ["Os créditos expiram?", "Os créditos do plano valem no mês: o que sobrar expira na renovação. Os créditos avulsos e os de boas-vindas não expiram."],
   ["Posso usar as imagens comercialmente?", "Os planos Profissional e Max incluem licença de uso comercial e download sem marca d'água."],
   ["Posso cancelar quando quiser?", "Sim. Os planos são mensais e você cancela a renovação a qualquer momento; o que já foi pago vale até o fim do período."],
   ["Quais são as formas de pagamento?", "Os planos são cobrados no cartão de crédito, com renovação automática. Os créditos avulsos podem ser pagos com Pix ou cartão. O pagamento é processado pelo Asaas."],
@@ -149,7 +150,7 @@ export default async function Landing() {
                 <h3>{t(p.nome)}</h3>
                 <p className="lp-price"><b>{brl(p.preco)}</b><span>/{t("mês")}</span></p>
                 <p className="lp-credits">{p.creditosMes.toLocaleString("pt-BR")} {t("créditos por mês")}</p>
-                <p className="lp-renders">{t("até {n} renders rápidos por mês", { n: Math.floor(p.creditosMes / 4).toLocaleString("pt-BR") })}</p>
+                <p className="lp-renders">{t("até {n} renders rápidos por mês", { n: Math.floor(p.creditosMes / COSTS.renderPorImagem).toLocaleString("pt-BR") })}</p>
                 <ul>{p.itens.map((i) => <li key={i}><Icon name="check" />{t(i)}</li>)}</ul>
                 <Link className={`btn ${p.destaque ? "" : "ghost"}`} href={u ? "/app/creditos" : "/cadastro"}>{t("Assinar")}</Link>
               </div>

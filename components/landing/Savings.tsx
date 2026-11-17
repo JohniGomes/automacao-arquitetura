@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useT } from "../I18nProvider";
 import { COSTS, PACOTES, PLANOS } from "@/lib/costs";
 
-const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 });
 const CREDITOS_POR_RENDER = COSTS.renderPorImagem; // render no modo rápido, uma versão
 
 type Opcao = { custo: number; nome: string; tipo: "plano" | "pacote" | "max+"; qtd?: number };
