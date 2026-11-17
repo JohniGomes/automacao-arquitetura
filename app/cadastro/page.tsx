@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import AuthForm from "@/components/AuthForm";
-import AuthAside from "@/components/AuthAside";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +10,6 @@ export default async function Cadastro({ searchParams }: { searchParams: Promise
   return (
     <main className="auth">
       <div className="formside"><AuthForm mode="register" erro={erro} /></div>
-      <div className="view"><AuthAside /></div>
     </main>
   );
 }
