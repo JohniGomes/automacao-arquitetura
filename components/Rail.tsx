@@ -60,9 +60,9 @@ export default function Rail({ name, credits, theme: themeInit }: { name: string
         <div className="ritems">
           <Item href="/app" label={t("Início")} icon="home" active={on("/app", true)} cls="r-home" />
           <Item href="/app/projetos" label={t("Projetos")} icon="folder" active={on("/app/projetos") || on("/app/geracoes")} cls="r-proj" />
-          <Item href="/app/geracoes" label={t("Gerações")} icon="gallery" active={on("/app/geracoes")} cls="rdesk" />
+          <Item href="/app/geracoes" label={t("Gerações")} icon="gallery" active={on("/app/geracoes")} cls="r-ger" />
           <button className={`ritem r-create ${drawer || inTool ? "on" : ""}`} aria-expanded={drawer} onClick={(e) => { remember(e); setDrawer(!drawer); setMenu(null); }}>
-            <Icon name="tools" /><span className="lbl-d">{t("Ferramentas")}</span><span className="lbl-m">{t("Criar")}</span>
+            <span className="ico-d"><Icon name="tools" /></span><span className="ico-m"><Icon name="plus" /></span><span className="lbl-d">{t("Ferramentas")}</span><span className="lbl-m">{t("Criar")}</span>
           </button>
         </div>
         <div className="rfoot">

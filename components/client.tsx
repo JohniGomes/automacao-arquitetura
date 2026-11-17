@@ -8,7 +8,7 @@ import { useToast } from "./Toast";
 export type Gen = {
   id: string; type: string; status: "queued" | "running" | "done" | "error"; progress: number; message: string;
   summary: string; outputs: { file: string; kind: "image" | "video" | "file"; label?: string }[];
-  cost: number; mock: boolean; error?: string; createdAt: string; usage: { images: number; videoClips: number };
+  cost: number; mock: boolean; error?: string; createdAt: string; finishedAt?: string; usage: { images: number; videoClips: number };
   projectId?: string | null; favorite?: boolean;
 };
 export type Val = File | string | null;

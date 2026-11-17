@@ -1,0 +1,90 @@
+/* ---------- celular: barra de cima, barra de baixo com 5 botões e o "+" de Criar em destaque, início com resumo ---------- */
+/* No desktop estes elementos ficam escondidos; as cores vêm só dos tokens do app (terracota, papel e grafite). */
+.mtop, .mhero, .mstats { display: none; }
+.ico-m { display: none; }
+
+@media (max-width: 860px) {
+  /* ----- barra de cima ----- */
+  .mtop {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    position: sticky; top: 0; z-index: 45; margin: 0 -14px; padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
+    background: color-mix(in srgb, var(--bg) 88%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  }
+  .mbrand { width: 38px; height: 38px; display: grid; place-items: center; color: var(--ink); }
+  .mbrand svg { width: 34px; height: 34px; }
+  .mtop-r { display: flex; align-items: center; gap: 8px; }
+  .mcred { font-size: 13px; padding: 7px 12px; border-radius: 99px; text-decoration: none; color: var(--deep); background: var(--field); border: 1px solid var(--line); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .mcred b { font-size: 14px; }
+  .shell .mbell { position: relative; width: 42px; height: 42px; min-height: 42px; padding: 0; display: grid; place-items: center; border-radius: 50%; background: var(--field); border: 1px solid var(--line); color: var(--ink); }
+  .shell .mbell:hover:not(:disabled) { background: var(--field); color: var(--ink); filter: none; transform: none; }
+  .mbell svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .mbell svg .ia { stroke: var(--accent); }
+  .mdot { position: absolute; top: 8px; right: 9px; width: 10px; height: 10px; border-radius: 50%; background: var(--color-error); border: 2px solid var(--field); }
+  .mdot.run { background: var(--accent); animation: mpulse 1.4s ease-in-out infinite; }
+  @keyframes mpulse { 50% { transform: scale(1.35); opacity: .6; } }
+  .mavatar { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; text-decoration: none; font-weight: 600; font-size: 16px;
+    color: var(--color-on-primary); background: linear-gradient(145deg, var(--color-accent), var(--color-primary)); border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--line); }
+
+  /* painel de notificações */
+  .mnotif { position: fixed; z-index: 60; left: 10px; right: 10px; top: calc(62px + env(safe-area-inset-top)); max-height: min(70dvh, 560px); overflow-y: auto; overscroll-behavior: contain;
+    background: var(--color-surface-elevated); border: 1px solid var(--line); border-radius: 22px; padding: 14px 14px 12px; box-shadow: 0 18px 50px rgba(43, 42, 40, .22); }
+  .mnotif-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .mnotif-head h2 { font-size: 20px; }
+  .mnotif ul { list-style: none; margin: 0 0 8px; padding: 0; }
+  .mnotif li + li { border-top: 1px solid var(--line); }
+  .mnotif li a { display: flex; align-items: center; gap: 12px; padding: 11px 4px; text-decoration: none; color: var(--ink); }
+  .mstat { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 15px; background: color-mix(in srgb, var(--color-sand) 40%, transparent); color: var(--deep); }
+  .mstat.done { background: color-mix(in srgb, var(--color-success) 16%, transparent); color: var(--color-success); }
+  .mstat.error { background: color-mix(in srgb, var(--color-error) 14%, transparent); color: var(--color-error); }
+  .mtxt { display: flex; flex-direction: column; min-width: 0; }
+  .mtxt strong { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ----- barra de baixo: Início, Projetos, + Criar, Gerações, Conta ----- */
+  .shell .rail { padding: 8px 6px calc(8px + env(safe-area-inset-bottom)); border-radius: 28px; align-items: flex-end; box-shadow: 0 10px 34px rgba(43, 42, 40, .16); }
+  .shell .rail .ritems { flex: 4; display: flex; gap: 0; align-items: flex-end; }
+  .shell .rail .rfoot { flex: 1; width: auto; min-width: 0; display: flex; }
+  .shell .rail .rfoot .ritem, .shell .rail .ritems .ritem { flex: 1; min-width: 0; }
+  .shell .rail .r-home { order: 1; } .shell .rail .r-proj { order: 2; } .shell .rail .r-create { order: 3; } .shell .rail .r-ger { order: 4; }
+  .shell .rail .r-ger { display: flex; }
+  .ico-d { display: contents; }
+
+  /* o "+" de Criar: círculo em terracota que sobe acima da barra */
+  .shell .rail .r-create {
+    flex: none; width: 62px; height: 62px; min-height: 62px; margin: -30px 6px 14px; padding: 0; gap: 0; justify-content: center; border-radius: 50%;
+    color: var(--color-on-primary); border: 4px solid var(--surface);
+    background: linear-gradient(160deg, var(--color-accent), var(--color-primary)); box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  }
+  .shell .rail .r-create:hover:not(:disabled), .shell .rail .r-create.on, .shell .rail .r-create.on:hover:not(:disabled) {
+    color: var(--color-on-primary); background: linear-gradient(160deg, var(--color-accent), var(--color-primary)); filter: brightness(1.05); transform: none;
+  }
+  .shell .rail .r-create .ico-d { display: none; }
+  .shell .rail .r-create .ico-m { display: block; }
+  .shell .rail .r-create svg { width: 30px; height: 30px; stroke: currentColor; }
+  .shell .rail .r-create .lbl-m { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .shell .rail .ritem.on { color: var(--link); }
+
+  /* a folha "Criar" abre logo acima do "+" */
+  .drawer { inset: auto 10px calc(96px + env(safe-area-inset-bottom)) 10px; }
+
+  /* ----- início no celular: saudação, cartão de créditos e resumo ----- */
+  .shell .wrap { padding-top: 0; }
+  .homehead { align-items: flex-start; padding: 6px 0 14px; gap: 14px; }
+  .homehead h1 { font-size: 26px; text-align: left; }
+  .homehead .homecred { display: none; }
+  .mhero { display: block; position: relative; overflow: hidden; margin: 0 0 14px; padding: 18px 18px 18px; border-radius: 22px; color: var(--color-on-primary);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); box-shadow: 0 10px 26px color-mix(in srgb, var(--color-primary) 30%, transparent); }
+  .mhero::after { content: ""; position: absolute; right: -40px; top: -40px; width: 170px; height: 170px; border-radius: 50%; background: rgba(255, 253, 249, .12); }
+  .mhero::before { content: ""; position: absolute; right: 40px; bottom: -60px; width: 130px; height: 130px; border-radius: 50%; background: rgba(255, 253, 249, .09); }
+  .mhero p { margin: 0; position: relative; z-index: 1; }
+  .mhero .mh-l { font-size: 13px; opacity: .88; }
+  .mhero .mh-n { font-size: 40px; font-weight: 600; line-height: 1.1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .mhero .mh-n small { font-size: 15px; font-weight: 500; opacity: .9; margin-left: 4px; }
+  .mhero .mh-p { font-size: 13px; opacity: .88; margin-bottom: 14px; }
+  .shell .mhero a.mh-btn { position: relative; z-index: 1; display: inline-flex; align-items: center; min-height: 40px; padding: 0 18px; border-radius: 99px; text-decoration: none; font-weight: 600; font-size: 14px;
+    color: var(--color-primary-hover); background: var(--color-surface-elevated); }
+  .mstats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0 0 18px; }
+  .mstat-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 12px 12px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .mstat-card span { font-size: 12px; color: var(--muted); }
+  .mstat-card b { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .homeside .sidecard:first-child { display: none; }
+}
