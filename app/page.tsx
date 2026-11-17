@@ -103,7 +103,7 @@ export default async function Landing() {
         {temVideo && (
           <section className="lp-sec lp-in" id="video">
             <p className="lp-pill">{t("Veja em ação")}</p>
-            <h2>{t("Tudo o que o Croqui faz, em poucos minutos")}</h2>
+            <h2>{t("Tudo o que o Croqui faz, em poucos segundos")}</h2>
             <div className="lp-video"><video src="/demo/croqui.mp4" controls playsInline preload="metadata" /></div>
           </section>
         )}

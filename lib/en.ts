@@ -121,7 +121,7 @@ export const EN: Record<string, string> = {
   "O Croqui no computador": "Croqui on the computer",
   "O Croqui no celular": "Croqui on the phone",
   "Veja em ação": "See it in action",
-  "Tudo o que o Croqui faz, em poucos minutos": "Everything Croqui does, in a few minutes",
+  "Tudo o que o Croqui faz, em poucos segundos": "Everything Croqui does, in a few seconds",
   "Funcionalidades": "Features",
   "Veja todas as funcionalidades do Croqui que você vai ter acesso": "See all the Croqui features you'll have access to",
   "O Croqui gera renders, variações de luz e de estilo, interpreta croquis, edita regiões da imagem e monta o filme do projeto.": "Croqui generates renders, light and style variations, interprets sketches, edits image regions and builds the project film.",
