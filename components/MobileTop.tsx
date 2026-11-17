@@ -84,6 +84,7 @@ export default function MobileTop({ name, credits }: { name: string; credits: nu
           <div className="dscrim" onClick={() => setOpen(false)} />
           <section className="mnotif" role="dialog" aria-modal="true" aria-label={t("Notificações")}>
             <div className="mnotif-head"><h2>{t("Notificações")}</h2><button type="button" className="ghost sheet-close" style={{ display: "inline-flex" }} aria-label={t("Fechar")} onClick={() => setOpen(false)}><Icon name="close" /></button></div>
+            <PushToggle />
             {gens.length === 0 ? <p className="muted small">{t("Nenhuma notificação ainda.")}</p> : (
               <ul>
                 {gens.map((g) => (
@@ -97,7 +98,6 @@ export default function MobileTop({ name, credits }: { name: string; credits: nu
                 ))}
               </ul>
             )}
-            <PushToggle />
             <Link href="/app/geracoes" className="small" onClick={() => setOpen(false)}>{t("Todas as gerações")}</Link>
           </section>
         </>
