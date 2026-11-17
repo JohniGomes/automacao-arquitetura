@@ -3,6 +3,8 @@ import Link from "next/link";
 import Icon from "./icons";
 import { useLang, useT } from "./I18nProvider";
 import { useCredits } from "./useCredits";
+import Avatar from "./Avatar";
+import AvatarForm from "./AvatarForm";
 import { LANGS, Theme } from "@/lib/i18n";
 import { THEMES, usePrefs } from "@/lib/prefs-client";
 
@@ -17,9 +19,10 @@ export default function AccountView({ name, email, credits, planLine, theme: the
   return (
     <>
       <div className="acchead">
-        <span className="avatar" aria-hidden="true">{initial}</span>
+        <span className="avatar" aria-hidden="true"><Avatar inicial={initial} /></span>
         <div className="accwho"><strong>{name}</strong><span>{email}</span></div>
       </div>
+      <AvatarForm />
 
       <section className="accbalance" aria-label={t("Créditos")}>
         <div><span className="lbl">{t("Saldo")}</span><b>{c ?? "…"}</b><span className="unit">{t("créditos")}</span></div>

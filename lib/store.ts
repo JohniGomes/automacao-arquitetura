@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { env } from "./config";
-import { DATA_DIR, db, Escritorio, Generation, Payment, PlanFields, Project, save, Share, SupportMsg, Tx, uid, User } from "./db";
+import { DATA_DIR, db, Escritorio, Generation, Payment, PlanFields, Project, PushSub, save, Share, SupportMsg, Tx, uid, User } from "./db";
 
 /** Camada de dados. Produção = Supabase (Postgres + Storage). Desenvolvimento sem Supabase = arquivos locais (data/). */
 export interface Store {
@@ -42,6 +42,10 @@ export interface Store {
   addSupport(m: { userId: string; email: string; subject: string; message: string }): Promise<void>;
   /** marca do escritório do usuário (null se ainda não preencheu ou se o SQL novo não foi executado) */
   getOffice(userId: string): Promise<Escritorio | null>;
+  /** aparelhos inscritos para notificação push (vazio se o SQL novo não foi executado) */
+  listPushes(userId: string): Promise<PushSub[]>;
+  addPush(s: PushSub): Promise<void>;
+  removePush(endpoint: string): Promise<void>;
   /** links de apresentação ativos do usuário (vazio se o SQL novo não foi executado) */
   listShares(userId: string): Promise<Share[]>;
   /** link ativo pelo token (null se não existe ou foi revogado) */
@@ -114,6 +118,9 @@ const localStore: Store = {
   async listGens(userId) { return db().generations.filter((g) => g.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
   async listTxs(userId, limit) { return db().txs.filter((t) => t.userId === userId).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit); },
   async staleGens() { return db().generations.filter((g) => g.status === "queued" || g.status === "running"); },
+  async listPushes(userId) { return db().pushes!.filter((p) => p.userId === userId); },
+  async addPush(s) { const l = db().pushes!.filter((p) => p.endpoint !== s.endpoint); l.push(s); db().pushes = l; save(); },
+  async removePush(endpoint) { db().pushes = db().pushes!.filter((p) => p.endpoint !== endpoint); save(); },
   async listShares(userId) { return db().shares!.filter((s) => s.userId === userId && !s.revokedAt); },
   async getShare(token) { return db().shares!.find((s) => s.token === token && !s.revokedAt) ?? null; },
   async createShare(userId, projectId, token) {
@@ -181,11 +188,12 @@ const toGen = (r: any): Generation => ({
   mock: r.mock, error: r.error ?? undefined, usage: r.usage ?? { images: 0, videoClips: 0 },
   projectId: r.project_id ?? null, favorite: r.favorite ?? false,
 });
+const toPush = (r: any): PushSub => ({ endpoint: r.endpoint, userId: r.user_id, p256dh: r.p256dh, auth: r.auth, createdAt: r.created_at });
 const toShare = (r: any): Share => ({ token: r.token, userId: r.user_id, projectId: r.project_id, createdAt: r.created_at, revokedAt: r.revoked_at ?? null });
 const toOffice = (r: any): Escritorio => ({ userId: r.user_id, nome: r.nome ?? "", responsavel: r.responsavel ?? "", registro: r.registro ?? "", cor: r.cor ?? "", logo: r.logo ?? null });
 const toProject = (r: any): Project => ({ id: r.id, userId: r.user_id, name: r.name, createdAt: r.created_at });
 /** erro de coluna/tabela inexistente: o SQL novo (supabase/schema.sql) ainda não foi executado */
-const missingSchema = (e: { message: string } | null) => !!e && /project_id|favorite|projects|offices|shares|schema cache|does not exist/i.test(e.message);
+const missingSchema = (e: { message: string } | null) => !!e && /project_id|favorite|projects|offices|shares|push_subs|schema cache|does not exist/i.test(e.message);
 
 const supabaseStore: Store = {
   kind: "supabase",
@@ -290,6 +298,22 @@ const supabaseStore: Store = {
     const { data, error } = await sb().from("generations").select("*").in("status", ["queued", "running"]);
     check(error, "staleGens");
     return (data ?? []).map(toGen);
+  },
+  async listPushes(userId) {
+    const { data, error } = await sb().from("push_subs").select("*").eq("user_id", userId);
+    if (missingSchema(error)) return [];
+    check(error, "listPushes");
+    return (data ?? []).map(toPush);
+  },
+  async addPush(s) {
+    const { error } = await sb().from("push_subs").upsert({ endpoint: s.endpoint, user_id: s.userId, p256dh: s.p256dh, auth: s.auth });
+    if (missingSchema(error)) throw new Error("As notificações ainda não estão disponíveis: execute o SQL novo (supabase/migracao-push.sql) no Supabase.");
+    check(error, "addPush");
+  },
+  async removePush(endpoint) {
+    const { error } = await sb().from("push_subs").delete().eq("endpoint", endpoint);
+    if (missingSchema(error)) return;
+    check(error, "removePush");
   },
   async listShares(userId) {
     const { data, error } = await sb().from("shares").select("*").eq("user_id", userId).is("revoked_at", null);

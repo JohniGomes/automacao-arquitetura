@@ -27,10 +27,12 @@ export type Generation = {
 export type Escritorio = { userId: string; nome: string; responsavel: string; registro: string; cor: string; logo: string | null };
 /** Link público de apresentação de um projeto (somente leitura, revogável). */
 export type Share = { token: string; userId: string; projectId: string; createdAt: string; revokedAt?: string | null };
+/** Inscrição de notificação push de um aparelho (Web Push). */
+export type PushSub = { endpoint: string; userId: string; p256dh: string; auth: string; createdAt: string };
 export type Project = { id: string; userId: string; name: string; createdAt: string };
 export type Tx = { id: string; userId: string; delta: number; reason: string; genId?: string; at: string };
 export type SupportMsg = { id: string; userId: string; email: string; subject: string; message: string; createdAt: string };
-type DB = { users: User[]; generations: Generation[]; txs: Tx[]; projects: Project[]; support?: SupportMsg[]; payments?: Payment[]; offices?: Escritorio[]; shares?: Share[] };
+type DB = { users: User[]; generations: Generation[]; txs: Tx[]; projects: Project[]; support?: SupportMsg[]; payments?: Payment[]; offices?: Escritorio[]; shares?: Share[]; pushes?: PushSub[] };
 
 export const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data"); // no Render: disco persistente, ex. /var/data
 const FILE = path.join(DATA_DIR, "db.json");
@@ -46,6 +48,7 @@ export function db(): DB {
   g.__db!.payments ??= [];
   g.__db!.offices ??= [];
   g.__db!.shares ??= [];
+  g.__db!.pushes ??= [];
   return g.__db!;
 }
 export function save() {
