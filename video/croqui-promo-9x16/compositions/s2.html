@@ -1,0 +1,44 @@
+<template>
+<style>
+@font-face{font-family:"Fraunces";src:url("assets/fonts/fraunces-normal.woff2") format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"Fraunces";src:url("assets/fonts/fraunces-italic.woff2") format("woff2");font-weight:400;font-style:italic}
+#root{position:absolute;inset:0;overflow:hidden;font-family:"Inter",sans-serif;color:#F6F1EA}
+#root *{box-sizing:border-box;margin:0;padding:0}
+.w{display:inline-block;margin-right:.24em;will-change:transform,opacity}
+.w.g,.g{background:linear-gradient(110deg,#FFB48A 0%,#FF86A8 55%,#C4A2FF 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;font-style:italic;padding-right:.06em}
+.w.up{font-style:normal;font-weight:400}
+.disp{font-family:"Fraunces",Georgia,serif;font-weight:400;letter-spacing:-0.02em;line-height:1.08}
+.s2-p{position:absolute;left:0;width:1080px;text-align:center;font-size:128px}
+.s2-p .neg{position:relative;display:block;width:fit-content;margin:0 auto;}
+.s2-p .bar{position:absolute;left:-1%;top:56%;height:.085em;width:102%;border-radius:99px;background:linear-gradient(110deg,#FFB48A 0%,#FF86A8 55%,#C4A2FF 100%);transform-origin:0 50%;box-shadow:0 0 30px rgba(240,98,127,.7)}
+.s2-p .neg .w{margin-right:0}
+.s2-p .pre{display:block}
+#s2-p1{top:250px}
+#s2-p2{top:560px}
+#s2-p3{top:870px}
+</style>
+<div id="root" data-composition-id="s2" data-width="1080" data-height="1920">
+<div class="s2-p disp" id="s2-p1"><span class="pre"><span class="w" id="s2p1-0">Sem</span> <span class="w" id="s2p1-1">hardware</span></span> <span class="neg"><span class="w" id="s2n1">caro.</span><i class="bar" id="s2bar1"></i></span></div>
+<div class="s2-p disp" id="s2-p2"><span class="pre"><span class="w" id="s2p2-0">Sem</span> <span class="w" id="s2p2-1">software</span></span> <span class="neg"><span class="w" id="s2n2">complexo.</span><i class="bar" id="s2bar2"></i></span></div>
+<div class="s2-p disp" id="s2-p3"><span class="pre"><span class="w" id="s2p3-0">Sem</span> <span class="w" id="s2p3-1">horas</span></span> <span class="neg"><span class="w" id="s2n3">de espera.</span><i class="bar" id="s2bar3"></i></span></div>
+</div>
+<script>
+const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s2p1-0",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},0.17);
+tl.fromTo("#s2p1-1",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},0.29);
+tl.fromTo("#s2n1",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},0.53);
+tl.fromTo("#s2bar1",{scaleX:0},{scaleX:1,duration:0.28,ease:"power4.out"},0.99);
+tl.to("#s2n1",{color:"rgba(246,241,234,.42)",duration:0.25},0.99);
+tl.fromTo("#s2p2-0",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},1.56);
+tl.fromTo("#s2p2-1",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},1.68);
+tl.fromTo("#s2n2",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},1.92);
+tl.fromTo("#s2bar2",{scaleX:0},{scaleX:1,duration:0.28,ease:"power4.out"},2.63);
+tl.to("#s2n2",{color:"rgba(246,241,234,.42)",duration:0.25},2.63);
+tl.fromTo("#s2p3-0",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},3.26);
+tl.fromTo("#s2p3-1",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},3.38);
+tl.fromTo("#s2n3",{opacity:0,y:60,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},3.62);
+tl.fromTo("#s2bar3",{scaleX:0},{scaleX:1,duration:0.28,ease:"power4.out"},4.15);
+tl.to("#s2n3",{color:"rgba(246,241,234,.42)",duration:0.25},4.15);
+window.__timelines["s2"] = tl;
+</script>
+</template>

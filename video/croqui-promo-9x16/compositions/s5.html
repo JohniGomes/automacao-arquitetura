@@ -1,0 +1,57 @@
+<template>
+<style>
+@font-face{font-family:"Fraunces";src:url("assets/fonts/fraunces-normal.woff2") format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"Fraunces";src:url("assets/fonts/fraunces-italic.woff2") format("woff2");font-weight:400;font-style:italic}
+#root{position:absolute;inset:0;overflow:hidden;font-family:"Inter",sans-serif;color:#F6F1EA}
+#root *{box-sizing:border-box;margin:0;padding:0}
+.w{display:inline-block;margin-right:.24em;will-change:transform,opacity}
+.w.g,.g{background:linear-gradient(110deg,#FFB48A 0%,#FF86A8 55%,#C4A2FF 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;font-style:italic;padding-right:.06em}
+.w.up{font-style:normal;font-weight:400}
+.disp{font-family:"Fraunces",Georgia,serif;font-weight:400;letter-spacing:-0.02em;line-height:1.08}
+#s5-img{position:absolute;inset:0;overflow:hidden}
+#s5-img img{position:absolute;left:50%;top:0;height:100%;width:auto;min-width:100%;margin-left:-1070px;max-width:none}
+#s5-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,10,14,.82),rgba(12,10,14,.72) 50%,rgba(12,10,14,.88))}
+.s5-q{position:absolute;left:60px;width:960px;text-align:left;font-size:112px}
+#s5-q1{top:380px}#s5-q2{top:730px}
+#s5-cta{position:absolute;inset:0}
+#s5-lock{position:absolute;left:0;width:1080px;top:330px;display:flex;justify-content:center;align-items:center;gap:26px}
+#s5-lock svg{width:170px;height:170px}
+#s5-lock .disp{font-size:150px;line-height:1}
+#s5-line{position:absolute;left:0;width:1080px;top:640px;text-align:center;font-size:104px}
+#s5-btn{position:absolute;left:160px;top:900px;width:760px;height:140px;border-radius:99px;background:linear-gradient(135deg,#E2573A,#F2894F);display:grid;place-items:center;font-weight:700;font-size:54px;color:#fff;box-shadow:0 20px 70px -12px rgba(240,100,60,.85),inset 0 2px 0 rgba(255,255,255,.35);opacity:0}
+</style>
+<div id="root" data-composition-id="s5" data-width="1080" data-height="1920">
+<div id="s5-img"><img src="assets/img/render.jpg" alt=""></div><div id="s5-scrim"></div>
+<div class="s5-q disp" id="s5-q1"><span class="w" id="s5a-0">Menos</span> <span class="w" id="s5a-1">tempo</span> <span class="w g" id="s5a-2">renderizando.</span></div>
+<div class="s5-q disp" id="s5-q2"><span class="w" id="s5b-0">Mais</span> <span class="w" id="s5b-1">tempo</span> <span class="w g" id="s5b-2">criando.</span></div>
+<div id="s5-cta"><div id="s5-lock"><svg class="" id="s5-logo" viewBox="0 0 48 48" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+<path id="s5-logo-r" d="M4 26 24 9l20 17" pathLength="100" stroke="#F6F1EA" stroke-dasharray="100 120" stroke-dashoffset="110"/>
+<path id="s5-logo-w" d="M12 22v19h25V22" pathLength="100" stroke="#F6F1EA" stroke-dasharray="100 120" stroke-dashoffset="110"/>
+<path id="s5-logo-g" d="M3 43h42" pathLength="100" stroke="#FF7A59" stroke-dasharray="100 120" stroke-dashoffset="110"/>
+<circle id="s5-logo-d" cx="35" cy="12" r="3" fill="#FF7A59" stroke="none" opacity="0"/></svg><div class="disp" id="s5-wm">Croqui</div></div>
+<div class="disp" id="s5-line"><span class="w" id="s5c-0">Teste</span> <span class="w g" id="s5c-1">grátis</span> <span class="w" id="s5c-2">agora.</span></div><div id="s5-btn">Criar conta grátis</div></div>
+</div>
+<script>
+const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s5-img img",{scale:1.0,transformOrigin:"50% 50%"},{scale:1.12,duration:7.4,ease:"none"},0);
+tl.fromTo("#s5a-0",{opacity:0,y:50,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},0.01);
+tl.fromTo("#s5a-1",{opacity:0,y:50,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},0.253);
+tl.fromTo("#s5a-2",{opacity:0,y:50,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},0.497);
+tl.fromTo("#s5b-0",{opacity:0,y:50,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},1.68);
+tl.fromTo("#s5b-1",{opacity:0,y:50,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},1.922);
+tl.fromTo("#s5b-2",{opacity:0,y:50,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},2.225);
+tl.to("#s5-q1,#s5-q2",{opacity:0,y:-36,filter:"blur(10px)",duration:0.35,ease:"power2.in"},3.07);
+/* chamada final: a marca é desenhada, depois o botão sobe */
+tl.fromTo("#s5-logo-r",{strokeDashoffset:110},{strokeDashoffset:0,duration:0.45,ease:"power2.inOut"},3.22);
+tl.fromTo("#s5-logo-w",{strokeDashoffset:110},{strokeDashoffset:0,duration:0.45,ease:"power2.inOut"},3.32);
+tl.fromTo("#s5-logo-g",{strokeDashoffset:110},{strokeDashoffset:0,duration:0.35,ease:"power2.inOut"},3.47);
+tl.fromTo("#s5-logo-d",{opacity:0,scale:0},{opacity:1,scale:1,transformOrigin:"50% 50%",duration:0.3,ease:"back.out(3)"},3.67);
+tl.fromTo("#s5-wm",{opacity:0,x:-30,filter:"blur(10px)"},{opacity:1,x:0,filter:"blur(0px)",duration:0.6,ease:"power3.out"},3.37);
+tl.fromTo("#s5c-0",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},3.36);
+tl.fromTo("#s5c-1",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},3.666);
+tl.fromTo("#s5c-2",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},4.033);
+tl.fromTo("#s5-btn",{opacity:0,y:60,scale:0.9},{opacity:1,y:0,scale:1,duration:0.6,ease:"back.out(1.6)"},3.9);
+tl.to("#s5-btn",{boxShadow:"0 20px 110px -6px rgba(255,120,80,1),inset 0 2px 0 rgba(255,255,255,.35)",duration:0.9,ease:"sine.inOut",yoyo:true,repeat:1},4.7);
+window.__timelines["s5"] = tl;
+</script>
+</template>

@@ -1,0 +1,37 @@
+<template>
+<style>
+@font-face{font-family:"Fraunces";src:url("assets/fonts/fraunces-normal.woff2") format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"Fraunces";src:url("assets/fonts/fraunces-italic.woff2") format("woff2");font-weight:400;font-style:italic}
+#root{position:absolute;inset:0;overflow:hidden;font-family:"Inter",sans-serif;color:#F6F1EA}
+#root *{box-sizing:border-box;margin:0;padding:0}
+.w{display:inline-block;margin-right:.24em;will-change:transform,opacity}
+.w.g,.g{background:linear-gradient(110deg,#FFB48A 0%,#FF86A8 55%,#C4A2FF 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;font-style:italic;padding-right:.06em}
+.w.up{font-style:normal;font-weight:400}
+.disp{font-family:"Fraunces",Georgia,serif;font-weight:400;letter-spacing:-0.02em;line-height:1.08}
+#s3-logo{position:absolute;left:415px;top:330px;width:250px;height:250px}
+#s3-word{position:absolute;left:0;width:1080px;top:640px;text-align:center;font-size:210px;line-height:1}
+#s3-tag{position:absolute;left:60px;width:960px;top:930px;text-align:center;font-size:92px}
+</style>
+<div id="root" data-composition-id="s3" data-width="1080" data-height="1920">
+<svg class="" id="s3-logo" viewBox="0 0 48 48" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+<path id="s3-logo-r" d="M4 26 24 9l20 17" pathLength="100" stroke="#F6F1EA" stroke-dasharray="100 120" stroke-dashoffset="110"/>
+<path id="s3-logo-w" d="M12 22v19h25V22" pathLength="100" stroke="#F6F1EA" stroke-dasharray="100 120" stroke-dashoffset="110"/>
+<path id="s3-logo-g" d="M3 43h42" pathLength="100" stroke="#FF7A59" stroke-dasharray="100 120" stroke-dashoffset="110"/>
+<circle id="s3-logo-d" cx="35" cy="12" r="3" fill="#FF7A59" stroke="none" opacity="0"/></svg><div class="disp" id="s3-word">Croqui</div><div class="disp" id="s3-tag"><span class="w" id="s3t-0">A</span> <span class="w g up" id="s3t-1">IA</span> <span class="w" id="s3t-2">feita</span> <span class="w" id="s3t-3">para</span> <span class="w" id="s3t-4">arquitetura.</span></div>
+</div>
+<script>
+const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s3-logo-r",{strokeDashoffset:110},{strokeDashoffset:0,duration:0.5,ease:"power2.inOut"},0.19);
+tl.fromTo("#s3-logo-w",{strokeDashoffset:110},{strokeDashoffset:0,duration:0.5,ease:"power2.inOut"},0.31);
+tl.fromTo("#s3-logo-g",{strokeDashoffset:110},{strokeDashoffset:0,duration:0.4,ease:"power2.inOut"},0.49);
+tl.fromTo("#s3-logo-d",{opacity:0,scale:0},{opacity:1,scale:1,transformOrigin:"50% 50%",duration:0.3,ease:"back.out(3)"},0.69);
+tl.fromTo("#s3-word",{opacity:0,y:40,filter:"blur(14px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.7,ease:"power3.out"},0.29);
+tl.fromTo("#s3t-0",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},1.03);
+tl.fromTo("#s3t-1",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},1.096);
+tl.fromTo("#s3t-2",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},1.227);
+tl.fromTo("#s3t-3",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},1.557);
+tl.fromTo("#s3t-4",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},1.82);
+tl.to("#s3-logo",{scale:1.06,transformOrigin:"50% 50%",duration:2.4,ease:"none"},1.09);
+window.__timelines["s3"] = tl;
+</script>
+</template>

@@ -1,0 +1,36 @@
+<template>
+<style>
+@font-face{font-family:"Fraunces";src:url("assets/fonts/fraunces-normal.woff2") format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"Fraunces";src:url("assets/fonts/fraunces-italic.woff2") format("woff2");font-weight:400;font-style:italic}
+#root{position:absolute;inset:0;overflow:hidden;font-family:"Inter",sans-serif;color:#F6F1EA}
+#root *{box-sizing:border-box;margin:0;padding:0}
+.w{display:inline-block;margin-right:.24em;will-change:transform,opacity}
+.w.g,.g{background:linear-gradient(110deg,#FFB48A 0%,#FF86A8 55%,#C4A2FF 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;font-style:italic;padding-right:.06em}
+.w.up{font-style:normal;font-weight:400}
+.disp{font-family:"Fraunces",Georgia,serif;font-weight:400;letter-spacing:-0.02em;line-height:1.08}
+.bl{position:absolute;border-radius:50%;filter:blur(130px);will-change:transform,opacity}
+#bg-base{position:absolute;inset:0;background:#0C0A0E}
+#bg-b1{width:900px;height:900px;left:-380px;top:60px;background:#D2482B;opacity:.6}
+#bg-b2{width:900px;height:900px;left:300px;top:700px;background:#6A3FD6;opacity:.6}
+#bg-b3{width:800px;height:800px;left:60px;top:1150px;background:#E0467A;opacity:.38}
+#bg-b4{width:700px;height:700px;left:420px;top:120px;background:#E8A04A;opacity:.28}
+#bg-grid{position:absolute;inset:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:80px 80px;-webkit-mask-image:linear-gradient(#000 25%,transparent 90%);mask-image:linear-gradient(#000 25%,transparent 90%)}
+#bg-vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(0,0,0,.55) 100%)}
+</style>
+<div id="root" data-composition-id="bg" data-width="1080" data-height="1920">
+<div id="bg-base"></div><div class="bl" id="bg-b1"></div><div class="bl" id="bg-b2"></div><div class="bl" id="bg-b3"></div><div class="bl" id="bg-b4"></div><div id="bg-grid"></div><div id="bg-vig"></div>
+</div>
+<script>
+const tl = gsap.timeline({ paused: true });
+tl.to("#bg-b1",{x:90,y:120,duration:29.6,ease:"none"},0);
+tl.to("#bg-b2",{x:-90,y:-120,duration:29.6,ease:"none"},0);
+tl.to("#bg-b3",{x:90,y:-120,duration:29.6,ease:"none"},0);
+tl.to("#bg-b4",{x:-90,y:120,duration:29.6,ease:"none"},0);
+/* o clima acompanha a história: escurece nos "sem", abre na marca, esquenta no final */
+tl.to("#bg-b1,#bg-b2",{opacity:.34,duration:0.6,ease:"power2.inOut"},4.7);
+tl.to("#bg-b1,#bg-b2",{opacity:.62,duration:0.7,ease:"power2.out"},9.6);
+tl.to("#bg-b1,#bg-b2",{opacity:.5,duration:1.0,ease:"power2.inOut"},12.7);
+tl.to("#bg-b1",{opacity:.8,duration:1.2,ease:"power2.inOut"},22.2);
+window.__timelines["bg"] = tl;
+</script>
+</template>

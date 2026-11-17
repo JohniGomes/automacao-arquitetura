@@ -1,0 +1,5 @@
+renders/
+node_modules/
+.hyperframes/
+# o projeto 9:16 é gerado por build.mjs a partir de croqui-promo/assets
+croqui-promo-9x16/assets/

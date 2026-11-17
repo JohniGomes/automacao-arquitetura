@@ -1,0 +1,49 @@
+<template>
+<style>
+@font-face{font-family:"Fraunces";src:url("assets/fonts/fraunces-normal.woff2") format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"Fraunces";src:url("assets/fonts/fraunces-italic.woff2") format("woff2");font-weight:400;font-style:italic}
+#root{position:absolute;inset:0;overflow:hidden;font-family:"Inter",sans-serif;color:#F6F1EA}
+#root *{box-sizing:border-box;margin:0;padding:0}
+.w{display:inline-block;margin-right:.24em;will-change:transform,opacity}
+.w.g,.g{background:linear-gradient(110deg,#FFB48A 0%,#FF86A8 55%,#C4A2FF 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;font-style:italic;padding-right:.06em}
+.w.up{font-style:normal;font-weight:400}
+.disp{font-family:"Fraunces",Georgia,serif;font-weight:400;letter-spacing:-0.02em;line-height:1.08}
+#s1-frame{position:absolute;left:40px;top:220px;width:1000px;height:558px;border-radius:28px;overflow:hidden;background:#fff;box-shadow:0 40px 120px -30px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.18),0 0 110px -10px rgba(240,100,70,.45)}
+#s1-frame img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover}
+#s1-r{clip-path:inset(0 100% 0 0)}
+#s1-edge{position:absolute;top:0;height:100%;width:8px;left:0;background:linear-gradient(180deg,#FF9A6B,#F0627F,#B084FF);box-shadow:0 0 40px 8px rgba(255,140,110,.7);opacity:0}
+.s1-tag{position:absolute;left:22px;bottom:20px;padding:8px 18px;border-radius:99px;background:rgba(20,16,22,.72);border:1px solid rgba(255,255,255,.22);font-weight:700;font-size:30px;letter-spacing:.12em}
+#s1-t2{opacity:0}
+.s1-p{position:absolute;left:60px;width:960px;top:860px;text-align:left;font-size:100px}
+</style>
+<div id="root" data-composition-id="s1" data-width="1080" data-height="1920">
+<div id="s1-frame"><img id="s1-m" src="assets/img/modelo.jpg" alt=""><img id="s1-r" src="assets/img/render.jpg" alt=""><div id="s1-edge"></div><div class="s1-tag" id="s1-t1">MODELO 3D</div><div class="s1-tag" id="s1-t2">RENDER</div></div>
+<div class="s1-p disp" id="s1-p1"><span class="w" id="s1a-0">Seu</span> <span class="w" id="s1a-1">modelo</span> <span class="w" id="s1a-2">3D</span> <span class="w" id="s1a-3">já</span> <span class="w" id="s1a-4">está</span> <span class="w g" id="s1a-5">pronto.</span></div>
+<div class="s1-p disp" id="s1-p2"><span class="w" id="s1b-0">O</span> <span class="w" id="s1b-1">render</span> <span class="w" id="s1b-2">não</span> <span class="w" id="s1b-3">precisa</span> <span class="w" id="s1b-4">levar</span> <span class="w g" id="s1b-5">horas.</span></div>
+</div>
+<script>
+const tl = gsap.timeline({ paused: true });
+tl.fromTo("#s1-frame",{scale:0.95,opacity:1,y:24},{scale:1,y:0,duration:0.9,ease:"power3.out"},0);
+tl.fromTo("#s1a-0",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},0);
+tl.fromTo("#s1a-1",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},0.174);
+tl.fromTo("#s1a-2",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},0.641);
+tl.fromTo("#s1a-3",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},0.797);
+tl.fromTo("#s1a-4",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},0.953);
+tl.fromTo("#s1a-5",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},1.265);
+tl.to("#s1-p1",{opacity:0,y:-30,filter:"blur(8px)",duration:0.3,ease:"power2.in"},2.42);
+
+tl.fromTo("#s1b-0",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},2.45);
+tl.fromTo("#s1b-1",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},2.514);
+tl.fromTo("#s1b-2",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},2.897);
+tl.fromTo("#s1b-3",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},3.089);
+tl.fromTo("#s1b-4",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},3.537);
+tl.fromTo("#s1b-5",{opacity:0,y:40,filter:"blur(12px)"},{opacity:1,y:0,filter:"blur(0px)",duration:0.5,ease:"power3.out"},3.856);
+tl.fromTo("#s1-edge",{x:0,opacity:0},{x:992,opacity:1,duration:0.8,ease:"power2.inOut"},2.7);
+tl.to("#s1-edge",{opacity:0,duration:0.2},3.5);
+tl.fromTo("#s1-r",{clipPath:"inset(0 100% 0 0)"},{clipPath:"inset(0 0% 0 0)",duration:0.8,ease:"power2.inOut"},2.7);
+tl.to("#s1-t1",{opacity:0,duration:0.2},2.7);
+tl.fromTo("#s1-t2",{opacity:0},{opacity:1,duration:0.3},3.3);
+tl.to("#s1-frame",{scale:1.03,duration:3.7,ease:"none"},1.0);
+window.__timelines["s1"] = tl;
+</script>
+</template>
