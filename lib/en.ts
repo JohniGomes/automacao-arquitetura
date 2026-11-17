@@ -166,6 +166,8 @@ export const EN: Record<string, string> = {
   "Quanto custa?": "How much does it cost?",
   "Os planos mensais vão de {a} a {b} por mês. Também há créditos avulsos a partir de {c}.": "Monthly plans range from {a} to {b} per month. There are also one-off credits starting at {c}.",
   "O Croqui é uma plataforma de IA para arquitetos: gera render, moodboard, variações de luz, mapa de situação e filme do projeto a partir das suas imagens.": "Croqui is an AI platform for architects: it generates renders, moodboards, light variations, site maps and the project film from your images.",
+  "Render fotorrealista": "Photorealistic render",
+  "Filme animado": "Animated film",
   "Croqui, início": "Croqui, home",
   "Início": "Home",
   "Projetos": "Projects",

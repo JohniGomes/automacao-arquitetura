@@ -58,6 +58,8 @@ export default async function Landing() {
   const temVideo = fs.existsSync(path.join(process.cwd(), "public", "demo", "croqui.mp4"));
   const precos = PLANOS.map((p) => p.preco);
   const porCena = COSTS.filmeImagemPorCena + COSTS.filmeAnimacaoPorCena;
+  const renderTool = toolById("render");
+  const filmeTool = toolById("filme");
   const faq: Faq[] = [
     ["O que é o Croqui?", "O Croqui é uma plataforma de IA para arquitetos: gera render, moodboard, variações de luz, mapa de situação e filme do projeto a partir das suas imagens."],
     ["Preciso de um computador potente?", "Não. O processamento acontece na nuvem: basta um navegador, no computador ou no celular."],
@@ -75,6 +77,8 @@ export default async function Landing() {
 
   return (
     <div className="lp">
+      <div className="lp-aurora" aria-hidden="true"><i className="b1" /><i className="b2" /><i className="b3" /><i className="b4" /></div>
+      <div className="lp-grid" aria-hidden="true" />
       <Nav logged={!!u} />
 
       <main>
@@ -91,7 +95,25 @@ export default async function Landing() {
               {bonus > 0 ? t("Ganhe {n} créditos de boas-vindas ao criar a conta.", { n: bonus }) : t("Criar a conta é grátis.")}
               <br /><b>{t("Sem necessidade de cartão de crédito")}</b>
             </p>
-            <div className="lp-stage">
+            <div className="lp-hero-vis">
+              <div className="lp-phone"><img src="/landing/app-mobile.jpg" width={780} height={1388} alt={t("O Croqui no celular")} /></div>
+              {renderTool && (
+                <div className="lp-float f1">
+                  <div className="t"><span className="ti"><ToolIcon tool={renderTool} size={40} /></span><div><b>{t("Render fotorrealista")}</b><small>{t("a partir de {n} créditos", { n: COSTS.renderPorImagem })}</small></div></div>
+                </div>
+              )}
+              {filmeTool && (
+                <div className="lp-float f2">
+                  <div className="t"><span className="ti"><ToolIcon tool={filmeTool} size={40} /></span><div><b>{t("Filme animado")}</b><small>{t("{n} créditos por cena", { n: porCena })}</small></div></div>
+                </div>
+              )}
+              <div className="lp-float f3">
+                <ul className="lp-planlist">
+                  {PLANOS.map((p) => <li key={p.id} className={p.destaque ? "on" : ""}>{t(p.nome)}<span>{brl(p.preco)}/{t("mês")}</span></li>)}
+                </ul>
+              </div>
+            </div>
+            <div className="lp-stage lp-stagehead">
               <HouseSplit />
               <svg className="cota" viewBox="0 0 600 22" preserveAspectRatio="none" aria-hidden="true">
                 <path d="M1 4v14M599 4v14M1 11h262M337 11h262" stroke="currentColor" strokeWidth="1" fill="none" vectorEffect="non-scaling-stroke" />
