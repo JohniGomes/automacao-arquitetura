@@ -206,7 +206,12 @@
 .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--color-border); }
 
 /* tela inteira com a foto do projeto e o cartão de vidro no centro; o mesmo visual vale para recuperar senha e confirmar e-mail */
-.auth { display: block; position: relative; min-height: 100dvh; background: #2b2a28 url("/casa/render.jpg") 38% 50% / cover no-repeat; isolation: isolate; }
+.auth { display: block; position: relative; min-height: 100dvh; background: #2b2a28; isolation: isolate; }
+.auth .bg { position: absolute; inset: 0; z-index: -2; overflow: hidden; }
+.auth .bgl { position: absolute; inset: 0; background-size: cover; background-position: 50% 50%; }
+.auth .bgl.fadein { animation: bgfade .9s ease both; }
+@keyframes bgfade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .auth .bgl.fadein { animation: none; } }
 .auth::before { content: ""; position: absolute; inset: 0; z-index: -1; background: rgba(24, 20, 16, .42); }
 .auth .formside { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: calc(var(--space-8) + env(safe-area-inset-top)) var(--space-4) calc(var(--space-8) + env(safe-area-inset-bottom)); }
 .auth .box, .auth .box a { color: #F4EFE8; }

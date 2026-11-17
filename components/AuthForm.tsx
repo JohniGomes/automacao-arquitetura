@@ -66,18 +66,18 @@ export default function AuthForm({ mode, erro }: { mode: "login" | "register"; e
         <div className="or"><span>{t("ou")}</span></div>
 
         {!open ? (
-          <button type="button" className="ghost full" onClick={() => setOpen(true)} aria-expanded={false}><Icon name="mail" />{t("Continuar com o e-mail")}</button>
+          <button type="button" className="ghost full" data-bg onClick={() => setOpen(true)} aria-expanded={false}><Icon name="mail" />{t("Continuar com o e-mail")}</button>
         ) : (
           <form onSubmit={go} className="gform">
             {reg && <div className="field"><label htmlFor="nome">{t("Nome")}</label><input id="nome" type="text" autoComplete="name" autoCapitalize="words" enterKeyHint="next" value={f.name} onChange={set("name")} /></div>}
             <div className="field"><label htmlFor="email">{t("E-mail")}</label><input id="email" type="email" required autoFocus autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false} enterKeyHint="next" value={f.email} onChange={set("email")} /></div>
             <div className="field"><label htmlFor="senha">{t("Senha")}</label><PasswordInput id="senha" minLength={8} autoComplete={reg ? "new-password" : "current-password"} value={f.password} onChange={set("password")} />
-              {reg ? <p className="small">{t("Mínimo de 8 caracteres.")}</p> : <p className="small"><Link href="/esqueci-senha">{t("Esqueci minha senha")}</Link></p>}</div>
+              {reg ? <p className="small">{t("Mínimo de 8 caracteres.")}</p> : <p className="small"><Link href="/esqueci-senha" data-bg>{t("Esqueci minha senha")}</Link></p>}</div>
             <button className="full" disabled={busy}>{reg ? t("Criar conta") : t("Entrar")}</button>
           </form>
         )}
 
-        <p className="sw">{reg ? t("Já tem conta?") : t("Ainda não tem conta?")} <Link href={reg ? "/login" : "/cadastro"}>{reg ? t("Entrar") : t("Crie agora")}</Link></p>
+        <p className="sw">{reg ? t("Já tem conta?") : t("Ainda não tem conta?")} <Link href={reg ? "/login" : "/cadastro"} data-bg>{reg ? t("Entrar") : t("Crie agora")}</Link></p>
         {!reg && <p className="legalnote">{t("Ao continuar, você concorda com os")} <Link href="/termos" target="_blank">{t("Termos de Uso")}</Link> {t("e a")} <Link href="/privacidade" target="_blank">{t("Política de Privacidade")}</Link>.</p>}
       </div>
     </>

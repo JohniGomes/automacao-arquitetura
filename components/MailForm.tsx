@@ -43,7 +43,7 @@ export default function MailForm({ mode, token }: { mode: "forgot" | "reset"; to
           </div>
           {err && <p className="err" role="alert">{err}</p>}
           <button className="full" disabled={busy}>{forgot ? t("Enviar link") : t("Salvar nova senha")}</button>
-          <p className="sw"><Link href="/login">{t("Voltar para o login")}</Link></p>
+          <p className="sw"><Link href="/login" data-bg>{t("Voltar para o login")}</Link></p>
         </>
       )}
     </form>
