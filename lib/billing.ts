@@ -4,6 +4,7 @@ import { PACOTES, PLANOS } from "./costs";
 import type { User } from "./db";
 import { UserError } from "./errors";
 import { activePlan, FATOR_MINIMO_PACOTE, planById, precoPacote } from "./plans";
+import { sobraDoPlano } from "./planCredits";
 import { store } from "./store";
 
 /**
@@ -312,12 +313,14 @@ async function applyUpgrade(user: User, targetId: string, paid: number) {
 }
 
 // ------------------------------------------------------------------ créditos do plano
-/** Créditos do mês: soma o pacote mensal, mas o saldo nunca passa de 2 meses (o que sobra de um mês acumula no máximo mais um). */
-async function grantMonthly(userId: string, planId: string, balance: number) {
+/** Créditos do mês, não cumulativos: o que sobrou do pacote do mês anterior expira e entra o pacote novo. Créditos avulsos comprados não expiram (ver lib/planCredits.ts). */
+async function grantMonthly(userId: string, planId: string) {
   const p = planById(planId);
   if (!p) return;
-  const add = Math.max(0, Math.min(p.creditosMes, 2 * p.creditosMes - balance));
-  if (add > 0) await store.grant(userId, add, `Plano ${p.nome}: créditos do mês`);
+  const u = await store.getUser(userId);
+  const sobra = u ? sobraDoPlano(await store.listTxs(userId, 5000), u.credits) : 0;
+  if (sobra > 0) await store.charge(userId, sobra, "Créditos do mês anterior expirados");
+  await store.grant(userId, p.creditosMes, `Plano ${p.nome}: créditos do mês`);
 }
 
 // ------------------------------------------------------------------ webhook
@@ -357,7 +360,7 @@ async function applyPayment(pay: any) {
   // renovação do mesmo plano soma ao que resta; troca de plano começa agora
   const from = activePlan(user) && user.plan === plan.id && user.planUntil ? Math.max(now, new Date(user.planUntil).getTime()) : now;
   await store.setPlan(user.id, { plan: plan.id, planUntil: new Date(from + 35 * DAY).toISOString(), planStatus: "ativo", planNext: null, ...(pay.subscription ? { asaasSubscriptionId: String(pay.subscription) } : {}) });
-  await grantMonthly(user.id, plan.id, user.credits);
+  await grantMonthly(user.id, plan.id);
 }
 
 /** Reembolso ou chargeback: tira os créditos que ainda estiverem no saldo, ou encerra o plano. Uma vez só por pagamento. */

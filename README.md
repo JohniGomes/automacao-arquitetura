@@ -233,3 +233,5 @@ Tudo é definido em `lib/plans.ts` (regras) e `lib/costs.ts` (preços, créditos
 | Suporte | e-mail | e-mail | prioritário por WhatsApp |
 
 O WhatsApp do suporte vem de `SUPPORT_WHATSAPP` (só dígitos, com DDI e DDD; padrão `5562981834833`) e aparece na tela de Suporte só para quem tem o plano Max.
+
+**Créditos do plano não acumulam.** Na renovação mensal, o que sobrou do pacote do mês anterior expira (lançamento "Créditos do mês anterior expirados" no extrato) e entra o pacote novo. Créditos avulsos comprados e os de boas-vindas não expiram. Como o saldo é um número só, a sobra do plano é calculada pelo extrato (`lib/planCredits.ts`): pacote do mês + créditos proporcionais de troca − gasto desde então (gerações menos estornos), limitado ao saldo.

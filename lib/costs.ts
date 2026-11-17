@@ -24,7 +24,7 @@ export const PACOTES = [
   { id: "p3", creditos: 300, preco: 59.9, rotulo: "Estúdio" },
 ];
 
-/** Assinaturas mensais (não há plano anual). Os créditos do mês não acumulam além de 1 mês de saldo. */
+/** Assinaturas mensais (não há plano anual). Os créditos do mês não acumulam: na renovação o que sobrou expira (lib/planCredits.ts). */
 export const PLANOS = [
   { id: "essencial", nome: "Essencial", preco: 49.9, creditosMes: 500, destaque: false,
     itens: ["Todas as ferramentas", "3 projetos ativos", "Histórico de 30 dias", "Fila normal", "Mapa de situação até 600 m, vista aérea com 5 lugares", "2 gerações ao mesmo tempo", "Suporte por e-mail"] },
