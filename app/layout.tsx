@@ -18,7 +18,7 @@ const display = Fraunces({ subsets: ["latin"], variable: "--f-display", display:
 
 export const viewport: Viewport = {
   width: "device-width", initialScale: 1, viewportFit: "cover",
-  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#F4EFE8" }, { media: "(prefers-color-scheme: dark)", color: "#1F1E1C" }],
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#0C0A0E" }, { media: "(prefers-color-scheme: dark)", color: "#0C0A0E" }],
 };
 
 export async function generateMetadata(): Promise<Metadata> {

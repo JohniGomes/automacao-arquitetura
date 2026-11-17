@@ -65,14 +65,14 @@ figure { border-radius: 12px; box-shadow: none; border: 1px solid var(--line); }
 .tpanel { border-radius: 14px; box-shadow: none; border: 1px solid var(--line); }
 .plus { color: var(--sage); }
 
-/* ícones das ferramentas: cores chapadas da paleta */
-.ticon { border-radius: 10px; box-shadow: none; color: #FFFDF9; }
-.tn-0 { background: #C4553A; }
-.tn-1 { background: #2B2A28; }
-.tn-2 { background: #8C7A5E; }
-.tn-3 { background: #A8432B; }
-.tn-4 { background: #5A564F; }
-.tn-5 { background: #B98A4E; }
+/* ícones das ferramentas: degradês da paleta da landing (terracota, violeta, âmbar, rosa, índigo, amarelo) */
+.ticon { border-radius: 10px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 6px 14px -6px rgba(0, 0, 0, .45); color: #FFFDF9; }
+.tn-0 { background: linear-gradient(150deg, #FF7F5C, #CC4326); }
+.tn-1 { background: linear-gradient(150deg, #8C73FF, #4A33C8); }
+.tn-2 { background: linear-gradient(150deg, #F5A850, #C7701F); }
+.tn-3 { background: linear-gradient(150deg, #F66E8A, #BE3563); }
+.tn-4 { background: linear-gradient(150deg, #7F8CFF, #4A52D6); }
+.tn-5 { background: linear-gradient(150deg, #FFCB63, #E58A2E); }
 
 /* ---------- comparador casa (imagens reais) ---------- */
 .house { border-radius: 14px; background: var(--moss); }

@@ -1,27 +1,45 @@
-/* TEMA ESCURO: as cores vivem em tokens.css. Aqui ficam só apelidos legados e ajustes de componente. */
+/* TEMA ESCURO = identidade da landing. As cores vivem em tokens.css; aqui ficam o fundo de aurora, apelidos legados e ajustes de componente.
+   O mesmo conjunto vale para "Sistema" quando o aparelho está no escuro (bloco repetido dentro do media query). */
 
-:root[data-theme="dark"]{
-  --ivory: #2A2825; --final-bg: #33312D;
-  --raise: 0 1px 0 rgba(0, 0, 0, .3);
+:root[data-theme="dark"] {
+  --ivory: #16121A; --final-bg: #201A28;
+  --raise: 0 1px 0 rgba(0, 0, 0, .4);
+}
+:root[data-theme="dark"] body { background: transparent; }
+/* aurora: bolhas de cor fixas atrás do app (terracota, violeta, rosa, âmbar), como no topo da landing */
+:root[data-theme="dark"] body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(640px 520px at 0% 0%, rgba(210, 72, 43, .34), transparent 70%),
+    radial-gradient(760px 620px at 100% 0%, rgba(106, 63, 214, .36), transparent 70%),
+    radial-gradient(680px 520px at 85% 100%, rgba(224, 70, 122, .2), transparent 70%),
+    radial-gradient(560px 440px at 8% 100%, rgba(232, 160, 74, .13), transparent 70%);
 }
 :root[data-theme="dark"] .warn { color: var(--ink); }
-:root[data-theme="dark"] .ticon { color: #FFFDF9; }
-:root[data-theme="dark"] .tn-1 { background: #4A4743; }
-:root[data-theme="dark"] .tn-4 { background: #6B665E; }
 :root[data-theme="dark"] .overlay-light { color: #2B2A28; }
 :root[data-theme="dark"] input[type=file]::file-selector-button { color: var(--ink); }
+:root[data-theme="dark"] .btn:not(.ghost):not(:disabled) { background: var(--grad-btn); border-color: transparent; box-shadow: 0 10px 30px -12px rgba(240, 100, 60, .7), inset 0 1px 0 rgba(255, 255, 255, .28); }
+:root[data-theme="dark"] .btn:not(.ghost):not(:disabled):hover { background: var(--grad-btn); filter: brightness(1.1); border-color: transparent; }
 
 @media (prefers-color-scheme: dark) {
 
-:root[data-theme="system"]{
-  --ivory: #2A2825; --final-bg: #33312D;
-  --raise: 0 1px 0 rgba(0, 0, 0, .3);
+:root[data-theme="system"] {
+  --ivory: #16121A; --final-bg: #201A28;
+  --raise: 0 1px 0 rgba(0, 0, 0, .4);
+}
+:root[data-theme="system"] body { background: transparent; }
+:root[data-theme="system"] body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(640px 520px at 0% 0%, rgba(210, 72, 43, .34), transparent 70%),
+    radial-gradient(760px 620px at 100% 0%, rgba(106, 63, 214, .36), transparent 70%),
+    radial-gradient(680px 520px at 85% 100%, rgba(224, 70, 122, .2), transparent 70%),
+    radial-gradient(560px 440px at 8% 100%, rgba(232, 160, 74, .13), transparent 70%);
 }
 :root[data-theme="system"] .warn { color: var(--ink); }
-:root[data-theme="system"] .ticon { color: #FFFDF9; }
-:root[data-theme="system"] .tn-1 { background: #4A4743; }
-:root[data-theme="system"] .tn-4 { background: #6B665E; }
 :root[data-theme="system"] .overlay-light { color: #2B2A28; }
 :root[data-theme="system"] input[type=file]::file-selector-button { color: var(--ink); }
+:root[data-theme="system"] .btn:not(.ghost):not(:disabled) { background: var(--grad-btn); border-color: transparent; box-shadow: 0 10px 30px -12px rgba(240, 100, 60, .7), inset 0 1px 0 rgba(255, 255, 255, .28); }
+:root[data-theme="system"] .btn:not(.ghost):not(:disabled):hover { background: var(--grad-btn); filter: brightness(1.1); border-color: transparent; }
 
 }

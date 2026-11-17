@@ -1,7 +1,7 @@
 /* CROQUI — TOKENS DO DESIGN SYSTEM
    Fonte única das decisões visuais. Os nomes antigos (--sage, --deep, --btn-a...) continuam existindo em globals.css,
    mas agora apontam para estes tokens. Componentes novos usam só os nomes semânticos daqui.
-   Modo escuro: bloco [data-theme="dark"] e, para "Sistema", o mesmo bloco dentro de prefers-color-scheme. */
+   Modo escuro = paleta da landing (fundo quase preto, violeta, terracota, âmbar e rosa). Bloco [data-theme="dark"] e, para "Sistema", o mesmo bloco dentro de prefers-color-scheme. */
 
 :root {
   /* ---------- cor: marca ---------- */
@@ -11,6 +11,8 @@
   --color-accent: #C4553A;           /* detalhes e ícones; não usar como fundo de texto pequeno */
   --color-secondary: #2B2A28;        /* grafite: ações secundárias e ênfase */
   --color-link: #A8432B;
+  --grad-brand: linear-gradient(110deg, #FF9A6B 0%, #F0627F 55%, #B084FF 100%);  /* destaque em texto */
+  --grad-btn: linear-gradient(135deg, #E2573A 0%, #F2894F 100%);               /* ação principal */
 
   /* ---------- cor: superfícies ---------- */
   --color-bg: #F4EFE8;               /* papel */
@@ -67,27 +69,27 @@
 }
 
 :root[data-theme="dark"] {
-  --color-primary: #BC4E34; --color-primary-hover: #A8432B; --color-on-primary: #FFFDF9;
-  --color-accent: #E07A5F; --color-secondary: #F4EFE8; --color-link: #E8896F;
-  --color-bg: #1F1E1C; --color-surface: #2A2825; --color-surface-elevated: #33312D; --color-field: #24221F;
-  --color-sand: #3A3733; --color-sand-soft: #33312D;
-  --color-text: #EAE4DA; --color-text-secondary: #B9B2A6;
-  --color-border: rgba(244, 239, 232, .12); --color-border-strong: rgba(244, 239, 232, .28);
-  --color-success: #6CC08F; --color-warning: #E3B341; --color-error: #FF8F84; --color-info: #7FB2E5;
-  --shadow-1: 0 1px 0 rgba(0, 0, 0, .3); --shadow-2: 0 18px 44px -20px rgba(0, 0, 0, .7);
+  --color-primary: #E2573A; --color-primary-hover: #F2894F; --color-on-primary: #FFFDF9;
+  --color-accent: #FF7A59; --color-secondary: #F6F1EA; --color-link: #FF9C7C;
+  --color-bg: #0C0A0E; --color-surface: #16121A; --color-surface-elevated: #201A28; --color-field: #1B1622;
+  --color-sand: #2B2433; --color-sand-soft: #221C2A;
+  --color-text: #F6F1EA; --color-text-secondary: #B8B1B6;
+  --color-border: rgba(255, 255, 255, .11); --color-border-strong: rgba(255, 255, 255, .24);
+  --color-success: #6CC08F; --color-warning: #F0B84A; --color-error: #FF8F84; --color-info: #9DB8FF;
+  --shadow-1: 0 1px 0 rgba(0, 0, 0, .4); --shadow-2: 0 24px 60px -24px rgba(0, 0, 0, .85);
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root[data-theme="system"] {
-    --color-primary: #BC4E34; --color-primary-hover: #A8432B; --color-on-primary: #FFFDF9;
-    --color-accent: #E07A5F; --color-secondary: #F4EFE8; --color-link: #E8896F;
-    --color-bg: #1F1E1C; --color-surface: #2A2825; --color-surface-elevated: #33312D; --color-field: #24221F;
-    --color-sand: #3A3733; --color-sand-soft: #33312D;
-    --color-text: #EAE4DA; --color-text-secondary: #B9B2A6;
-    --color-border: rgba(244, 239, 232, .12); --color-border-strong: rgba(244, 239, 232, .28);
-    --color-success: #6CC08F; --color-warning: #E3B341; --color-error: #FF8F84; --color-info: #7FB2E5;
-    --shadow-1: 0 1px 0 rgba(0, 0, 0, .3); --shadow-2: 0 18px 44px -20px rgba(0, 0, 0, .7);
+    --color-primary: #E2573A; --color-primary-hover: #F2894F; --color-on-primary: #FFFDF9;
+    --color-accent: #FF7A59; --color-secondary: #F6F1EA; --color-link: #FF9C7C;
+    --color-bg: #0C0A0E; --color-surface: #16121A; --color-surface-elevated: #201A28; --color-field: #1B1622;
+    --color-sand: #2B2433; --color-sand-soft: #221C2A;
+    --color-text: #F6F1EA; --color-text-secondary: #B8B1B6;
+    --color-border: rgba(255, 255, 255, .11); --color-border-strong: rgba(255, 255, 255, .24);
+    --color-success: #6CC08F; --color-warning: #F0B84A; --color-error: #FF8F84; --color-info: #9DB8FF;
+    --shadow-1: 0 1px 0 rgba(0, 0, 0, .4); --shadow-2: 0 24px 60px -24px rgba(0, 0, 0, .85);
     color-scheme: dark;
   }
 }

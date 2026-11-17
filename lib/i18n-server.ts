@@ -9,7 +9,7 @@ export async function getLang(): Promise<Lang> {
 
 export async function getTheme(): Promise<Theme> {
   const c = (await cookies()).get(THEME_COOKIE)?.value;
-  return c === "dark" || c === "system" ? c : "light";
+  return c === "light" || c === "system" ? c : "dark"; // padrão: escuro, a identidade da landing
 }
 
 /** Tradutor para componentes de servidor. */
