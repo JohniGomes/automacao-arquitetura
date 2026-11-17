@@ -20,7 +20,7 @@ const SECTIONS: Section[] = [
     { q: "Como vejo o projeto por outro ângulo?", a: "Em Multi-ângulo, gire a câmera no disco ou escolha ângulos prontos. É possível gerar um mosaico com vários ângulos de uma vez." },
   ] },
   { title: "Conta e cobrança", items: [
-    { q: "Como compro créditos ou assino um plano?", a: "Abra Créditos no menu. A cobrança online ainda está sendo preparada; enquanto isso, fale com o suporte para contratar." },
+    { q: "Como compro créditos ou assino um plano?", a: "Abra Créditos no menu. Escolha um plano mensal (cartão de crédito) ou créditos avulsos (Pix ou cartão). Dúvidas sobre cobrança? Fale com o suporte." },
     { q: "Posso baixar meus resultados?", a: "Sim. Cada resultado tem o botão Baixar, e todas as suas gerações ficam em Gerações, organizadas por projeto." },
     { q: "Como falo com o suporte?", a: "Use o botão Suporte no menu: descreva o que precisa e a mensagem chega à nossa equipe." },
   ] },

@@ -197,3 +197,13 @@
 @media (max-width: 860px) {
   .shell figcaption a, .shell h2 > a.hl { display: inline-flex; align-items: center; min-height: var(--control-h); }
 }
+
+/* ---------- login e cadastro: painel com o que o app entrega ---------- */
+.auth .view .panel { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: var(--space-5); padding: var(--space-12); text-align: left; }
+.auth .view .panel .lineload { width: 112px; height: 112px; margin-bottom: var(--space-2); }
+.auth .view .panel h2 { font-family: var(--font-serif); font-weight: var(--weight-regular); font-size: clamp(2rem, 3.4vw, 3.25rem); line-height: 1.04; letter-spacing: -0.03em; max-width: 12ch; }
+.auth .view .panel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); max-width: 38ch; }
+.auth .view .panel li { display: flex; gap: var(--space-3); align-items: flex-start; font-size: var(--text-md); line-height: var(--leading-snug); color: var(--color-text); }
+.auth .view .panel li svg { width: 20px; height: 20px; flex: none; margin-top: 2px; fill: none; stroke: var(--color-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.or { display: flex; align-items: center; gap: var(--space-3); margin: var(--space-4) 0; font-size: var(--text-sm); color: var(--color-text-secondary); }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--color-border); }

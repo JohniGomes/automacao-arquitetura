@@ -45,7 +45,7 @@ export default function AuthForm({ mode, erro }: { mode: "login" | "register"; e
       )}
       {err && <p className="err" role="alert">{err}</p>}
       <button className="full" disabled={busy}>{reg ? t("Criar conta") : t("Entrar")}</button>
-      <div style={{ height: 10 }} />
+      <div className="or"><span>{t("ou")}</span></div>
       <a className="btn ghost full" href={reg ? "/api/auth/google?aceite=1" : "/api/auth/google"} aria-disabled={googleOff} tabIndex={googleOff ? -1 : undefined} title={googleOff ? t("Aceite os Termos para continuar com o Google") : undefined}>{t("Continuar com Google")}</a>
       <p className="sw">{reg ? t("Já tem conta?") : t("Ainda não tem conta?")} <Link href={reg ? "/login" : "/cadastro"}>{reg ? t("Fazer login") : t("Assinar")}</Link></p>
     </form>

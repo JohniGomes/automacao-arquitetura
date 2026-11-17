@@ -3,6 +3,7 @@ import "./globals.css";
 import "./rail.css";
 import "./croqui.css";
 import "./ui.css";
+import "./landing.css";
 import "./dark.css";
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
