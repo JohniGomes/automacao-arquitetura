@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "./I18nProvider";
 
-type Estado = "carregando" | "indisponivel" | "ios" | "bloqueado" | "desligado" | "ligado";
+type Estado = "carregando" | "semservidor" | "indisponivel" | "ios" | "bloqueado" | "desligado" | "ligado";
 
 function chaveParaBytes(b64: string) {
   const pad = "=".repeat((4 - (b64.length % 4)) % 4);
@@ -22,7 +22,7 @@ export default function PushToggle() {
     (async () => {
       try {
         const k = await fetch("/api/push/key").then((r) => r.json());
-        if (!k.ativo) return setEstado("indisponivel");
+        if (!k.ativo) return setEstado("semservidor");
         setChave(k.chave);
         const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
         const standalone = (navigator as any).standalone || matchMedia("(display-mode: standalone)").matches;
@@ -64,7 +64,7 @@ export default function PushToggle() {
     setBusy(false);
   }
 
-  if (estado === "carregando" || estado === "indisponivel") return null;
+  if (estado === "carregando") return null;
   return (
     <div className="pushbox">
       {estado === "ligado" ? (<>
@@ -72,6 +72,10 @@ export default function PushToggle() {
         <button type="button" className="ghost" disabled={busy} onClick={desativar}>{t("Desativar avisos")}</button>
       </>) : estado === "ios" ? (
         <p className="small muted">{t("No iPhone, adicione o Croqui à Tela de Início para receber avisos.")}</p>
+      ) : estado === "semservidor" ? (
+        <p className="small muted">{t("Os avisos ainda não estão configurados no servidor.")}</p>
+      ) : estado === "indisponivel" ? (
+        <p className="small muted">{t("Este navegador não permite avisos. Tente pelo Chrome ou instale o Croqui na Tela de Início.")}</p>
       ) : estado === "bloqueado" ? (
         <p className="small muted">{t("A permissão de avisos está bloqueada no navegador.")}</p>
       ) : (<>

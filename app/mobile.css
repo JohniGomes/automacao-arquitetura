@@ -40,7 +40,7 @@
   .mtxt strong { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   /* ----- barra de baixo: Início, Projetos, + Criar, Gerações, Conta ----- */
-  .shell .rail { padding: 8px 6px calc(8px + env(safe-area-inset-bottom)); border-radius: 28px; align-items: flex-end; box-shadow: 0 10px 34px rgba(43, 42, 40, .16); }
+  .shell .rail { padding: 8px 6px 8px; border-radius: 28px; align-items: flex-end; box-shadow: 0 10px 34px rgba(43, 42, 40, .16); }
   .shell .rail .ritems { flex: 4; display: flex; gap: 0; align-items: flex-end; }
   .shell .rail .rfoot { flex: 1; width: auto; min-width: 0; display: flex; }
   .shell .rail .rfoot .ritem, .shell .rail .ritems .ritem { flex: 1; min-width: 0; }
@@ -49,19 +49,19 @@
   .ico-d { display: contents; }
 
   /* o "+" de Criar: círculo liso em terracota, com anel na cor do fundo (parece recortado na barra) e sombra suave */
-  .shell .rail .r-create {
-    flex: none; width: 58px; height: 58px; min-height: 58px; margin: -24px 8px 8px; padding: 0; gap: 0; justify-content: center; border-radius: 50%;
+  .shell .rail .ritems .r-create {
+    flex: 0 0 50px; width: 50px; height: 50px; min-width: 50px; max-width: 50px; min-height: 50px; aspect-ratio: 1; margin: -20px 10px 8px; align-self: flex-end; padding: 0; gap: 0; justify-content: center; border-radius: 50%;
     color: var(--color-on-primary); border: 0; background: var(--color-primary);
-    box-shadow: 0 0 0 6px var(--bg), 0 10px 22px color-mix(in srgb, var(--color-primary) 38%, transparent);
+    box-shadow: 0 0 0 5px var(--bg), 0 8px 18px color-mix(in srgb, var(--color-primary) 38%, transparent);
     transition: transform .15s ease, box-shadow .15s ease;
   }
-  .shell .rail .r-create:hover:not(:disabled), .shell .rail .r-create.on, .shell .rail .r-create.on:hover:not(:disabled) {
+  .shell .rail .ritems .r-create:hover:not(:disabled), .shell .rail .ritems .r-create.on, .shell .rail .ritems .r-create.on:hover:not(:disabled) {
     color: var(--color-on-primary); background: var(--color-primary); filter: none; transform: none;
   }
   .shell .rail .r-create:active { transform: scale(.94); }
   .shell .rail .r-create .ico-d { display: none; }
   .shell .rail .r-create .ico-m { display: block; line-height: 0; }
-  .shell .rail .r-create svg { width: 26px; height: 26px; stroke: currentColor; stroke-width: 2.4; }
+  .shell .rail .r-create svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.4; }
   .shell .rail .r-create .lbl-m { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .shell .rail .ritem.on { color: var(--link); }
 

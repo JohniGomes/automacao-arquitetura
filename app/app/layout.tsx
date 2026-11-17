@@ -15,7 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="shell">
       <Rail name={u.name} credits={u.credits} theme={await getTheme()} />
       <div className="main">
-        <MobileTop name={u.name} credits={u.credits} />
+        <MobileTop name={u.name || u.email} credits={u.credits} />
         <div className="wrap">
           {needsVerification(u) && <VerifyBanner email={u.email} />}
           {children}
