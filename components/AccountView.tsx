@@ -5,6 +5,7 @@ import { useLang, useT } from "./I18nProvider";
 import { useCredits } from "./useCredits";
 import Avatar from "./Avatar";
 import AvatarForm from "./AvatarForm";
+import PushToggle from "./PushToggle";
 import { LANGS, Theme } from "@/lib/i18n";
 import { THEMES, usePrefs } from "@/lib/prefs-client";
 
@@ -36,6 +37,9 @@ export default function AccountView({ name, email, credits, planLine, theme: the
         <Link href="/app/ajuda" className="row-link"><Icon name="help" /><span>{t("Ajuda")}</span></Link>
         <Link href="/app/suporte" className="row-link"><Icon name="support" /><span>{t("Suporte")}</span></Link>
       </div>
+
+      <h2 className="grouptitle">{t("Avisos")}</h2>
+      <div className="list"><div className="row-ctl" style={{ display: "block" }}><PushToggle /></div></div>
 
       <h2 className="grouptitle">{t("Preferências")}</h2>
       <div className="list">
