@@ -98,22 +98,12 @@ export default async function Landing() {
               <HouseSplit />
               <svg className="cota" viewBox="0 0 600 22" preserveAspectRatio="none" aria-hidden="true">
                 <path d="M1 4v14M599 4v14M1 11h262M337 11h262" stroke="currentColor" strokeWidth="1" fill="none" vectorEffect="non-scaling-stroke" />
-                <text x="300" y="15" textAnchor="middle">{t("do modelo ao render")}</text>
+                <text x="300" y="15" textAnchor="middle">{t("do croqui ao render")}</text>
               </svg>
             </div>
           </div>
         </section>
 
-        {/* ---------- o que é ---------- */}
-        <section className="lp-sec lp-in" id="o-que-e">
-          <div className="lp-two">
-            <div>
-              <p className="lp-pill">{t("O que é o Croqui?")}</p>
-              <h2>{t("Uma plataforma que leva o projeto do print ao filme")}</h2>
-            </div>
-            <p className="lp-sub lp-subr">{t("Apresentar um projeto com qualidade sempre exigiu máquinas caras e muito tempo. Com a IA do Croqui você otimiza o seu tempo e ganha um salto de qualidade e agilidade nas apresentações.")}</p>
-          </div>
-        </section>
 
         {temVideo && (
           <section className="lp-sec lp-in" id="video">
@@ -156,7 +146,7 @@ export default async function Landing() {
               <a className="btn lg lp-btn-light" href="#planos">{t("Ver planos")} »</a>
             </div>
             <div className="lp-loop">
-              <video src="/landing/filme-demo.mp4" autoPlay muted loop playsInline preload="metadata" aria-label={t("Exemplo de cena animada do filme do projeto")} />
+              <video src="/landing/filme-hd.mp4" poster="/landing/filme-hd-poster.jpg" autoPlay muted loop playsInline preload="metadata" aria-label={t("Exemplo de cena animada do filme do projeto")} />
             </div>
           </div>
         </section>
