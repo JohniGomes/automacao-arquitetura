@@ -4,6 +4,7 @@ import { persist } from "./persist";
 import { store } from "./store";
 import { JobInput, runPipeline } from "./pipelines";
 import { userMessage } from "./errors";
+import { notificarGeracao } from "./push";
 
 /** Fila em memória (um processo). Para escalar, trocar por BullMQ/Redis ou worker separado — ver README. */
 const MAX = 2;
@@ -109,6 +110,8 @@ export function enqueue(gen: Generation, input: JobInput, priority = false) {
     gen.finishedAt = new Date().toISOString();
     await persist(gen);
     live.delete(gen.id);
+    // aviso no celular (se o aparelho estiver inscrito): nunca atrapalha a geração
+    void notificarGeracao(gen).catch((e) => console.error("push:", e?.message || e));
   } };
   if (priority) {
     const at = q.waiting.findIndex((w) => !w.prio);

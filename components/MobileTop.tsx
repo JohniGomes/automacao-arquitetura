@@ -6,6 +6,8 @@ import Icon from "./icons";
 import { Gen } from "./client";
 import { useLang, useT } from "./I18nProvider";
 import { useCredits } from "./useCredits";
+import Avatar from "./Avatar";
+import PushToggle from "./PushToggle";
 
 const SEEN_KEY = "croqui.notif.seen";
 
@@ -74,7 +76,7 @@ export default function MobileTop({ name, credits }: { name: string; credits: nu
             {unread > 0 && <span className="mdot" aria-label={`${unread} ${t("novas")}`} />}
             {unread === 0 && running > 0 && <span className="mdot run" aria-hidden="true" />}
           </button>
-          <Link href="/app/conta" className="mavatar" aria-label={t("Perfil")} title={name}>{inicial}</Link>
+          <Link href="/app/conta" className="mavatar" aria-label={t("Perfil")} title={name}><Avatar inicial={inicial} /></Link>
         </div>
       </header>
       {open && (
@@ -95,6 +97,7 @@ export default function MobileTop({ name, credits }: { name: string; credits: nu
                 ))}
               </ul>
             )}
+            <PushToggle />
             <Link href="/app/geracoes" className="small" onClick={() => setOpen(false)}>{t("Todas as gerações")}</Link>
           </section>
         </>
