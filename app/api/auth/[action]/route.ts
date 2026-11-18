@@ -4,6 +4,7 @@ import { store } from "@/lib/store";
 import { LEGAL_VERSION } from "@/lib/legal";
 import { clientIp, limited } from "@/lib/ratelimit";
 import { cookies } from "next/headers";
+import { cupomDisponivel, normalizar, resgatarCupom } from "@/lib/cupom";
 import { requireEmailVerification, sendVerifyMail, sendWelcomeMail } from "@/lib/mail";
 import { makeToken } from "@/lib/tokens";
 import { needsVerification } from "@/lib/verify";
@@ -26,6 +27,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
     if (b.aceite !== true) return bad("Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.");
     if (password.length < 8) return bad("A senha precisa ter ao menos 8 caracteres.");
     if (await store.getUserByEmail(email)) return bad("Este e-mail já está cadastrado.", 409);
+    // cupom opcional: confere antes de criar a conta, para a pessoa corrigir o código sem perder o cadastro
+    const cupom = normalizar(String(b.cupom || "")).slice(0, 60);
+    if (cupom) {
+      const d = await cupomDisponivel(await store.getCoupon(cupom).catch(() => null));
+      if (!d.ok) return bad(d.motivo);
+    }
     try {
       // com e-mail configurado, a conta nasce sem créditos e sem e-mail confirmado: os créditos de boas-vindas vêm ao confirmar
       const verify = requireEmailVerification();
@@ -41,6 +48,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
         const lang = (await cookies()).get("lang")?.value === "en" ? "en" : "pt";
         void sendWelcomeMail(email, u.name, u.credits, lang);
       }
+      if (cupom) await resgatarCupom(u, cupom, { ignorarEmail: true }).catch((e) => console.error("cupom no cadastro:", e?.message));
       await startSession(u.id);
     } catch {
       return bad("Este e-mail já está cadastrado.", 409);

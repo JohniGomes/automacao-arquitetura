@@ -7,19 +7,23 @@ import { getLang, getT } from "@/lib/i18n-server";
 import BuyButton from "./BuyButton";
 import CancelPlan from "./CancelPlan";
 import PlanPicker from "./PlanPicker";
+import CupomCode from "./CupomCode";
+import { jaUsouCupom } from "@/lib/cupom";
 
 export const dynamic = "force-dynamic";
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 
-export default async function Creditos({ searchParams }: { searchParams: Promise<{ pagamento?: string }> }) {
+export default async function Creditos({ searchParams }: { searchParams: Promise<{ pagamento?: string; codigo?: string }> }) {
   const { t } = await getT();
   const lang = await getLang();
-  const { pagamento } = await searchParams;
+  const { pagamento, codigo } = await searchParams;
   const u = (await currentUser())!;
   const txs = await store.listTxs(u.id, 30);
   const plan = activePlan(u);
   const desconto = rulesOf(u).descontoPacotes;
   const enabled = billingEnabled();
+  const mostrarCupom = !plan && !(await jaUsouCupom(u.id));
+  const planoDeCupom = !!plan && !u.asaasSubscriptionId;
   const until = u.planUntil ? new Date(u.planUntil).toLocaleDateString(lang === "en" ? "en-US" : "pt-BR") : "";
   return (
     <>
@@ -31,11 +35,13 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
             {t("Plano")} <b>{t(plan.nome)}</b> ({t("mensal")}) · {u.planStatus === "cancelado" ? t("renovação cancelada, vale até") : t("válido até")} {until}
           </p>
         ) : <p className="small muted" style={{ margin: "6px 0 0" }}>{t("Você ainda não tem um plano.")}</p>}
+        {planoDeCupom && <p className="small" style={{ margin: "6px 0 0" }}>{t("Os créditos do cupom expiram junto com o plano. Para continuar, assine um plano.")}</p>}
         {plan && u.planStatus !== "cancelado" && u.planNext && PLANOS.find((p) => p.id === u.planNext) && (
           <p className="small" style={{ margin: "6px 0 0" }}>{t("Troca agendada: na próxima renovação você passa para o plano")} <b>{t(PLANOS.find((p) => p.id === u.planNext)!.nome)}</b>.</p>
         )}
         {plan && u.planStatus !== "cancelado" && <CancelPlan />}
       </div>{plan && u.planStatus !== "cancelado" && <span className="carimbo" aria-hidden="true">{t("Plano")}<br />{t("ativo")}</span>}</div></div>
+      {mostrarCupom && <CupomCode inicial={codigo} />}
       <div className="card"><h2>{t("Planos")}</h2>
         {!enabled && <p className="warn">{t("A cobrança online ainda não está ativa. Fale com o suporte para contratar.")}</p>}
         <PlanPicker plans={PLANOS.map((p) => ({ ...p }))} enabled={enabled} current={plan?.id} />

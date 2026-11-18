@@ -1,0 +1,73 @@
+"use client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+type Linha = { code: string; creditos: number; dias: number; plano: string; limite: number | null; validoAte: string | null; ativo: boolean; usos: number };
+
+/** Painel de administração: criar, ativar/desativar e copiar o link dos cupons. */
+export default function AdminCupons({ cupons, planos, origem }: { cupons: Linha[]; planos: { id: string; nome: string }[]; origem: string }) {
+  const router = useRouter();
+  const [f, setF] = useState({ code: "", creditos: "300", dias: "30", plano: "max", limite: "", validoAte: "" });
+  const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value });
+
+  async function enviar(body: object) {
+    setBusy(true); setMsg("");
+    try {
+      const r = await fetch("/api/admin/cupons", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) setMsg(j.error || "Não foi possível salvar.");
+      else { router.refresh(); return true; }
+    } catch { setMsg("Sem conexão."); }
+    finally { setBusy(false); }
+    return false;
+  }
+  async function criar(e: React.FormEvent) {
+    e.preventDefault();
+    if (await enviar(f)) setF({ ...f, code: "" });
+  }
+  async function copiar(code: string) {
+    const url = `${origem}/cadastro?cupom=${encodeURIComponent(code)}`;
+    try { await navigator.clipboard.writeText(url); setMsg(`Link copiado: ${url}`); } catch { setMsg(url); }
+  }
+  const data = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("pt-BR") : "sem data");
+
+  return (
+    <div className="card">
+      <h2>Cupons de desconto</h2>
+      <form onSubmit={criar} className="acform">
+        <label>Código<input value={f.code} onChange={set("code")} placeholder="vdoclub" required autoCapitalize="none" autoComplete="off" /></label>
+        <label>Créditos<input type="number" min={0} value={f.creditos} onChange={set("creditos")} required /></label>
+        <label>Dias de plano<input type="number" min={1} max={365} value={f.dias} onChange={set("dias")} required /></label>
+        <label>Plano<select value={f.plano} onChange={set("plano")}>{planos.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}</select></label>
+        <label>Limite de contas<input type="number" min={1} value={f.limite} onChange={set("limite")} placeholder="sem limite" /></label>
+        <label>Vale até<input type="date" value={f.validoAte} onChange={set("validoAte")} /></label>
+        <button type="submit" disabled={busy}>Criar cupom</button>
+      </form>
+      {msg && <p className="small" role="status">{msg}</p>}
+      <div className="atable-wrap">
+        <table className="atable">
+          <thead><tr><th>Código</th><th>Plano</th><th>Créditos</th><th>Dias</th><th>Usos</th><th>Vale até</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {cupons.length === 0 && <tr><td colSpan={8} className="muted">Nenhum cupom ainda.</td></tr>}
+            {cupons.map((c) => (
+              <tr key={c.code}>
+                <td><b>{c.code.toUpperCase()}</b></td>
+                <td>{planos.find((p) => p.id === c.plano)?.nome ?? c.plano}</td>
+                <td>{c.creditos}</td><td>{c.dias}</td>
+                <td>{c.usos}{c.limite != null ? ` / ${c.limite}` : ""}</td>
+                <td>{data(c.validoAte)}</td>
+                <td>{c.ativo ? "Ativo" : "Desativado"}</td>
+                <td className="row gap" style={{ flexWrap: "nowrap" }}>
+                  <button type="button" className="ghost" onClick={() => copiar(c.code)}>Copiar link</button>
+                  <button type="button" className="ghost" disabled={busy} onClick={() => enviar({ ...c, validoAte: c.validoAte ? c.validoAte.slice(0, 10) : "", limite: c.limite ?? "", ativo: !c.ativo })}>{c.ativo ? "Desativar" : "Ativar"}</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
