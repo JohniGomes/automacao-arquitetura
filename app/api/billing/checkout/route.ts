@@ -3,7 +3,6 @@ import { currentUser } from "@/lib/auth";
 import { billingEnabled, createCheckout, Method, scrub } from "@/lib/billing";
 import { UserError } from "@/lib/errors";
 import { clientIp, limited } from "@/lib/ratelimit";
-import { needsVerification, VERIFY_MSG } from "@/lib/verify";
 
 const NO_STORE = { "Cache-Control": "no-store" };
 
@@ -14,7 +13,6 @@ const NO_STORE = { "Cache-Control": "no-store" };
 export async function POST(req: NextRequest) {
   const u = await currentUser();
   if (!u) return NextResponse.json({ error: "Não autenticado." }, { status: 401, headers: NO_STORE });
-  if (needsVerification(u)) return NextResponse.json({ error: VERIFY_MSG }, { status: 403, headers: NO_STORE });
   if (!billingEnabled()) return NextResponse.json({ error: "A cobrança ainda não está ativa. Fale com o suporte para contratar." }, { status: 501, headers: NO_STORE });
   const b = await req.json().catch(() => ({}));
   const method = String(b.method || "") as Method;

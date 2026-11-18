@@ -73,6 +73,37 @@
 .akpi small { font-size: 12px; color: var(--color-text-secondary); }
 .acform { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: end; margin-bottom: 8px; }
 .acform label { display: grid; gap: 4px; font-size: 12px; color: var(--color-text-secondary); }
+/* primeiros passos: tela de vidro por cima do app desfocado */
+.ob { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 16px; overflow-y: auto; background: color-mix(in srgb, var(--bg) 38%, transparent); -webkit-backdrop-filter: blur(18px) saturate(1.15); backdrop-filter: blur(18px) saturate(1.15); }
+.ob-card { width: min(960px, 100%); margin: auto; border-radius: 28px; padding: 24px 26px 18px; background: color-mix(in srgb, var(--surface) 78%, transparent); border: 1px solid color-mix(in srgb, #fff 22%, transparent); box-shadow: 0 30px 80px rgba(0, 0, 0, .3); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.ob-card.sm { width: min(520px, 100%); }
+.ob-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.ob-logo { font-size: 18px; }
+.ob-dots { display: flex; gap: 6px; }
+.ob-dots i { width: 22px; height: 5px; border-radius: 99px; background: color-mix(in srgb, var(--color-text-secondary) 30%, transparent); }
+.ob-dots i.on { background: var(--color-primary); }
+.ob-body h1 { font-size: 26px; margin: 4px 0 6px; }
+.ob-center { text-align: center; display: grid; gap: 10px; justify-items: stretch; padding: 8px 0 4px; }
+.ob-lead { color: var(--color-text-secondary); margin: 0 0 8px; }
+.ob-list { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 8px; text-align: left; }
+.ob-list li { padding: 10px 14px; border-radius: 14px; background: color-mix(in srgb, var(--color-sand) 30%, transparent); font-size: 14px; }
+.ob-link { border: 0; background: none; box-shadow: none; padding: 6px; font-size: 13px; text-decoration: underline; min-height: 0; }
+.ob-cupom { display: flex; gap: 8px; }
+.ob-cupom input { flex: 1; min-width: 0; }
+.ob-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin: 12px 0; }
+.ob-plan { position: relative; text-align: left; display: grid; gap: 6px; align-content: start; padding: 16px; border-radius: 20px; border: 1.5px solid var(--line); background: color-mix(in srgb, var(--surface) 70%, transparent); color: inherit; cursor: pointer; }
+.ob-plan:hover { border-color: color-mix(in srgb, var(--color-primary) 55%, var(--line)); }
+.ob-plan.on { border-color: var(--color-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 22%, transparent); }
+.ob .ob-plan, .ob .ob-plan * { text-align: left; }
+.ob-logo { color: var(--color-text); display: inline-flex; }
+.ob-plan strong { font-size: 17px; }
+.ob-plan ul { margin: 4px 0 0; padding-left: 16px; font-size: 12.5px; color: var(--color-text-secondary); }
+.ob-price { font-size: 24px; font-weight: 600; }
+.ob-price small { font-size: 13px; font-weight: 400; color: var(--color-text-secondary); }
+.ob-tag { position: absolute; top: -9px; right: 12px; font-size: 11px; padding: 2px 10px; border-radius: 99px; background: var(--color-primary); color: var(--color-on-primary); }
+.ob-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 10px; }
+.ob-foot { text-align: center; margin: 14px 0 0; }
+@media (max-width: 640px) { .ob { padding: 10px; } .ob-card { padding: 18px 16px 14px; border-radius: 22px; } }
 .acchk { align-content: end; }
 .atable-wrap { overflow-x: auto; margin: 6px 0 10px; }
 .atable { width: 100%; border-collapse: collapse; font-size: 13px; }

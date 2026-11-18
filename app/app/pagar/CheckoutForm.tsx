@@ -17,7 +17,7 @@ const maskExp = (s: string) => onlyDigits(s).slice(0, 4).replace(/^(\d{2})(\d)/,
 const EMPTY = { number: "", holderName: "", exp: "", ccv: "", postalCode: "", addressNumber: "", phone: "" };
 
 /** Troca de plano sem cartão: downgrade, manter o plano ou upgrade abaixo do mínimo de cobrança. */
-export default function CheckoutForm({ itemId, isPlan, title, price, detail, needsDoc, blocked, change, trialDias = 0, trialCreditos = 0 }: { trialDias?: number; trialCreditos?: number; itemId: string; isPlan: boolean; title: string; price: number; detail: string; needsDoc: boolean; blocked: string; change?: Change }) {
+export default function CheckoutForm({ itemId, isPlan, title, price, detail, needsDoc, blocked, change, trialDias = 0, trialCreditos = 0, embedded = false, onDone, onBack }: { embedded?: boolean; onDone?: () => void; onBack?: () => void; trialDias?: number; trialCreditos?: number; itemId: string; isPlan: boolean; title: string; price: number; detail: string; needsDoc: boolean; blocked: string; change?: Change }) {
   const t = useT();
   const [method, setMethod] = useState<Method>(isPlan ? "CREDIT_CARD" : "PIX");
   const [doc, setDoc] = useState("");
@@ -41,12 +41,12 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
   const set = (k: keyof typeof EMPTY, f: (s: string) => string = (s) => s) => (e: React.ChangeEvent<HTMLInputElement>) => setCard((c) => ({ ...c, [k]: f(e.target.value) }));
 
   // código guardado no cadastro (ou na página de créditos): já vem preenchido
-  useEffect(() => { if (!isPlan) return; try { const c = localStorage.getItem("croqui.cupom"); if (c) setCupom(c); } catch { /* sem armazenamento */ } }, [isPlan]);
+  useEffect(() => { if (!isPlan) return; try { const c = localStorage.getItem("croqui.cupom"); if (c) { setCupom(c); void aplicarCupom(c); } } catch { /* sem armazenamento */ } }, [isPlan]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function aplicarCupom() {
+  async function aplicarCupom(codigo = cupom) {
     setCupomBusy(true); setCupomMsg(""); setCupomOk(null);
     try {
-      const r = await fetch("/api/cupom/simular", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cupom, plano: itemId }) });
+      const r = await fetch("/api/cupom/simular", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cupom: codigo, plano: itemId }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) setCupomMsg(j.error || "Não foi possível conferir o cupom agora. Tente de novo.");
       else setCupomOk({ preco: j.preco, precoFinal: j.precoFinal, teste: j.teste ?? null });
@@ -101,13 +101,13 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
   if (paid) return (
     <>
       <h1>{t("Pagamento confirmado")}</h1>
-      <div className="card"><p>{t("Tudo certo! Seus créditos já estão na conta.")}</p><Link href="/app/creditos?pagamento=ok" className="btn">{t("Ver meus créditos")}</Link></div>
+      <div className="card"><p>{t("Tudo certo! Seus créditos já estão na conta.")}</p>{onDone ? <button type="button" onClick={() => { window.dispatchEvent(new Event("credits-changed")); onDone?.(); }}>{t("Começar a usar")}</button> : <Link href="/app/creditos?pagamento=ok" className="btn">{t("Ver meus créditos")}</Link>}</div>
     </>
   );
 
   return (
     <>
-      <h1>{t("Pagamento")}</h1>
+      {!embedded && <h1>{t("Pagamento")}</h1>}
       <div className="paygrid">
         <div className="card">
           <h2>{t("Resumo")}</h2>
@@ -153,7 +153,7 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
                 <div className="field"><label htmlFor="cupom">{t("Cupom de desconto")} <span className="small">({t("opcional")})</span></label>
                   <div className="row gap" style={{ flexWrap: "nowrap" }}>
                     <input id="cupom" autoCapitalize="characters" autoComplete="off" spellCheck={false} value={cupom} onChange={(e) => { setCupom(e.target.value); setCupomOk(null); setCupomMsg(""); }} />
-                    <button type="button" className="ghost" disabled={cupomBusy || !cupom.trim()} onClick={aplicarCupom}>{t("Aplicar")}</button>
+                    <button type="button" className="ghost" disabled={cupomBusy || !cupom.trim()} onClick={() => aplicarCupom()}>{t("Aplicar")}</button>
                   </div>
                   {cupomMsg && <p className="small err" role="alert">{t(cupomMsg)}</p>}
                 </div>
@@ -192,7 +192,7 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
               <button type="button" className="full" disabled={busy || !ready} aria-busy={busy} onClick={pay}>
                 {busy ? t("Processando…") : method === "PIX" ? t("Gerar QR Code Pix") : change && !needCard ? t("Confirmar troca de plano") : teste ? t("Começar teste grátis") : `${t("Pagar")} ${brl(change ? change.amount : eff)}`}
               </button>
-              <p className="small muted" style={{ textAlign: "center" }}><Link href="/app/creditos">{t("Voltar para Créditos e planos")}</Link></p>
+              {embedded ? (onBack && <p style={{ textAlign: "center" }}><button type="button" className="ghost" onClick={onBack}>{t("Voltar")}</button></p>) : <p className="small muted" style={{ textAlign: "center" }}><Link href="/app/creditos">{t("Voltar para Créditos e planos")}</Link></p>}
             </>
           )}
 
@@ -221,7 +221,7 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
             <div className="pixbox">
               <h2>{t("Teste grátis ativado!")}</h2>
               <p role="status">{res.creditos > 0 ? <>{t("Você já tem")} <b>{res.creditos} {t("créditos")}</b> {t("para usar por")} {res.dias} {t("dias")}. </> : null}{t("A primeira cobrança de")} {brl(res.valor)} {t("será feita em")} {new Date(res.dueDate + "T12:00:00").toLocaleDateString("pt-BR")}. {t("Para não ser cobrado, cancele a renovação antes, em Créditos e planos.")}</p>
-              <Link href="/app" className="btn" onClick={() => window.dispatchEvent(new Event("credits-changed"))}>{t("Começar a usar")}</Link>
+              {onDone ? <button type="button" onClick={() => { window.dispatchEvent(new Event("credits-changed")); onDone?.(); }}>{t("Começar a usar")}</button> : <Link href="/app" className="btn" onClick={() => window.dispatchEvent(new Event("credits-changed"))}>{t("Começar a usar")}</Link>}
             </div>
           )}
 
