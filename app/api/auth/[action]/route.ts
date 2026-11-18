@@ -4,7 +4,7 @@ import { store } from "@/lib/store";
 import { LEGAL_VERSION } from "@/lib/legal";
 import { clientIp, limited } from "@/lib/ratelimit";
 import { cookies } from "next/headers";
-import { requireEmailVerification, sendVerifyMail } from "@/lib/mail";
+import { requireEmailVerification, sendVerifyMail, sendWelcomeMail } from "@/lib/mail";
 import { makeToken } from "@/lib/tokens";
 import { needsVerification } from "@/lib/verify";
 import { env } from "@/lib/config";
@@ -37,6 +37,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
       if (verify) {
         const lang = (await cookies()).get("lang")?.value === "en" ? "en" : "pt";
         await sendVerifyMail(email, makeToken("verify", u.id, 48 * 3600_000, email), lang).catch((e) => console.error("e-mail de verificação falhou:", e?.message));
+      } else {
+        const lang = (await cookies()).get("lang")?.value === "en" ? "en" : "pt";
+        void sendWelcomeMail(email, u.name, u.credits, lang);
       }
       await startSession(u.id);
     } catch {

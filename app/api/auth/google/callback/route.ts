@@ -4,6 +4,8 @@ import { env } from "@/lib/config";
 import { startSession } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { LEGAL_VERSION } from "@/lib/legal";
+import { getLang } from "@/lib/i18n-server";
+import { sendWelcomeMail } from "@/lib/mail";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
@@ -45,6 +47,7 @@ export async function GET(req: NextRequest) {
       // conta nova só nasce com o aceite dos Termos e da Política de Privacidade
       if (aceiteFlag !== "1") return back("/cadastro?erro=aceite");
       u = await store.createUser({ email, name: info.name || email, googleId: info.sub, termsAcceptedAt: new Date().toISOString(), termsVersion: LEGAL_VERSION, emailVerifiedAt: new Date().toISOString() });
+      void sendWelcomeMail(u.email, u.name, u.credits, await getLang());
     } else if (u.googleId) {
       if (u.googleId !== info.sub) return fail("conta já vinculada a outro Google");
     } else {
