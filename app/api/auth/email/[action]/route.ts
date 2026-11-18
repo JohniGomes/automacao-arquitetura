@@ -4,7 +4,7 @@ import { env } from "@/lib/config";
 import { store } from "@/lib/store";
 import { getLang } from "@/lib/i18n-server";
 import { clientIp, limited } from "@/lib/ratelimit";
-import { mailEnabled, sendResetMail, sendVerifyMail } from "@/lib/mail";
+import { mailEnabled, sendResetMail, sendVerifyMail, sendWelcomeMail } from "@/lib/mail";
 import { checkToken, makeToken, peekToken } from "@/lib/tokens";
 
 const bad = (m: string, s = 400) => NextResponse.json({ error: m }, { status: s });
@@ -56,7 +56,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
     if (!u || !u.passHash || checkToken(token, "reset", bindOf(u.passHash)) !== u.id) return bad("Este link é inválido ou expirou. Peça um novo.");
     await store.setPassHash(u.id, await hashPassword(password));
     // quem recebeu o link no e-mail provou ser o dono dele
-    if ((await store.markEmailVerified(u.id)) && env.signupCredits > 0) await store.grant(u.id, env.signupCredits, "Créditos de boas-vindas");
+    if (await store.markEmailVerified(u.id)) {
+      if (env.signupCredits > 0) await store.grant(u.id, env.signupCredits, "Créditos de boas-vindas");
+      void sendWelcomeMail(u.email, u.name, env.signupCredits, await getLang());
+    }
     return NextResponse.json({ ok: true });
   }
   return bad("Ação inválida.", 404);
