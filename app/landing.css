@@ -322,3 +322,42 @@ section[id] { scroll-margin-top: 84px; }
   .lp-stagehead { margin-top: var(--space-12); }
 }
 @media (prefers-reduced-motion: reduce) { .lp-aurora i, .lp-menu { animation: none; } .lp-tool, .lp-who > div, .lpi { transition: none; } .lp-tool:hover .lpi { transform: none; } }
+
+/* ---------- refinos de celular (v2) ---------- */
+@media (max-width: 960px) {
+  .lp-mobile { position: absolute; left: 0; right: 0; top: 100%; max-height: calc(100dvh - 68px); overflow-y: auto; box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .8); }
+  .lp-video video { aspect-ratio: 16 / 9; background: #0C0A0E; }
+}
+@media (max-width: 560px) {
+  .lp-sec { padding-top: var(--space-10); padding-bottom: var(--space-10); }
+  .lp-herow { padding-top: var(--space-8); padding-bottom: var(--space-6); }
+  .lp-lead { font-size: 1.0625rem; margin: var(--space-4) 0 var(--space-5); }
+  .lp-stagehead { margin-top: var(--space-8); }
+  .lp .lp-hero h1 { font-size: clamp(2.125rem, 10vw, 2.75rem); }
+  .lp h2 { font-size: clamp(1.625rem, 7.4vw, 2rem); }
+  .lp-sub { font-size: 1rem; }
+  /* ferramentas: ícone ao lado do texto, em vez de cartões altos de uma coluna */
+  .lp-tools { gap: var(--space-3); margin-top: var(--space-6); }
+  .lp-tool { grid-template-columns: 60px minmax(0, 1fr); column-gap: var(--space-4); row-gap: 2px; align-items: center; padding: var(--space-4); border-radius: 18px; }
+  .lp-tool .lpi { grid-row: 1 / span 2; width: 60px !important; height: 60px !important; border-radius: 18px; }
+  .lp-tool .lpi svg { width: 40px; height: 40px; }
+  .lp-tool h3 { margin: 0; font-size: 1.0625rem; align-self: end; }
+  .lp-tool p { font-size: var(--text-sm); align-self: start; }
+  .lp-tool:hover .lpi { transform: none; }
+  .lp-vid { gap: var(--space-6); }
+  .lp-steps { margin-top: var(--space-6); gap: var(--space-2); }
+  .lp-steps li { grid-template-columns: 34px minmax(0, 1fr); gap: var(--space-1) var(--space-3); padding: var(--space-4); align-items: start; }
+  .lp-steps .n { font-size: 2rem; grid-row: 1 / span 2; }
+  .lp-steps li h3, .lp-steps li p { grid-column: 2; }
+  .lp-steps h3 { font-size: 1.125rem; }
+  .lp-steps p { font-size: var(--text-base); }
+  .lp-ben { gap: var(--space-5); margin-top: var(--space-5); }
+  .lp-benvis { padding: var(--space-3); border-radius: 22px; }
+  .lp-who { gap: var(--space-3); margin: var(--space-6) 0; }
+  .lp-who > div { padding: var(--space-5); border-radius: 20px; }
+  .lp-plan { padding: var(--space-5); border-radius: 22px; }
+  .lp-plans { gap: var(--space-5); margin-top: var(--space-6); }
+  .lp-faq summary { min-height: 56px; font-size: var(--text-base); }
+  .lp-final { margin-bottom: var(--space-8); border-radius: 26px; }
+  .lp-foot { padding-top: var(--space-8); }
+}
