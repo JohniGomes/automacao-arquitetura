@@ -42,6 +42,8 @@ export interface Store {
   setGenMeta(id: string, userId: string, meta: { favorite?: boolean; projectId?: string | null }): Promise<Generation | null>;
   /** mensagem para o suporte (lida pelo dono do app no banco) */
   addSupport(m: { userId: string; email: string; subject: string; message: string }): Promise<void>;
+  /** últimas mensagens de suporte (painel de administração) */
+  listSupport(limit: number): Promise<SupportMsg[]>;
   /** marca do escritório do usuário (null se ainda não preencheu ou se o SQL novo não foi executado) */
   getOffice(userId: string): Promise<Escritorio | null>;
   /** cupons (vazio se o SQL novo não foi executado) */
@@ -187,6 +189,7 @@ const localStore: Store = {
     (db().support ??= []).push(row);
     save();
   },
+  async listSupport(limit) { return [...(db().support ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, limit); },
   async putFile(userId, name, data) { fs.mkdirSync(fdir(userId), { recursive: true }); fs.writeFileSync(path.join(fdir(userId), path.basename(name)), data); },
   async getFile(userId, name) { const p = path.join(fdir(userId), path.basename(name)); return fs.existsSync(p) ? fs.readFileSync(p) : null; },
   async fileUrl() { return null; },
@@ -447,6 +450,12 @@ const supabaseStore: Store = {
     const { error } = await sb().from("support_messages").insert({ id: uid(), user_id: m.userId, email: m.email, subject: m.subject, message: m.message });
     if (error && /support_messages|schema cache|does not exist/i.test(error.message)) throw new Error("O suporte ainda não está disponível: execute o SQL novo (supabase/migracao-suporte.sql) no Supabase.");
     check(error, "addSupport");
+  },
+  async listSupport(limit) {
+    const { data, error } = await sb().from("support_messages").select("*").order("created_at", { ascending: false }).limit(limit);
+    if (error && /support_messages|schema cache|does not exist/i.test(error.message)) return [];
+    check(error, "listSupport");
+    return (data ?? []).map((r: any): SupportMsg => ({ id: r.id, userId: r.user_id, email: r.email, subject: r.subject, message: r.message, createdAt: r.created_at }));
   },
   async putFile(userId, name, data) {
     const { error } = await sb().storage.from(BUCKET).upload(`${userId}/${path.basename(name)}`, data, { contentType: contentType(name), upsert: true });

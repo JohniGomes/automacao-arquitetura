@@ -25,7 +25,7 @@ export type CupomLinha = Coupon & { usos: number };
 export async function dadosAdmin() {
   const agora = Date.now();
   const desde30 = new Date(agora - 30 * DIA).toISOString();
-  const [users, gens, pagamentos, cupons] = await Promise.all([store.adminUsers(), store.adminGens(desde30), store.adminPayments(), store.listCoupons()]);
+  const [users, gens, pagamentos, cupons, suporte] = await Promise.all([store.adminUsers(), store.adminGens(desde30), store.adminPayments(), store.listCoupons(), store.listSupport(30)]);
   const custo = CUSTO();
 
   // ---- usuários
@@ -73,6 +73,7 @@ export async function dadosAdmin() {
     totais: { usuarios: users.length, verificados: users.filter((u) => u.emailVerifiedAt).length, novos7: novos(7), novos30: novos(30), ativos7: ativos(7), ativos30: ativos(30), geracoes30: gens.length, falhas30: falhas },
     assinaturas: { porPlano, mrr, pagantes: pagantes.length, emCupom, cancelando: pagantes.filter((u) => u.planStatus === "cancelado").length, receita30, receitaPlanos30 },
     cupons: cuponsLinhas,
+    suporte: suporte.map((m) => ({ id: m.id, email: m.email, assunto: m.subject, mensagem: m.message, em: m.createdAt })),
     custos: { custo, imagens, clipes, custoIA, custoMaps, custoTotal, porTipo, porDia, porUsuario, margem30: receita30 - custoTotal },
     usuarios: users.slice(0, 60).map((u) => ({ id: u.id, email: u.email, nome: u.name, criado: u.createdAt, plano: activePlan(u)?.nome ?? "", cupom: !!activePlan(u) && !u.asaasSubscriptionId, creditos: u.credits, verificado: !!u.emailVerifiedAt })),
   };
