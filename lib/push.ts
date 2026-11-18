@@ -8,7 +8,7 @@ import { store } from "./store";
  */
 const pub = () => process.env.VAPID_PUBLIC_KEY || "";
 const priv = () => process.env.VAPID_PRIVATE_KEY || "";
-const subject = () => process.env.VAPID_SUBJECT || "mailto:contato@croqui.app";
+const subject = () => process.env.VAPID_SUBJECT || "mailto:contato@appcroqui.com.br";
 
 export const pushAtivo = () => !!pub() && !!priv();
 export const chavePublica = () => pub();

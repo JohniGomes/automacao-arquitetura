@@ -33,7 +33,7 @@ services:
       - key: GEMINI_IMAGE_SIZE
         value: 1K
       - key: APP_URL
-        sync: false   # https://SEU-APP.onrender.com (ou domínio próprio)
+        sync: false   # https://appcroqui.com.br (ou domínio próprio)
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
