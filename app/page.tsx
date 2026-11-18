@@ -2,7 +2,6 @@ import fs from "node:fs";
 import path from "node:path";
 import Link from "next/link";
 import { currentUser } from "@/lib/auth";
-import { CONTACT_EMAIL } from "@/lib/legal";
 import { env } from "@/lib/config";
 import { COSTS, PACOTES, PLANOS } from "@/lib/costs";
 import { toolById } from "@/lib/tools";
@@ -88,10 +87,6 @@ export default async function Landing() {
             <div className="lp-cta">
               <Link className="btn lg" href={start}>{t(startLabel)}</Link>
             </div>
-            <p className="lp-note">
-              {bonus === 1 ? t("Ganhe 1 render grátis ao criar a conta.") : bonus > 1 ? t("Ganhe {n} renders grátis ao criar a conta.", { n: bonus }) : t("Criar a conta é grátis.")}
-              <br /><b>{t("Sem necessidade de cartão de crédito")}</b>
-            </p>
             <div className="lp-stage lp-stagehead">
               <HouseSplit />
             </div>
@@ -262,7 +257,6 @@ export default async function Landing() {
               <Link href="/termos">{t("Termos de Uso")}</Link>
               <Link href="/privacidade">{t("Política de Privacidade")}</Link>
               <Link href={u ? "/app/suporte" : "/login"}>{t("Suporte")}</Link>
-              {CONTACT_EMAIL && <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>}
             </div>
           </div>
           <p className="lp-copy">© {new Date().getFullYear()} Croqui. {t("Todos os direitos reservados.")}</p>
