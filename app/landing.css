@@ -361,3 +361,10 @@ section[id] { scroll-margin-top: 84px; }
   .lp-final { margin-bottom: var(--space-8); border-radius: 26px; }
   .lp-foot { padding-top: var(--space-8); }
 }
+
+/* cabeçalho estável ao rolar no celular: sem desfoque de fundo sobre as bolhas animadas, em camada própria */
+@media (max-width: 960px) {
+  .lp-nav { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(14, 11, 15, .95); transform: translateZ(0); -webkit-transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; will-change: transform; }
+  .lp-aurora i { animation: none; will-change: auto; }
+  .lp-aurora { contain: strict; }
+}
