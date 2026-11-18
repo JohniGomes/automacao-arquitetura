@@ -29,6 +29,8 @@ export interface Store {
   getGen(id: string, userId: string): Promise<Generation | null>;
   listGens(userId: string): Promise<Generation[]>;
   listTxs(userId: string, limit: number): Promise<Tx[]>;
+  /** quantos lançamentos existem com esse motivo (limite de vagas do código do VDO Club) */
+  countTxsByReason(reason: string): Promise<number>;
   staleGens(): Promise<Generation[]>;
   listProjects(userId: string): Promise<Project[]>;
   getProject(id: string, userId: string): Promise<Project | null>;
@@ -116,6 +118,7 @@ const localStore: Store = {
   },
   async getGen(id, userId) { return db().generations.find((x) => x.id === id && x.userId === userId) ?? null; },
   async listGens(userId) { return db().generations.filter((g) => g.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
+  async countTxsByReason(reason) { return db().txs.filter((t) => t.reason === reason).length; },
   async listTxs(userId, limit) { return db().txs.filter((t) => t.userId === userId).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit); },
   async staleGens() { return db().generations.filter((g) => g.status === "queued" || g.status === "running"); },
   async listPushes(userId) { return db().pushes!.filter((p) => p.userId === userId); },
@@ -288,6 +291,11 @@ const supabaseStore: Store = {
     const { data, error } = await sb().from("generations").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(200);
     check(error, "listGens");
     return (data ?? []).map(toGen);
+  },
+  async countTxsByReason(reason) {
+    const { count, error } = await sb().from("credit_txs").select("id", { count: "exact", head: true }).eq("reason", reason);
+    check(error, "countTxsByReason");
+    return count ?? 0;
   },
   async listTxs(userId, limit) {
     const { data, error } = await sb().from("credit_txs").select("*").eq("user_id", userId).order("at", { ascending: false }).limit(limit);

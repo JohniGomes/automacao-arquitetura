@@ -7,19 +7,23 @@ import { getLang, getT } from "@/lib/i18n-server";
 import BuyButton from "./BuyButton";
 import CancelPlan from "./CancelPlan";
 import PlanPicker from "./PlanPicker";
+import PromoCode from "./PromoCode";
+import { jaResgatou, promoAtivo, promoCfg } from "@/lib/promo";
 
 export const dynamic = "force-dynamic";
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 
-export default async function Creditos({ searchParams }: { searchParams: Promise<{ pagamento?: string }> }) {
+export default async function Creditos({ searchParams }: { searchParams: Promise<{ pagamento?: string; codigo?: string }> }) {
   const { t } = await getT();
   const lang = await getLang();
-  const { pagamento } = await searchParams;
+  const { pagamento, codigo } = await searchParams;
   const u = (await currentUser())!;
   const txs = await store.listTxs(u.id, 30);
   const plan = activePlan(u);
   const desconto = rulesOf(u).descontoPacotes;
   const enabled = billingEnabled();
+  const promo = promoAtivo() && !plan && !(await jaResgatou(u.id));
+  const pc = promoCfg();
   const until = u.planUntil ? new Date(u.planUntil).toLocaleDateString(lang === "en" ? "en-US" : "pt-BR") : "";
   return (
     <>
@@ -36,6 +40,7 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
         )}
         {plan && u.planStatus !== "cancelado" && <CancelPlan />}
       </div>{plan && u.planStatus !== "cancelado" && <span className="carimbo" aria-hidden="true">{t("Plano")}<br />{t("ativo")}</span>}</div></div>
+      {promo && <PromoCode inicial={codigo} creditos={pc.creditos} dias={pc.dias} />}
       <div className="card"><h2>{t("Planos")}</h2>
         {!enabled && <p className="warn">{t("A cobrança online ainda não está ativa. Fale com o suporte para contratar.")}</p>}
         <PlanPicker plans={PLANOS.map((p) => ({ ...p }))} enabled={enabled} current={plan?.id} />

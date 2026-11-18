@@ -7,7 +7,7 @@ import { userMessage } from "./errors";
 import { notificarGeracao } from "./push";
 
 /** Fila em memória (um processo). Para escalar, trocar por BullMQ/Redis ou worker separado — ver README. */
-const MAX = 2;
+const MAX = Math.max(1, Math.min(8, Number(process.env.JOBS_CONCURRENCY) || 2)); // gerações ao mesmo tempo no servidor (JOBS_CONCURRENCY)
 /** tempo máximo de um job: depois disso ele é encerrado com erro e estornado, para não prender uma vaga da fila */
 const JOB_TIMEOUT = { filme: 35 * 60_000, default: 12 * 60_000 } as const;
 /** jobs ativos (na fila ou rodando) por usuário */
