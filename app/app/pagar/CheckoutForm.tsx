@@ -108,6 +108,7 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
   return (
     <>
       {!embedded && <h1>{t("Pagamento")}</h1>}
+      {embedded && onBack && !res && <p style={{ margin: "0 0 12px" }}><button type="button" className="ghost" onClick={onBack}>← {t("Voltar")}</button></p>}
       <div className="paygrid">
         <div className="card">
           <h2>{t("Resumo")}</h2>
@@ -192,7 +193,7 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
               <button type="button" className="full" disabled={busy || !ready} aria-busy={busy} onClick={pay}>
                 {busy ? t("Processando…") : method === "PIX" ? t("Gerar QR Code Pix") : change && !needCard ? t("Confirmar troca de plano") : teste ? t("Começar teste grátis") : `${t("Pagar")} ${brl(change ? change.amount : eff)}`}
               </button>
-              {embedded ? (onBack && <p style={{ textAlign: "center" }}><button type="button" className="ghost" onClick={onBack}>{t("Voltar")}</button></p>) : <p className="small muted" style={{ textAlign: "center" }}><Link href="/app/creditos">{t("Voltar para Créditos e planos")}</Link></p>}
+              {!embedded && <p className="small muted" style={{ textAlign: "center" }}><Link href="/app/creditos">{t("Voltar para Créditos e planos")}</Link></p>}
             </>
           )}
 
