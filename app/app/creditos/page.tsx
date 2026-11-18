@@ -8,7 +8,7 @@ import BuyButton from "./BuyButton";
 import CancelPlan from "./CancelPlan";
 import PlanPicker from "./PlanPicker";
 import CupomCode from "./CupomCode";
-import { jaUsouCupom } from "@/lib/cupom";
+import { jaUsouCupom, testePadrao } from "@/lib/cupom";
 
 export const dynamic = "force-dynamic";
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
@@ -24,6 +24,7 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
   const enabled = billingEnabled();
   const mostrarCupom = !plan && !(await jaUsouCupom(u.id));
   const planoDeCupom = !!plan && !u.asaasSubscriptionId;
+  const teste = !plan ? await testePadrao(u) : null;
   const until = u.planUntil ? new Date(u.planUntil).toLocaleDateString(lang === "en" ? "en-US" : "pt-BR") : "";
   return (
     <>
@@ -41,10 +42,14 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
         )}
         {plan && u.planStatus !== "cancelado" && <CancelPlan />}
       </div>{plan && u.planStatus !== "cancelado" && <span className="carimbo" aria-hidden="true">{t("Plano")}<br />{t("ativo")}</span>}</div></div>
+      {!plan && (
+        <div className="card"><h2>{teste ? `${t("Comece com")} ${teste.dias} ${t("dias grátis")}` : t("Escolha um plano para usar o Croqui")}</h2>
+          <p className="small">{teste ? `${t("Escolha seu plano, cadastre o cartão e use por")} ${teste.dias} ${t("dias com")} ${teste.creditos} ${t("créditos. A primeira cobrança só acontece depois do período grátis, e quem cancela antes não paga nada.")}` : t("Para gerar imagens, assine um plano abaixo.")}</p></div>
+      )}
       {mostrarCupom && <CupomCode inicial={codigo} />}
       <div className="card"><h2>{t("Planos")}</h2>
         {!enabled && <p className="warn">{t("A cobrança online ainda não está ativa. Fale com o suporte para contratar.")}</p>}
-        <PlanPicker plans={PLANOS.map((p) => ({ ...p }))} enabled={enabled} current={plan?.id} />
+        <PlanPicker plans={PLANOS.map((p) => ({ ...p }))} enabled={enabled} current={plan?.id} trialDias={teste?.dias ?? 0} />
         <p className="small muted">{t("Créditos não cumulativos")}</p>
       </div>
       <div className="card"><h2>{t("Créditos avulsos")}</h2>

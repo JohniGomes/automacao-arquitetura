@@ -26,7 +26,7 @@ export default function CupomCode({ inicial }: { inicial?: string }) {
   }
   return (
     <div className="card"><h2>{t("Cupom de desconto")}</h2>
-      {desc ? <p className="small" role="status">{t("Cupom válido! O desconto aparece quando você escolher um plano para assinar.")}</p> : ok ? <p className="small" role="status">{t("Cupom aplicado! Seu plano e os créditos já estão na conta.")}</p> : (
+      {desc ? <p className="small" role="status">{t("Cupom válido! Ele será aplicado quando você escolher um plano para assinar.")}</p> : ok ? <p className="small" role="status">{t("Cupom aplicado! Seu plano e os créditos já estão na conta.")}</p> : (
         <form onSubmit={go} className="row gap" style={{ flexWrap: "wrap" }}>
           <input value={cupom} onChange={(e) => setCupom(e.target.value)} placeholder={t("Digite o cupom")} aria-label={t("Cupom de desconto")} autoCapitalize="characters" autoComplete="off" style={{ flex: "1 1 180px" }} />
           <button type="submit" disabled={busy || !cupom.trim()}>{t("Usar cupom")}</button>

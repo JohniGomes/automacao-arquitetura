@@ -37,7 +37,7 @@ function layout(title: string, body: string, button: { label: string; url: strin
 
 const T = {
   pt: {
-    verifySubject: "Confirme seu e-mail no Croqui", verifyTitle: "Confirme seu e-mail", verifyBody: "Falta só um passo: confirme que este e-mail é seu para liberar as gerações e os créditos de boas-vindas.", verifyBtn: "Confirmar e-mail", verifyFoot: "O link vale por 48 horas. Se você não criou uma conta no Croqui, ignore este e-mail.",
+    verifySubject: "Confirme seu e-mail no Croqui", verifyTitle: "Confirme seu e-mail", verifyBody: "Falta só um passo: confirme que este e-mail é seu para liberar a sua conta. Depois é só escolher o plano e começar o teste grátis.", verifyBtn: "Confirmar e-mail", verifyFoot: "O link vale por 48 horas. Se você não criou uma conta no Croqui, ignore este e-mail.",
     resetSubject: "Redefinir sua senha do Croqui", resetTitle: "Redefinir senha", resetBody: "Recebemos um pedido para redefinir a senha da sua conta. Se foi você, use o botão abaixo.", resetBtn: "Criar nova senha", resetFoot: "O link vale por 1 hora e só pode ser usado uma vez. Se não foi você, ignore este e-mail: sua senha continua a mesma.",
   },
   en: {

@@ -73,6 +73,7 @@
 .akpi small { font-size: 12px; color: var(--color-text-secondary); }
 .acform { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: end; margin-bottom: 8px; }
 .acform label { display: grid; gap: 4px; font-size: 12px; color: var(--color-text-secondary); }
+.acchk { align-content: end; }
 .atable-wrap { overflow-x: auto; margin: 6px 0 10px; }
 .atable { width: 100%; border-collapse: collapse; font-size: 13px; }
 .atable th { text-align: left; font-weight: 600; color: var(--color-text-secondary); padding: 6px 10px 6px 0; white-space: nowrap; border-bottom: 1px solid var(--line); }

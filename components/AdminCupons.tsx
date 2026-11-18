@@ -2,12 +2,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-type Linha = { tipo: string; desconto: number; code: string; creditos: number; dias: number; plano: string; limite: number | null; validoAte: string | null; ativo: boolean; usos: number };
+type Linha = { semCartao: boolean; tipo: string; desconto: number; code: string; creditos: number; dias: number; plano: string; limite: number | null; validoAte: string | null; ativo: boolean; usos: number };
 
 /** Painel de administração: criar, ativar/desativar e copiar o link dos cupons. */
 export default function AdminCupons({ cupons, planos, origem }: { cupons: Linha[]; planos: { id: string; nome: string }[]; origem: string }) {
   const router = useRouter();
-  const [f, setF] = useState({ code: "", tipo: "acesso", desconto: "", creditos: "300", dias: "30", plano: "max", limite: "", validoAte: "" });
+  const [f, setF] = useState({ code: "", semCartao: false, tipo: "acesso", desconto: "", creditos: "300", dias: "30", plano: "max", limite: "", validoAte: "" });
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value });
@@ -43,6 +43,7 @@ export default function AdminCupons({ cupons, planos, origem }: { cupons: Linha[
           <label>Créditos<input type="number" min={0} value={f.creditos} onChange={set("creditos")} required /></label>
           <label>Dias de plano<input type="number" min={1} max={365} value={f.dias} onChange={set("dias")} required /></label>
           <label>Plano<select value={f.plano} onChange={set("plano")}>{planos.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}</select></label>
+          <label className="acchk"><span>Cartão</span><span className="row gap" style={{ flexWrap: "nowrap", alignItems: "center" }}><input type="checkbox" checked={f.semCartao} onChange={(e) => setF({ ...f, semCartao: e.target.checked })} /> <span>Sem cartão (só VDO Club)</span></span></label>
         </>) : (
           <label>{f.tipo === "percentual" ? "Desconto (%)" : "Desconto (R$)"}<input type="number" min={0} step={f.tipo === "percentual" ? 1 : 0.01} value={f.desconto} onChange={set("desconto")} placeholder={f.tipo === "percentual" ? "20" : "10,00"} required /></label>
         )}
@@ -59,14 +60,14 @@ export default function AdminCupons({ cupons, planos, origem }: { cupons: Linha[
             {cupons.map((c) => (
               <tr key={c.code}>
                 <td><b>{c.code.toUpperCase()}</b></td>
-                <td>{c.tipo === "acesso" ? "Acesso" : c.tipo === "percentual" ? "Desconto %" : "Desconto R$"}</td>
-                <td>{c.tipo === "acesso" ? `${planos.find((p) => p.id === c.plano)?.nome ?? c.plano} · ${c.creditos} créditos · ${c.dias} dias` : c.tipo === "percentual" ? `${c.desconto}% no 1º mês` : `R$ ${c.desconto.toFixed(2).replace(".", ",")} no 1º mês`}</td>
+                <td>{c.tipo === "acesso" ? (c.semCartao ? "Acesso sem cartão" : "Acesso com cartão") : c.tipo === "percentual" ? "Desconto %" : "Desconto R$"}</td>
+                <td>{c.tipo === "acesso" ? `${planos.find((p) => p.id === c.plano)?.nome ?? c.plano} · ${c.creditos} créditos · ${c.dias} dias` : c.tipo === "percentual" ? `${c.desconto}% em todas as mensalidades` : `R$ ${c.desconto.toFixed(2).replace(".", ",")} em todas as mensalidades`}</td>
                 <td>{c.usos}{c.limite != null ? ` / ${c.limite}` : ""}</td>
                 <td>{data(c.validoAte)}</td>
                 <td>{c.ativo ? "Ativo" : "Desativado"}</td>
                 <td className="row gap" style={{ flexWrap: "nowrap" }}>
                   <button type="button" className="ghost" onClick={() => copiar(c.code)}>Copiar link</button>
-                  <button type="button" className="ghost" disabled={busy} onClick={() => enviar({ ...c, validoAte: c.validoAte ? c.validoAte.slice(0, 10) : "", limite: c.limite ?? "", ativo: !c.ativo })}>{c.ativo ? "Desativar" : "Ativar"}</button>
+                  <button type="button" className="ghost" disabled={busy} onClick={() => enviar({ ...c, semCartao: c.semCartao, validoAte: c.validoAte ? c.validoAte.slice(0, 10) : "", limite: c.limite ?? "", ativo: !c.ativo })}>{c.ativo ? "Desativar" : "Ativar"}</button>
                 </td>
               </tr>
             ))}

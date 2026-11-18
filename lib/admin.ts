@@ -34,7 +34,10 @@ export async function dadosAdmin() {
 
   // ---- assinaturas
   const comPlano = users.filter((u) => activePlan(u));
-  const pagantes = comPlano.filter((u) => u.asaasSubscriptionId);
+  // assinatura só conta como paga depois do primeiro pagamento de plano; antes disso a pessoa está no teste grátis
+  const pagaram = new Set(pagamentos.filter((p) => p.kind === "plano").map((p) => p.userId));
+  const pagantes = comPlano.filter((u) => u.asaasSubscriptionId && pagaram.has(u.id));
+  const emTeste = comPlano.filter((u) => u.asaasSubscriptionId && !pagaram.has(u.id));
   const porPlano = PLANOS.map((p) => {
     const ativas = pagantes.filter((u) => u.plan === p.id);
     return { id: p.id, nome: p.nome, preco: p.preco, assinantes: ativas.length, renovando: ativas.filter((u) => u.planStatus !== "cancelado").length, mrr: ativas.filter((u) => u.planStatus !== "cancelado").length * p.preco };
@@ -71,7 +74,7 @@ export async function dadosAdmin() {
 
   return {
     totais: { usuarios: users.length, verificados: users.filter((u) => u.emailVerifiedAt).length, novos7: novos(7), novos30: novos(30), ativos7: ativos(7), ativos30: ativos(30), geracoes30: gens.length, falhas30: falhas },
-    assinaturas: { porPlano, mrr, pagantes: pagantes.length, emCupom, cancelando: pagantes.filter((u) => u.planStatus === "cancelado").length, receita30, receitaPlanos30 },
+    assinaturas: { porPlano, mrr, pagantes: pagantes.length, emTeste: emTeste.length, emCupom, cancelando: pagantes.filter((u) => u.planStatus === "cancelado").length, receita30, receitaPlanos30 },
     cupons: cuponsLinhas,
     suporte: suporte.map((m) => ({ id: m.id, email: m.email, assunto: m.subject, mensagem: m.message, em: m.createdAt })),
     custos: { custo, imagens, clipes, custoIA, custoMaps, custoTotal, porTipo, porDia, porUsuario, margem30: receita30 - custoTotal },

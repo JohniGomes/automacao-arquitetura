@@ -4,7 +4,7 @@ import { PACOTES, PLANOS } from "./costs";
 import type { User } from "./db";
 import { UserError } from "./errors";
 import { activePlan, FATOR_MINIMO_PACOTE, planById, precoPacote } from "./plans";
-import { cupomParaPlano, motivoDesconto, MIN_COBRANCA } from "./cupom";
+import { condicoesDoPlano, emTeste, expirarSobraDoTeste, motivoDesconto, MIN_COBRANCA } from "./cupom";
 import { sobraDoPlano } from "./planCredits";
 import { store } from "./store";
 
@@ -105,7 +105,9 @@ export type CheckoutResult =
   | { kind: "card"; paymentId: string; status: string }
   /** troca de plano sem cobrança agora: já valeu ("done") ou fica agendada para a próxima renovação ("scheduled") */
   | { kind: "done" }
-  | { kind: "scheduled"; at: string };
+  | { kind: "scheduled"; at: string }
+  /** teste grátis (ou período de cupom) ativado: a primeira cobrança é só em `dueDate` */
+  | { kind: "trial"; dueDate: string; dias: number; creditos: number; valor: number };
 
 const digits = (s: string) => String(s || "").replace(/\D/g, "");
 
@@ -168,6 +170,7 @@ async function present(p: any, method: Method): Promise<CheckoutResult> {
 export async function createCheckout(u: User, id: string, method: Method, cpfCnpj: string, card?: CardInput, ip = "", cupomCodigo = ""): Promise<CheckoutResult> {
   if (method !== "PIX" && method !== "CREDIT_CARD") throw new UserError("Forma de pagamento inválida.");
   // quem já tem plano ativo troca de plano com valor proporcional (sem criar outra assinatura)
+  if (planById(id) && activePlan(u) && u.planStatus !== "cancelado" && u.asaasSubscriptionId && await emTeste(u)) throw new UserError("Você está no período grátis. Para trocar de plano, cancele a renovação em Créditos e planos e assine o outro plano.");
   if (planById(id) && activePlan(u) && u.planStatus !== "cancelado" && u.asaasSubscriptionId) return changePlan(u, id, method, cpfCnpj, card, ip);
   if (method === "CREDIT_CARD") {
     const bad = card ? validateCard(card) : "Informe os dados do cartão.";
@@ -196,13 +199,23 @@ export async function createCheckout(u: User, id: string, method: Method, cpfCnp
     }
     // assinatura anterior que não virou plano (cliente abriu e não pagou) ou já cancelada: remove, para nunca haver duas cobrando
     if (u.asaasSubscriptionId) await asaas(`/subscriptions/${encodeURIComponent(u.asaasSubscriptionId)}`, { method: "DELETE" }).catch(() => undefined);
-    // cupom de desconto: o primeiro mês sai com o valor reduzido; depois do pagamento a assinatura volta ao preço normal (applyPayment)
-    const cp = cupomCodigo.trim() ? await cupomParaPlano(u, cupomCodigo, plan!.id) : null;
-    const ref: Ref = { userId: u.id, kind: "plano", item: plan!.id, ...(cp ? { cents: Math.round(cp.precoFinal * 100), cupom: cp.coupon.code } : {}) };
+    // período grátis (teste de 3 dias ou o do cupom de acesso) e cupom de desconto: o desconto vale em todas as mensalidades
+    const cp = await condicoesDoPlano(u, plan!.id, cupomCodigo);
+    const desconto = cp.coupon && cp.coupon.tipo !== "acesso" ? cp.coupon : null;
+    const ref: Ref = { userId: u.id, kind: "plano", item: plan!.id, ...(desconto ? { cents: Math.round(cp.precoFinal * 100), cupom: desconto.code } : {}) };
+    const due = cp.teste ? new Date(Date.now() + cp.teste.dias * DAY).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" }) : today();
     const s = await asaas("/subscriptions", { method: "POST", body: {
-      customer, billingType: method, value: cp ? cp.precoFinal : plan!.preco, nextDueDate: today(), cycle: "MONTHLY", description: `ArqIA ${plan!.nome} — plano mensal`,
+      customer, billingType: method, value: cp.precoFinal, nextDueDate: due, cycle: "MONTHLY", description: `ArqIA ${plan!.nome} — plano mensal`,
       externalReference: encodeRef(ref), split, ...cardPart,
     } });
+    // uso do cupom de desconto: marca no extrato (0 crédito) e conta nas vagas
+    if (desconto) await store.grant(u.id, 0, motivoDesconto(desconto.code)).catch((e) => console.error("uso do cupom não registrado:", e?.message));
+    if (cp.teste) {
+      // o plano vale já, durante o período grátis (mais um dia de folga para o pagamento do fim do período ser confirmado)
+      await store.setPlan(u.id, { plan: plan!.id, planUntil: new Date(Date.now() + (cp.teste.dias + 1) * DAY).toISOString(), planStatus: "ativo", planNext: null, asaasSubscriptionId: s.id });
+      if (cp.teste.creditos > 0) await store.grant(u.id, cp.teste.creditos, cp.teste.motivo);
+      return { kind: "trial", dueDate: due, dias: cp.teste.dias, creditos: cp.teste.creditos, valor: cp.precoFinal };
+    }
     await store.setPlan(u.id, { asaasSubscriptionId: s.id });
     return await present(await firstPayment(s.id), method);
   } catch (e) {
@@ -328,6 +341,8 @@ async function grantMonthly(userId: string, planId: string) {
   const u = await store.getUser(userId);
   const sobra = u ? sobraDoPlano(await store.listTxs(userId, 5000), u.credits) : 0;
   if (sobra > 0) await store.charge(userId, sobra, "Créditos do mês anterior expirados");
+  // o que sobrou do teste grátis ou do cupom expira quando o plano passa a ser pago
+  await expirarSobraDoTeste(userId).catch((e) => console.error("sobra do teste não expirada:", e?.message));
   await store.grant(userId, p.creditosMes, `Plano ${p.nome}: créditos do mês`);
 }
 
@@ -369,11 +384,6 @@ async function applyPayment(pay: any) {
   const from = activePlan(user) && user.plan === plan.id && user.planUntil ? Math.max(now, new Date(user.planUntil).getTime()) : now;
   await store.setPlan(user.id, { plan: plan.id, planUntil: new Date(from + 35 * DAY).toISOString(), planStatus: "ativo", planNext: null, ...(pay.subscription ? { asaasSubscriptionId: String(pay.subscription) } : {}) });
   await grantMonthly(user.id, plan.id);
-  if (ref.cupom) {
-    // primeiro mês com cupom: registra o uso (aparece no extrato) e volta a assinatura ao preço normal para os próximos meses
-    await store.grant(user.id, 0, motivoDesconto(ref.cupom)).catch((e) => console.error("uso do cupom não registrado:", e?.message));
-    if (pay.subscription) await setSubscriptionPlan(String(pay.subscription), user.id, plan.id).catch((e) => console.error("assinatura não voltou ao preço normal:", scrub(String(e?.message))));
-  }
 }
 
 /** Reembolso ou chargeback: tira os créditos que ainda estiverem no saldo, ou encerra o plano. Uma vez só por pagamento. */
