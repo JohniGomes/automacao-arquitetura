@@ -3,7 +3,7 @@ import type { Lang } from "./i18n";
 
 /**
  * Envio de e-mail pela API do Resend (https://resend.com), sem SDK. Precisa de RESEND_API_KEY e, para sair de um domínio
- * próprio, MAIL_FROM (ex.: "ArqIA <contato@seudominio.com.br>") com o domínio verificado no Resend.
+ * próprio, MAIL_FROM (ex.: "ArqIA <contato@appcroqui.com.br>") com o domínio verificado no Resend.
  */
 export const mailEnabled = () => !!process.env.RESEND_API_KEY?.trim();
 /** Cadastro exige e-mail confirmado quando o envio de e-mail está configurado (REQUIRE_EMAIL_VERIFICATION=false desliga). */
