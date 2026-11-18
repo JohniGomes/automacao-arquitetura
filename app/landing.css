@@ -368,3 +368,13 @@ section[id] { scroll-margin-top: 84px; }
   .lp-aurora i { animation: none; will-change: auto; }
   .lp-aurora { contain: strict; }
 }
+
+/* celular: cabeçalho fixo em vez de sticky (sticky dentro de html/body com overflow oscila quando a barra do navegador recolhe) */
+@media (max-width: 960px) {
+  .lp { padding-top: calc(68px + env(safe-area-inset-top)); }
+  .lp-nav { position: fixed; top: 0; left: 0; right: 0; will-change: auto; }
+  .lp-aurora { top: 0; }
+}
+@media (max-width: 560px) {
+  .lp { padding-top: calc(60px + env(safe-area-inset-top)); }
+}
