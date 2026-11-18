@@ -37,7 +37,7 @@ const FERRAMENTAS: [string, string][] = [
   ["luz", "Manhã, golden hour, noite ou uma luz descrita por você."],
   ["editor", "Pincele só a região que quer mudar. O resto da imagem fica intacto."],
   ["angulos", "Novos ângulos do mesmo ambiente para uma apresentação completa."],
-  ["filme", "Filme animado do projeto em Full HD, de 1 a 3 cenas (até 5 no plano Max)."],
+  ["filme", "Filme animado do projeto em Full HD."],
 ];
 
 const PARA_QUEM: { icon: IconName; titulo: string; texto: string }[] = [

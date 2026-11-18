@@ -55,7 +55,7 @@ export const EN: Record<string, string> = {
   "Manhã, golden hour, noite ou uma luz descrita por você.": "Morning, golden hour, night, or a light you describe.",
   "Pincele só a região que quer mudar. O resto da imagem fica intacto.": "Brush only the region you want to change. The rest of the image stays untouched.",
   "Novos ângulos do mesmo ambiente para uma apresentação completa.": "New angles of the same space for a complete presentation.",
-  "Filme animado do projeto em Full HD, de 1 a 3 cenas (até 5 no plano Max).": "Animated project film in Full HD, 1 to 3 scenes (up to 5 on the Max plan).",
+  "Filme animado do projeto em Full HD.": "Animated project film in Full HD.",
   "Quanto você economiza?": "How much do you save?",
   "Compare o que você paga hoje por render com um plano do Croqui. Ajuste os números ao seu caso.": "Compare what you pay per render today with a Croqui plan. Adjust the numbers to your case.",
   "Escolha seu plano": "Choose your plan",
