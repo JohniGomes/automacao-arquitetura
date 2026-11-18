@@ -10,7 +10,6 @@ import { Generation, GenType, uid } from "@/lib/db";
 import { activeJobs, enqueue, live, recoverStale } from "@/lib/jobs";
 import { limited } from "@/lib/ratelimit";
 import { activePlan, rulesOf } from "@/lib/plans";
-import { needsVerification, VERIFY_MSG } from "@/lib/verify";
 import { refund } from "@/lib/credits";
 import { ELEMENTOS, CENAS_LUZ } from "@/lib/compose";
 import { Img } from "@/lib/gemini";
@@ -63,7 +62,6 @@ async function readImage(userId: string, form: FormData, key: string): Promise<I
 export async function POST(req: NextRequest) {
   const u = await currentUser();
   if (!u) return bad("Não autenticado.", 401);
-  if (needsVerification(u)) return bad(VERIFY_MSG, 403);
   // o Croqui só funciona com plano: assinatura (com 3 dias grátis) ou acesso de cupom
   if (!activePlan(u)) return bad("Para usar o Croqui, comece seu teste grátis escolhendo um plano em Créditos e planos.", 402);
   await recoverStale();
