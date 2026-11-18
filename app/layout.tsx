@@ -24,7 +24,7 @@ export const viewport: Viewport = {
 export async function generateMetadata(): Promise<Metadata> {
   const en = (await getLang()) === "en";
   return {
-    title: en ? "Croqui — AI for architects" : "Croqui — IA para arquitetos",
+    title: "Croqui",
     applicationName: "Croqui",
     appleWebApp: { capable: true, title: BRAND, statusBarStyle: "default" },
     description: en
