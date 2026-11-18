@@ -3,6 +3,7 @@ import { currentUser } from "@/lib/auth";
 import { billingEnabled, changeQuote } from "@/lib/billing";
 import { PACOTES, PLANOS } from "@/lib/costs";
 import { activePlan, precoPacote } from "@/lib/plans";
+import { testePadrao } from "@/lib/cupom";
 import { getT } from "@/lib/i18n-server";
 import CheckoutForm from "./CheckoutForm";
 
@@ -19,6 +20,7 @@ export default async function Pagar({ searchParams }: { searchParams: Promise<{ 
   // quem já tem plano ativo troca de plano: upgrade cobra a diferença proporcional, downgrade vale na renovação
   const switching = !!plan && !!activePlan(u) && u.planStatus !== "cancelado" && !!u.asaasSubscriptionId;
   const q = switching ? await changeQuote(u, plan!.id).catch(() => null) : null;
+  const teste = plan && !switching ? await testePadrao(u) : null;
   const blocked = switching && !q ? t("Este já é o seu plano atual.") : "";
   const fmt = (iso: string) => new Date(iso).toLocaleDateString(lang === "en" ? "en-US" : "pt-BR");
   return (
@@ -30,6 +32,8 @@ export default async function Pagar({ searchParams }: { searchParams: Promise<{ 
       detail={pack ? "" : `${plan!.creditosMes} ${t("créditos por mês")}`}
       needsDoc={!u.asaasCustomerId}
       blocked={blocked}
+      trialDias={teste?.dias ?? 0}
+      trialCreditos={teste?.creditos ?? 0}
       change={q ? { mode: q.mode, amount: q.amount, extraCredits: q.extraCredits, nextDue: fmt(q.nextDue), newPrice: q.newPrice } : undefined}
     />
   );

@@ -29,6 +29,7 @@ export default async function Admin() {
         {kpi("Receita (30 dias)", brl(d.assinaturas.receita30), `planos ${brl(d.assinaturas.receitaPlanos30)}`)}
         {kpi("Custo de IA (30 dias)", brl(d.custos.custoTotal), "estimado")}
         {kpi("Margem (30 dias)", brl(d.custos.margem30), "receita − custo")}
+        {kpi("Em teste grátis", d.assinaturas.emTeste, "ainda sem cobrança")}
         {kpi("Usuários", d.totais.usuarios, `${d.totais.verificados} com e-mail confirmado`)}
         {kpi("Ativos (7 dias)", d.totais.ativos7, `${d.totais.ativos30} em 30 dias`)}
         {kpi("Novos cadastros", d.totais.novos7, `${d.totais.novos30} em 30 dias`)}

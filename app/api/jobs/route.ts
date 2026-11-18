@@ -64,6 +64,8 @@ export async function POST(req: NextRequest) {
   const u = await currentUser();
   if (!u) return bad("Não autenticado.", 401);
   if (needsVerification(u)) return bad(VERIFY_MSG, 403);
+  // o Croqui só funciona com plano: assinatura (com 3 dias grátis) ou acesso de cupom
+  if (!activePlan(u)) return bad("Para usar o Croqui, comece seu teste grátis escolhendo um plano em Créditos e planos.", 402);
   await recoverStale();
   // limites antes de ler o corpo: o formData carrega tudo na memória
   if (Number(req.headers.get("content-length") || 0) > MAX_BODY) return bad("Os arquivos enviados são grandes demais.", 413);

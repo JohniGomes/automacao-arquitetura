@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     validoAte = d.toISOString();
   }
   try {
-    await store.saveCoupon({ tipo, desconto, code, creditos, dias, plano, limite, validoAte, ativo: b.ativo !== false, createdAt: antigo?.createdAt ?? new Date().toISOString() });
+    await store.saveCoupon({ semCartao: tipo === "acesso" && b.semCartao === true, tipo, desconto, code, creditos, dias, plano, limite, validoAte, ativo: b.ativo !== false, createdAt: antigo?.createdAt ?? new Date().toISOString() });
   } catch (e: any) {
     console.error("saveCoupon:", e?.message);
     return bad(String(e?.message || "").startsWith("Os cupons") ? e.message : "Não foi possível salvar agora.", 500);
