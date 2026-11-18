@@ -1,6 +1,7 @@
 import type { Coupon, Tx, User } from "./db";
 import { UserError } from "./errors";
 import { activePlan, planById } from "./plans";
+import { PLANOS } from "./costs";
 import { store } from "./store";
 import { needsVerification } from "./verify";
 
@@ -12,17 +13,43 @@ import { needsVerification } from "./verify";
 const PREFIXO = "Cupom ";
 export const motivoCupom = (code: string) => `${PREFIXO}${code.toUpperCase()}: créditos`;
 const RE_CUPOM = /^Cupom .*: créditos$/;
+export const motivoDesconto = (code: string) => `${PREFIXO}${code.toUpperCase()}: desconto aplicado`;
+const RE_DESCONTO = /^Cupom .*: desconto aplicado$/;
+/** menor valor que o cartão aceita no Asaas */
+export const MIN_COBRANCA = 5;
 export const MOTIVO_EXPIRADO = "Créditos do cupom expirados";
 
 export const normalizar = (s: string) => s.trim().toLowerCase().replace(/\s+/g, "");
+
+export const usosDoCupom = (c: Coupon) => store.countTxsByReason(c.tipo === "acesso" ? motivoCupom(c.code) : motivoDesconto(c.code));
 
 /** O cupom pode ser resgatado agora? (ativo, dentro da data e com vagas) */
 export async function cupomDisponivel(c: Coupon | null): Promise<{ ok: true; usos: number } | { ok: false; motivo: string }> {
   if (!c || !c.ativo) return { ok: false, motivo: "Cupom inválido ou encerrado." };
   if (c.validoAte && Date.now() > new Date(c.validoAte).getTime()) return { ok: false, motivo: "Cupom inválido ou encerrado." };
-  const usos = await store.countTxsByReason(motivoCupom(c.code));
+  const usos = await usosDoCupom(c);
   if (c.limite != null && usos >= c.limite) return { ok: false, motivo: "As vagas deste cupom acabaram." };
   return { ok: true, usos };
+}
+
+/** Preço do primeiro mês com o cupom de desconto. Nunca abaixo do mínimo do cartão; o valor volta ao normal a partir do segundo mês. */
+export function precoComCupom(c: Coupon, preco: number): number {
+  const bruto = c.tipo === "percentual" ? preco * (1 - c.desconto / 100) : preco - c.desconto;
+  return Math.min(preco, Math.max(MIN_COBRANCA, Math.round(bruto * 100) / 100));
+}
+
+/** Confere se a pessoa pode usar o cupom de desconto neste plano e devolve o preço do primeiro mês. */
+export async function cupomParaPlano(u: User, codigo: string, planId: string): Promise<{ coupon: Coupon; preco: number; precoFinal: number }> {
+  const plano = PLANOS.find((p) => p.id === planId);
+  if (!plano) throw new UserError("Item inválido.");
+  const c = await store.getCoupon(normalizar(codigo).slice(0, 60)).catch(() => null);
+  const d = await cupomDisponivel(c);
+  if (!d.ok || !c) throw new UserError(d.ok ? "Cupom inválido ou encerrado." : d.motivo);
+  if (c.tipo === "acesso") throw new UserError("Este cupom libera acesso grátis. Use-o em Créditos e planos, no campo Cupom de desconto.");
+  if ((await store.listTxs(u.id, 5000)).some((t) => RE_DESCONTO.test(t.reason))) throw new UserError("Você já usou um cupom de desconto nesta conta.");
+  const precoFinal = precoComCupom(c, plano.preco);
+  if (precoFinal >= plano.preco) throw new UserError("Este cupom não reduz o valor deste plano.");
+  return { coupon: c, preco: plano.preco, precoFinal };
 }
 
 export async function jaUsouCupom(userId: string) {
@@ -30,10 +57,12 @@ export async function jaUsouCupom(userId: string) {
 }
 
 /** Aplica o cupom a uma conta. `ignorarEmail` é só para o cadastro (a conta acabou de nascer e ainda não confirmou o e-mail). */
-export async function resgatarCupom(u: User, codigo: string, opts: { ignorarEmail?: boolean } = {}): Promise<{ creditos: number; ate: string; plano: string }> {
+export async function resgatarCupom(u: User, codigo: string, opts: { ignorarEmail?: boolean } = {}): Promise<{ creditos: number; ate: string; plano: string; desconto?: boolean }> {
   const c = await store.getCoupon(normalizar(codigo).slice(0, 60)).catch(() => null);
   const d = await cupomDisponivel(c);
   if (!d.ok || !c) throw new UserError(d.ok ? "Cupom inválido ou encerrado." : d.motivo);
+  // cupom de desconto não libera nada agora: vale na hora de assinar (ver cupomParaPlano); o código só é validado aqui
+  if (c.tipo !== "acesso") return { creditos: 0, ate: "", plano: "", desconto: true };
   if (!opts.ignorarEmail && needsVerification(u)) throw new UserError("Confirme seu e-mail antes de usar o cupom.");
   if (activePlan(u)) throw new UserError("Você já tem um plano ativo. O cupom vale para quem ainda não tem plano.");
   if (await jaUsouCupom(u.id)) throw new UserError("Você já usou um cupom nesta conta.");

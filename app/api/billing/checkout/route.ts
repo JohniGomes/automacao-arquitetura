@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       holderName: String(c.holderName || ""), number: String(c.number || ""), expiryMonth: String(c.expiryMonth || ""), expiryYear: String(c.expiryYear || ""),
       ccv: String(c.ccv || ""), postalCode: String(c.postalCode || ""), addressNumber: String(c.addressNumber || ""), phone: String(c.phone || ""),
     } : undefined;
-    const out = await createCheckout(u, String(b.id || ""), method, String(b.cpfCnpj || ""), cardInput, ip);
+    const out = await createCheckout(u, String(b.id || ""), method, String(b.cpfCnpj || ""), cardInput, ip, String(b.cupom || "").slice(0, 60));
     return NextResponse.json(out, { headers: NO_STORE });
   } catch (e: any) {
     if (e instanceof UserError) return NextResponse.json({ error: e.message }, { status: 400, headers: NO_STORE });

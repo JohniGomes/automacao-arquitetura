@@ -1,6 +1,6 @@
 import type { Coupon, Generation, User } from "./db";
 import { PLANOS } from "./costs";
-import { motivoCupom } from "./cupom";
+import { usosDoCupom } from "./cupom";
 import { activePlan } from "./plans";
 import { store } from "./store";
 
@@ -45,7 +45,7 @@ export async function dadosAdmin() {
   const receitaPlanos30 = pagamentos.filter((p) => p.createdAt >= desde30 && p.kind === "plano").reduce((s, p) => s + p.amount, 0);
 
   // ---- cupons
-  const cuponsLinhas: CupomLinha[] = await Promise.all(cupons.map(async (c) => ({ ...c, usos: await store.countTxsByReason(motivoCupom(c.code)) })));
+  const cuponsLinhas: CupomLinha[] = await Promise.all(cupons.map(async (c) => ({ ...c, usos: await usosDoCupom(c) })));
 
   // ---- custo de IA (30 dias, só o que não foi mock)
   const reais = gens.filter((g) => !g.mock);

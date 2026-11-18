@@ -4,6 +4,7 @@ import { PACOTES, PLANOS } from "./costs";
 import type { User } from "./db";
 import { UserError } from "./errors";
 import { activePlan, FATOR_MINIMO_PACOTE, planById, precoPacote } from "./plans";
+import { cupomParaPlano, motivoDesconto, MIN_COBRANCA } from "./cupom";
 import { sobraDoPlano } from "./planCredits";
 import { store } from "./store";
 
@@ -46,10 +47,10 @@ function splitRule() {
 }
 
 // ------------------------------------------------------------------ referência do pedido
-export type Ref = { userId: string; kind: "pacote" | "plano" | "troca"; item: string; /** pacote: valor cobrado, em centavos (inclui o desconto do plano na hora da compra) */ cents?: number };
-const encodeRef = (r: Ref) => `${r.userId}|${r.kind === "pacote" ? "pack" : r.kind === "troca" ? "up" : "plan"}|${r.item}${r.kind === "pacote" && r.cents ? `|${r.cents}` : ""}`;
+export type Ref = { userId: string; kind: "pacote" | "plano" | "troca"; item: string; /** pacote: valor cobrado, em centavos (inclui o desconto do plano na hora da compra); plano: valor do primeiro mês com cupom */ cents?: number; /** plano: código do cupom de desconto usado na assinatura */ cupom?: string };
+const encodeRef = (r: Ref) => `${r.userId}|${r.kind === "pacote" ? "pack" : r.kind === "troca" ? "up" : "plan"}|${r.item}${(r.kind === "pacote" || (r.kind === "plano" && r.cupom)) && r.cents ? `|${r.cents}` : ""}${r.kind === "plano" && r.cupom && r.cents ? `|${r.cupom}` : ""}`;
 export function parseRef(s: unknown): Ref | null {
-  const [userId, kind, item, centsRaw] = String(s || "").split("|");
+  const [userId, kind, item, centsRaw, cupomRaw] = String(s || "").split("|");
   if (!userId || !item) return null;
   if (kind === "pack") {
     const p = PACOTES.find((x) => x.id === item);
@@ -59,13 +60,18 @@ export function parseRef(s: unknown): Ref | null {
     const ok = Number.isInteger(cents) && cents >= Math.round(p.preco * FATOR_MINIMO_PACOTE * 100) && cents <= Math.round(p.preco * 100);
     return { userId, kind: "pacote", item, ...(ok ? { cents } : {}) };
   }
-  if (kind === "plan" && planById(item)) return { userId, kind: "plano", item };
+  if (kind === "plan" && planById(item)) {
+    // primeiro mês com cupom: o valor precisa estar entre o mínimo do cartão e o preço do plano (fora disso vale o catálogo)
+    const cents = Number(centsRaw);
+    const ok = !!cupomRaw && /^[a-z0-9_-]{3,30}$/.test(cupomRaw) && Number.isInteger(cents) && cents >= MIN_COBRANCA * 100 && cents <= Math.round(planById(item)!.preco * 100);
+    return { userId, kind: "plano", item, ...(ok ? { cents, cupom: cupomRaw } : {}) };
+  }
   if (kind === "up" && planById(item)) return { userId, kind: "troca", item };
   return null;
 }
 // troca de plano: a cobrança é só a diferença proporcional (mínimo do cartão no Asaas: R$ 5)
 const MIN_CARD = 5;
-const priceOf = (r: Ref) => (r.kind === "pacote" ? (r.cents ? r.cents / 100 : PACOTES.find((p) => p.id === r.item)!.preco) : r.kind === "troca" ? MIN_CARD : planById(r.item)!.preco);
+const priceOf = (r: Ref) => (r.kind === "pacote" ? (r.cents ? r.cents / 100 : PACOTES.find((p) => p.id === r.item)!.preco) : r.kind === "troca" ? MIN_CARD : r.cents ? r.cents / 100 : planById(r.item)!.preco);
 
 // ------------------------------------------------------------------ cliente e checkout
 /** Valida CPF ou CNPJ pelos dígitos verificadores. */
@@ -159,7 +165,7 @@ async function present(p: any, method: Method): Promise<CheckoutResult> {
  * Cria a cobrança (pacote) ou a assinatura mensal (plano) no Asaas já com o método escolhido e devolve o que a tela
  * precisa mostrar: QR Code Pix ou o resultado do cartão. Os créditos só entram pelo webhook.
  */
-export async function createCheckout(u: User, id: string, method: Method, cpfCnpj: string, card?: CardInput, ip = ""): Promise<CheckoutResult> {
+export async function createCheckout(u: User, id: string, method: Method, cpfCnpj: string, card?: CardInput, ip = "", cupomCodigo = ""): Promise<CheckoutResult> {
   if (method !== "PIX" && method !== "CREDIT_CARD") throw new UserError("Forma de pagamento inválida.");
   // quem já tem plano ativo troca de plano com valor proporcional (sem criar outra assinatura)
   if (planById(id) && activePlan(u) && u.planStatus !== "cancelado" && u.asaasSubscriptionId) return changePlan(u, id, method, cpfCnpj, card, ip);
@@ -190,9 +196,11 @@ export async function createCheckout(u: User, id: string, method: Method, cpfCnp
     }
     // assinatura anterior que não virou plano (cliente abriu e não pagou) ou já cancelada: remove, para nunca haver duas cobrando
     if (u.asaasSubscriptionId) await asaas(`/subscriptions/${encodeURIComponent(u.asaasSubscriptionId)}`, { method: "DELETE" }).catch(() => undefined);
-    const ref: Ref = { userId: u.id, kind: "plano", item: plan!.id };
+    // cupom de desconto: o primeiro mês sai com o valor reduzido; depois do pagamento a assinatura volta ao preço normal (applyPayment)
+    const cp = cupomCodigo.trim() ? await cupomParaPlano(u, cupomCodigo, plan!.id) : null;
+    const ref: Ref = { userId: u.id, kind: "plano", item: plan!.id, ...(cp ? { cents: Math.round(cp.precoFinal * 100), cupom: cp.coupon.code } : {}) };
     const s = await asaas("/subscriptions", { method: "POST", body: {
-      customer, billingType: method, value: plan!.preco, nextDueDate: today(), cycle: "MONTHLY", description: `ArqIA ${plan!.nome} — plano mensal`,
+      customer, billingType: method, value: cp ? cp.precoFinal : plan!.preco, nextDueDate: today(), cycle: "MONTHLY", description: `ArqIA ${plan!.nome} — plano mensal`,
       externalReference: encodeRef(ref), split, ...cardPart,
     } });
     await store.setPlan(u.id, { asaasSubscriptionId: s.id });
@@ -361,6 +369,11 @@ async function applyPayment(pay: any) {
   const from = activePlan(user) && user.plan === plan.id && user.planUntil ? Math.max(now, new Date(user.planUntil).getTime()) : now;
   await store.setPlan(user.id, { plan: plan.id, planUntil: new Date(from + 35 * DAY).toISOString(), planStatus: "ativo", planNext: null, ...(pay.subscription ? { asaasSubscriptionId: String(pay.subscription) } : {}) });
   await grantMonthly(user.id, plan.id);
+  if (ref.cupom) {
+    // primeiro mês com cupom: registra o uso (aparece no extrato) e volta a assinatura ao preço normal para os próximos meses
+    await store.grant(user.id, 0, motivoDesconto(ref.cupom)).catch((e) => console.error("uso do cupom não registrado:", e?.message));
+    if (pay.subscription) await setSubscriptionPlan(String(pay.subscription), user.id, plan.id).catch((e) => console.error("assinatura não voltou ao preço normal:", scrub(String(e?.message))));
+  }
 }
 
 /** Reembolso ou chargeback: tira os créditos que ainda estiverem no saldo, ou encerra o plano. Uma vez só por pagamento. */
