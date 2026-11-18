@@ -69,6 +69,17 @@ export default async function Admin() {
       </div>
 
       <div className="card">
+        <h2>Mensagens do suporte (30 mais recentes)</h2>
+        <p className="small muted">Todas ficam salvas aqui, mesmo que o e-mail de aviso não chegue. Responda pelo e-mail da pessoa.</p>
+        {d.suporte.length === 0 ? <p className="small muted">Nenhuma mensagem ainda.</p> : d.suporte.map((m) => (
+          <div key={m.id} style={{ borderTop: "1px solid var(--line)", padding: "10px 0" }}>
+            <p className="small" style={{ margin: 0 }}><b>{m.email}</b> · {m.assunto} · {new Date(m.em).toLocaleString("pt-BR")}</p>
+            <p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{m.mensagem}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="card">
         <h2>Usuários (60 mais recentes)</h2>
         <div className="atable-wrap"><table className="atable">
           <thead><tr><th>E-mail</th><th>Nome</th><th>Cadastro</th><th>Plano</th><th>Créditos</th><th>E-mail confirmado</th></tr></thead>
