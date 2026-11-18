@@ -961,6 +961,8 @@ export const EN: Record<string, string> = {
   "Não foi possível buscar o endereço.": "We could not look up the address.",
   "Modo de teste: este servidor está sem a chave do Google Maps, então o satélite e a localização são fictícios.": "Test mode: this server has no Google Maps key, so the satellite and location are fake.",
   "Ver mais": "Show more",
+  "Selecionar": "Select",
+  "Selecionado": "Selected",
   "Sua conta está criada. Falta só começar o seu teste grátis.": "Your account is ready. Just start your free trial.",
   "para usar no teste": "to use during the trial",
   "A cobrança só acontece depois do teste. Cancele antes e você não paga nada.": "You are only charged after the trial. Cancel before and you pay nothing.",

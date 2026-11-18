@@ -3,6 +3,8 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import CheckoutForm from "@/app/app/pagar/CheckoutForm";
 import Logo from "./Logo";
+import Icon from "./icons";
+import { COSTS } from "@/lib/costs";
 import { useT } from "./I18nProvider";
 
 export type PlanoOb = { id: string; nome: string; preco: number; creditosMes: number; destaque: boolean; itens: readonly string[] };
@@ -84,8 +86,10 @@ export default function Onboarding({ nome, plans, trialDias, trialCreditos, need
                   {p.destaque && <span className="ob-tag">{t("mais escolhido")}</span>}
                   <strong>{t(p.nome)}</strong>
                   <span className="ob-price">{brl(p.preco)}<small>/{t("mês")}</small></span>
-                  <span className="small">{p.creditosMes.toLocaleString("pt-BR")} {t("créditos por mês")}</span>
-                  <ul>{p.itens.slice(0, 4).map((i) => <li key={i}>{t(i)}</li>)}</ul>
+                  <span className="ob-credits">{p.creditosMes.toLocaleString("pt-BR")} {t("créditos por mês")}</span>
+                  <span className="small muted">{t("até {n} renders rápidos por mês", { n: Math.floor(p.creditosMes / COSTS.renderPorImagem).toLocaleString("pt-BR") })}</span>
+                  <ul>{p.itens.map((i) => <li key={i}><Icon name="check" />{t(i)}</li>)}</ul>
+                  <span className="ob-pick" aria-hidden="true">{planoId === p.id ? t("Selecionado") : t("Selecionar")}</span>
                 </button>
               ))}
             </div>
