@@ -41,7 +41,7 @@ p { margin: 0 0 10px; }
 :focus-visible { outline: 2px solid var(--sage); outline-offset: 3px; }
 
 /* ---------- campos ---------- */
-input[type=text], input[type=email], input[type=password], textarea, select {
+input:is(:not([type]), [type=text], [type=number], [type=date], [type=search], [type=tel], [type=url], [type=time]), input[type=email], input[type=password], textarea, select {
   width: 100%; padding: 13px 16px; border: 1px solid var(--rim); border-radius: 16px;
   background: var(--field); color: var(--ink); font: inherit; box-shadow: var(--inset);
 }
@@ -213,7 +213,7 @@ details summary { cursor: pointer; }
 .shell h1 { font-size: 26px; margin-bottom: 14px; }
 .shell h2 { font-size: 17px; } .shell h3 { font-size: 15px; }
 .shell label { font-size: 11px; margin-bottom: 6px; }
-.shell input[type=text], .shell input[type=email], .shell input[type=password], .shell textarea, .shell select { padding: 10px 14px; font-size: 14px; }
+.shell input:is(:not([type]), [type=text], [type=number], [type=date], [type=search], [type=tel], [type=url], [type=time]), .shell input[type=email], .shell input[type=password], .shell textarea, .shell select { padding: 10px 14px; font-size: 14px; }
 .shell textarea { min-height: 130px; }
 .shell button, .shell .btn { font-size: 14px; padding: 9px 22px; }
 .shell button.ghost, .shell .btn.ghost { font-size: 13px; padding: 6px 14px; }
