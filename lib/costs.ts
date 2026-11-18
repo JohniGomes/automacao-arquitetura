@@ -27,7 +27,7 @@ export const PACOTES = [
 /** Assinaturas mensais (não há plano anual). Os créditos do mês não acumulam: na renovação o que sobrou expira (lib/planCredits.ts). */
 export const PLANOS = [
   { id: "essencial", nome: "Essencial", preco: 49.9, creditosMes: 500, destaque: false,
-    itens: ["Todas as ferramentas", "3 projetos ativos", "Histórico de 30 dias", "Fila normal", "Mapa de situação até 600 m, vista aérea com 5 lugares", "2 gerações ao mesmo tempo", "Suporte por e-mail"] },
+    itens: ["3 projetos ativos", "Histórico de 30 dias", "Fila normal", "Mapa de situação até 600 m, vista aérea com 5 lugares", "2 gerações ao mesmo tempo", "Suporte por e-mail"] },
   { id: "profissional", nome: "Profissional", preco: 89.9, creditosMes: 1000, destaque: true,
     itens: ["Tudo do Essencial", "Projetos ilimitados, histórico de 12 meses e fila prioritária", "Render em 2K, download sem marca d'água e licença de uso comercial", "1 link de apresentação para o cliente", "15% de desconto em créditos avulsos", "3 gerações ao mesmo tempo", "Suporte por e-mail"] },
   { id: "max", nome: "Max", preco: 129.9, creditosMes: 1500, destaque: false,
