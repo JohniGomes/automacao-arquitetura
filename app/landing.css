@@ -108,9 +108,9 @@ section[id] { scroll-margin-top: 84px; }
 /* ---------- herói ---------- */
 .lp-hero { position: relative; }
 .lp-herow { padding-top: var(--space-16); padding-bottom: var(--space-10); text-align: center; display: grid; justify-items: center; }
-.lp-hero h1 { font-size: clamp(2.5rem, 6.2vw, 5rem); line-height: 1.03; letter-spacing: -0.04em; font-weight: var(--weight-regular); max-width: 17ch; color: #fff; text-shadow: 0 2px 40px rgba(255, 122, 89, .25); overflow-wrap: break-word; }
+.lp-hero h1 { font-size: clamp(1.625rem, 6.4vw, 4.25rem); line-height: 1.06; letter-spacing: -0.035em; font-weight: var(--weight-regular); max-width: 28ch; text-wrap: balance; color: #fff; text-shadow: 0 2px 40px rgba(255, 122, 89, .25); overflow-wrap: break-word; }
 .lp-hero h1 em { font-style: italic; background: var(--lp-grad); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; padding-right: .08em; }
-.lp-lead { font-size: 1.1875rem; line-height: var(--leading-body); color: var(--lp-mute); max-width: 60ch; margin: var(--space-5) 0 var(--space-6); }
+.lp-lead { font-size: 1.1875rem; line-height: var(--leading-body); color: var(--lp-mute); max-width: 56ch; margin: var(--space-5) 0 var(--space-6); }
 .lp-cta { display: flex; gap: var(--space-3); flex-wrap: wrap; justify-content: center; }
 .lp-note { margin: var(--space-4) 0 0; font-size: var(--text-sm); color: var(--lp-mute); line-height: var(--leading-body); }
 .lp-note b { color: #fff; font-weight: var(--weight-medium); }
@@ -333,7 +333,7 @@ section[id] { scroll-margin-top: 84px; }
   .lp-herow { padding-top: var(--space-8); padding-bottom: var(--space-6); }
   .lp-lead { font-size: 1.0625rem; margin: var(--space-4) 0 var(--space-5); }
   .lp-stagehead { margin-top: var(--space-8); }
-  .lp .lp-hero h1 { font-size: clamp(2.125rem, 10vw, 2.75rem); }
+  .lp .lp-hero h1 { font-size: clamp(1.5rem, 6.6vw, 2.25rem); }
   .lp h2 { font-size: clamp(1.625rem, 7.4vw, 2rem); }
   .lp-sub { font-size: 1rem; }
   /* ferramentas: ícone ao lado do texto, em vez de cartões altos de uma coluna */

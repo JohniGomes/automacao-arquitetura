@@ -82,8 +82,8 @@ export default async function Landing() {
         {/* ---------- herói ---------- */}
         <section className="lp-hero">
           <div className="lp-in lp-herow">
-            <h1>{t("Faça renders fotorrealistas em segundos com")} <em>{t("IA para arquitetura")}</em></h1>
-            <p className="lp-lead">{t("O Croqui é a plataforma de IA para arquitetos que transforma o print do seu modelo 3D em render fotorrealista, sem hardware caro. Use pelo celular ou pelo computador, com SketchUp, Revit, ArchiCAD e outros programas.")}</p>
+            <h1>{t("Faça renders fotorrealistas em segundos com")} <em>{t("o Croqui")}</em></h1>
+            <p className="lp-lead">{t("O Croqui é uma plataforma para arquitetos que transforma o print ou esboço de qualquer modelo em render fotorrealista, sem hardware caro. Use pelo celular ou pelo desktop, de onde estiver.")}</p>
             <div className="lp-cta">
               <Link className="btn lg" href={start}>{t(startLabel)}</Link>
             </div>

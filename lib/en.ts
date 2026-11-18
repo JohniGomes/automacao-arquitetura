@@ -111,8 +111,9 @@ export const EN: Record<string, string> = {
   "Apresentação do projeto": "Project presentation",
   "Plataforma de IA para arquitetura": "AI platform for architecture",
   "Faça renders fotorrealistas em segundos com": "Make photorealistic renders in seconds with",
-  "IA para arquitetura": "AI for architecture",
-  "O Croqui é a plataforma de IA para arquitetos que transforma o print do seu modelo 3D em render fotorrealista, sem hardware caro. Use pelo celular ou pelo computador, com SketchUp, Revit, ArchiCAD e outros programas.": "Croqui is the AI platform for architects that turns a screenshot of your 3D model into a photorealistic render, with no expensive hardware. Use it on your phone or your computer, with SketchUp, Revit, ArchiCAD and other programs.",
+  "o Croqui": "Croqui",
+  "O Croqui é uma plataforma para arquitetos que transforma o print ou esboço de qualquer modelo em render fotorrealista, sem hardware caro. Use pelo celular ou pelo desktop, de onde estiver.": "Croqui is a platform for architects that turns a screenshot or sketch of any model into a photorealistic render, with no expensive hardware. Use it on your phone or desktop, wherever you are.",
+
   "Ganhe {n} créditos de boas-vindas ao criar a conta.": "Get {n} welcome credits when you create your account.",
   "Criar a conta é grátis.": "Creating an account is free.",
   "Sem necessidade de cartão de crédito": "No credit card needed",
