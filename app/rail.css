@@ -244,7 +244,7 @@
 }
 @media (pointer: coarse) {
   .shell button, .shell .btn, .shell .chip, .popopt, .ritem { min-height: 44px; }
-  .shell input[type=text], .shell input[type=email], .shell input[type=password], .shell select { min-height: 44px; }
+  .shell input:is(:not([type]), [type=text], [type=number], [type=date], [type=search], [type=tel], [type=url], [type=time]), .shell input[type=email], .shell input[type=password], .shell select { min-height: 44px; }
 }
 @media (max-width: 860px) {
   .rail { padding-bottom: calc(6px + env(safe-area-inset-bottom)); }
