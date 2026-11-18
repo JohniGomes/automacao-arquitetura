@@ -30,7 +30,8 @@ export type Share = { token: string; userId: string; projectId: string; createdA
 /** Inscrição de notificação push de um aparelho (Web Push). */
 export type PushSub = { endpoint: string; userId: string; p256dh: string; auth: string; createdAt: string };
 /** Cupom criado no painel de administração: dá plano + créditos por alguns dias. Os créditos expiram junto com o plano. */
-export type Coupon = { code: string; creditos: number; dias: number; plano: string; limite: number | null; validoAte: string | null; ativo: boolean; createdAt: string };
+/** tipo: "acesso" dá plano + créditos por alguns dias; "percentual" (desconto em %) e "valor" (desconto em R$) abatem o primeiro mês de uma assinatura. */
+export type Coupon = { tipo: "acesso" | "percentual" | "valor"; desconto: number; code: string; creditos: number; dias: number; plano: string; limite: number | null; validoAte: string | null; ativo: boolean; createdAt: string };
 export type Project = { id: string; userId: string; name: string; createdAt: string };
 export type Tx = { id: string; userId: string; delta: number; reason: string; genId?: string; at: string };
 export type SupportMsg = { id: string; userId: string; email: string; subject: string; message: string; createdAt: string };

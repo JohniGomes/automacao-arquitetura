@@ -129,8 +129,9 @@ const localStore: Store = {
   async countTxsByReason(reason) { return db().txs.filter((t) => t.reason === reason).length; },
   async listTxs(userId, limit) { return db().txs.filter((t) => t.userId === userId).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit); },
   async staleGens() { return db().generations.filter((g) => g.status === "queued" || g.status === "running"); },
-  async listCoupons() { return [...db().coupons!].sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
-  async getCoupon(code) { return db().coupons!.find((c) => c.code === code.toLowerCase()) ?? null; },
+  // cupons gravados antes dos descontos não têm tipo: são de acesso
+  async listCoupons() { return db().coupons!.map((c) => ({ ...c, tipo: c.tipo ?? "acesso", desconto: c.desconto ?? 0 })).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
+  async getCoupon(code) { const c = db().coupons!.find((x) => x.code === code.toLowerCase()); return c ? { ...c, tipo: c.tipo ?? "acesso", desconto: c.desconto ?? 0 } : null; },
   async saveCoupon(c) { const l = db().coupons!.filter((x) => x.code !== c.code); l.push(c); db().coupons = l; save(); },
   async adminUsers() { return [...db().users]; },
   async adminGens(sinceIso) { return db().generations.filter((g) => g.createdAt >= sinceIso); },
@@ -205,7 +206,7 @@ const toGen = (r: any): Generation => ({
   mock: r.mock, error: r.error ?? undefined, usage: r.usage ?? { images: 0, videoClips: 0 },
   projectId: r.project_id ?? null, favorite: r.favorite ?? false,
 });
-const toCoupon = (r: any): Coupon => ({ code: r.code, creditos: r.creditos, dias: r.dias, plano: r.plano, limite: r.limite ?? null, validoAte: r.valido_ate ?? null, ativo: !!r.ativo, createdAt: r.created_at });
+const toCoupon = (r: any): Coupon => ({ tipo: r.tipo ?? "acesso", desconto: Number(r.desconto ?? 0), code: r.code, creditos: r.creditos, dias: r.dias, plano: r.plano, limite: r.limite ?? null, validoAte: r.valido_ate ?? null, ativo: !!r.ativo, createdAt: r.created_at });
 const toPush = (r: any): PushSub => ({ endpoint: r.endpoint, userId: r.user_id, p256dh: r.p256dh, auth: r.auth, createdAt: r.created_at });
 const toShare = (r: any): Share => ({ token: r.token, userId: r.user_id, projectId: r.project_id, createdAt: r.created_at, revokedAt: r.revoked_at ?? null });
 const toOffice = (r: any): Escritorio => ({ userId: r.user_id, nome: r.nome ?? "", responsavel: r.responsavel ?? "", registro: r.registro ?? "", cor: r.cor ?? "", logo: r.logo ?? null });
@@ -335,8 +336,8 @@ const supabaseStore: Store = {
     return data ? toCoupon(data) : null;
   },
   async saveCoupon(c) {
-    const { error } = await sb().from("coupons").upsert({ code: c.code, creditos: c.creditos, dias: c.dias, plano: c.plano, limite: c.limite, valido_ate: c.validoAte, ativo: c.ativo });
-    if (missingSchema(error)) throw new Error("Os cupons ainda não estão disponíveis: execute o SQL novo (supabase/migracao-cupons.sql) no Supabase.");
+    const { error } = await sb().from("coupons").upsert({ code: c.code, tipo: c.tipo, desconto: c.desconto, creditos: c.creditos, dias: c.dias, plano: c.plano, limite: c.limite, valido_ate: c.validoAte, ativo: c.ativo });
+    if (missingSchema(error)) throw new Error("Os cupons ainda não estão disponíveis: execute os SQLs novos (supabase/migracao-cupons.sql e supabase/migracao-cupons-desconto.sql) no Supabase.");
     check(error, "saveCoupon");
   },
   async adminUsers() {

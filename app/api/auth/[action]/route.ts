@@ -48,7 +48,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ act
         const lang = (await cookies()).get("lang")?.value === "en" ? "en" : "pt";
         void sendWelcomeMail(email, u.name, u.credits, lang);
       }
-      if (cupom) await resgatarCupom(u, cupom, { ignorarEmail: true }).catch((e) => console.error("cupom no cadastro:", e?.message));
+      if (cupom) {
+        const rc = await resgatarCupom(u, cupom, { ignorarEmail: true }).catch((e) => { console.error("cupom no cadastro:", e?.message); return null; });
+        // cupom de desconto: nada é liberado agora; a tela guarda o código para aplicar quando a pessoa assinar
+        if (rc?.desconto) { await startSession(u.id); return NextResponse.json({ ok: true, cupomDesconto: cupom }); }
+      }
       await startSession(u.id);
     } catch {
       return bad("Este e-mail já está cadastrado.", 409);

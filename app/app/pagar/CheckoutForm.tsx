@@ -27,9 +27,29 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
   const [res, setRes] = useState<Result | null>(null);
   const [paid, setPaid] = useState(false);
   const [copied, setCopied] = useState(false);
+  // cupom de desconto (só assinatura): confere no servidor e mostra o preço do primeiro mês
+  const [cupom, setCupom] = useState("");
+  const [cupomOk, setCupomOk] = useState<{ preco: number; precoFinal: number } | null>(null);
+  const [cupomMsg, setCupomMsg] = useState("");
+  const [cupomBusy, setCupomBusy] = useState(false);
+  const eff = cupomOk ? cupomOk.precoFinal : price;
   const stop = useRef(false);
   const needCard = method === "CREDIT_CARD" && (!change || (change.mode === "upgrade" && change.amount >= 5));
   const set = (k: keyof typeof EMPTY, f: (s: string) => string = (s) => s) => (e: React.ChangeEvent<HTMLInputElement>) => setCard((c) => ({ ...c, [k]: f(e.target.value) }));
+
+  // código guardado no cadastro (ou na página de créditos): já vem preenchido
+  useEffect(() => { if (!isPlan) return; try { const c = localStorage.getItem("croqui.cupom"); if (c) setCupom(c); } catch { /* sem armazenamento */ } }, [isPlan]);
+
+  async function aplicarCupom() {
+    setCupomBusy(true); setCupomMsg(""); setCupomOk(null);
+    try {
+      const r = await fetch("/api/cupom/simular", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cupom, plano: itemId }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) setCupomMsg(j.error || "Não foi possível conferir o cupom agora. Tente de novo.");
+      else setCupomOk({ preco: j.preco, precoFinal: j.precoFinal });
+    } catch { setCupomMsg("Sem conexão. Verifique a internet e tente de novo."); }
+    setCupomBusy(false);
+  }
 
   // depois do pagamento a tela pergunta ao servidor (que recebe o webhook do Asaas) se já foi confirmado
   useEffect(() => {
@@ -53,6 +73,7 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
     setErr(""); setBusy(true);
     const [mm, yy] = card.exp.split("/");
     const body: Record<string, unknown> = { id: itemId, method, cpfCnpj: doc };
+    if (isPlan && cupomOk) body.cupom = cupom;
     if (needCard) body.card = { holderName: card.holderName, number: onlyDigits(card.number), expiryMonth: mm || "", expiryYear: yy ? `20${yy}` : "", ccv: card.ccv, postalCode: card.postalCode, addressNumber: card.addressNumber, phone: card.phone };
     try {
       const r = await fetch("/api/billing/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), cache: "no-store" });
@@ -96,7 +117,7 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
               {change.mode === "downgrade" && <p className="small muted">{t("Você continua no plano atual até")} {change.nextDue}. {t("A partir daí, o plano novo custa")} {brl(change.newPrice)} / {t("mês")}.</p>}
               {change.mode === "keep" && <p className="small muted">{t("Cancela a troca agendada e mantém o plano atual.")}</p>}
             </>
-          ) : <p className="paytotal">{brl(price)}{isPlan ? <span> / {t("mês")}</span> : null}</p>}
+          ) : <><p className="paytotal">{cupomOk ? <><s className="muted small">{brl(price)}</s>{" "}</> : null}{brl(eff)}{isPlan ? <span> / {t("mês")}</span> : null}</p>{cupomOk && <p className="small muted">{t("Cupom aplicado: este é o valor do primeiro mês. Depois volta para")} {brl(cupomOk.preco)} / {t("mês")}.</p>}</>}
           {isPlan && <p className="small muted">{t("A assinatura renova todo mês no mesmo cartão. Você pode cancelar a renovação quando quiser, em Créditos e planos.")}</p>}
           <p className="small muted"><span aria-hidden="true">🔒 </span>{t("Pagamento seguro processado pelo Asaas. Os dados do cartão não são guardados pelo Croqui.")}</p>
         </div>
@@ -114,6 +135,15 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
                 </div>
               )}
               {isPlan && !change && <p className="small muted" style={{ marginTop: 0 }}>{t("Os planos são pagos somente no cartão de crédito.")}</p>}
+              {isPlan && !change && (
+                <div className="field"><label htmlFor="cupom">{t("Cupom de desconto")} <span className="small">({t("opcional")})</span></label>
+                  <div className="row gap" style={{ flexWrap: "nowrap" }}>
+                    <input id="cupom" autoCapitalize="characters" autoComplete="off" spellCheck={false} value={cupom} onChange={(e) => { setCupom(e.target.value); setCupomOk(null); setCupomMsg(""); }} />
+                    <button type="button" className="ghost" disabled={cupomBusy || !cupom.trim()} onClick={aplicarCupom}>{t("Aplicar")}</button>
+                  </div>
+                  {cupomMsg && <p className="small err" role="alert">{t(cupomMsg)}</p>}
+                </div>
+              )}
 
               {needDocField && (
                 <div className="field"><label htmlFor="doc">{method === "CREDIT_CARD" ? t("CPF ou CNPJ do titular do cartão") : t("CPF ou CNPJ")}</label>
@@ -146,7 +176,7 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
 
               {err && <p className="alert err" role="alert">{t(err)}</p>}
               <button type="button" className="full" disabled={busy || !ready} aria-busy={busy} onClick={pay}>
-                {busy ? t("Processando…") : method === "PIX" ? t("Gerar QR Code Pix") : change && !needCard ? t("Confirmar troca de plano") : `${t("Pagar")} ${brl(change ? change.amount : price)}`}
+                {busy ? t("Processando…") : method === "PIX" ? t("Gerar QR Code Pix") : change && !needCard ? t("Confirmar troca de plano") : `${t("Pagar")} ${brl(change ? change.amount : eff)}`}
               </button>
               <p className="small muted" style={{ textAlign: "center" }}><Link href="/app/creditos">{t("Voltar para Créditos e planos")}</Link></p>
             </>
