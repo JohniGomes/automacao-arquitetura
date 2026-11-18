@@ -43,7 +43,7 @@ services:
       - key: GEMINI_IMAGE_SIZE
         value: 1K
       - key: APP_URL
-        sync: false   # https://SEU-APP.onrender.com
+        sync: false   # https://appcroqui.com.br
       - key: RESEND_API_KEY
         sync: false   # e-mails de confirmação, recuperação de senha e suporte
       - key: MAIL_FROM
