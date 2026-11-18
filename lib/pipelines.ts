@@ -129,7 +129,7 @@ async function situacao(c: Ctx) {
 
   if (quer.prancha) {
     progress(c, 40, "Desenhando a prancha do mapa de situação…");
-    // marca do escritório (Profissional e Max): se faltar o cadastro ou o SQL novo, a prancha sai sem marca
+    // marca do escritório (plano Max): se faltar o cadastro ou o SQL novo, a prancha sai sem marca
     let marca: Marca | undefined;
     if (p.marca && p.marca !== "nenhuma") {
       try {

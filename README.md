@@ -221,12 +221,12 @@ Tudo é definido em `lib/plans.ts` (regras) e `lib/costs.ts` (preços, créditos
 
 | | Essencial | Profissional | Max |
 |---|---|---|---|
-| Mapa de situação: alcance máximo | 600 m | 1 km | 1 km |
-| Vista aérea: lugares no mapa | 5 | 9 | 9 |
-| Prancha em SVG vetorial | não | sim | sim |
+| Mapa de situação: alcance máximo | 600 m | 600 m | 1 km |
+| Vista aérea: lugares no mapa | 5 | 5 | 9 |
+| Prancha em SVG vetorial | não | não | sim |
 | Prancha em DXF (AutoCAD, UTM SIRGAS 2000) | não | não | sim |
 | Desconto nos créditos avulsos | 0% | 15% | 25% |
-| Marca do escritório na prancha | não | logo e nome | + responsável técnico e cor |
+| Marca do escritório na prancha | não | não | logo, nome, responsável técnico e cor |
 | Links de apresentação para o cliente | não | 1 | ilimitados |
 | Gerações ao mesmo tempo | 2 | 3 | 5 |
 | Filme (cenas por pedido) | 3 | 3 | 5 |

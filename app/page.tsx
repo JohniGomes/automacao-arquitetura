@@ -58,7 +58,6 @@ export default async function Landing() {
   const startLabel = u ? "Abrir o app" : "Criar conta grátis";
   const temVideo = fs.existsSync(path.join(process.cwd(), "public", "demo", "croqui.mp4"));
   const precos = PLANOS.map((p) => p.preco);
-  const porCena = COSTS.filmeImagemPorCena + COSTS.filmeAnimacaoPorCena;
   const faq: Faq[] = [
     ["O que é o Croqui?", "O Croqui é uma plataforma de IA para arquitetos: gera render, moodboard, variações de luz, mapa de situação e filme do projeto a partir das suas imagens."],
     ["Preciso de um computador potente?", "Não. O processamento acontece na nuvem: basta um navegador, no computador ou no celular."],
@@ -137,7 +136,6 @@ export default async function Landing() {
               <p className="lp-pill">{t("Funcionalidades")}</p>
               <h2>{t("Transforme imagens em vídeos")}</h2>
               <p className="lp-sub">{t("O filme do projeto transforma cada imagem em uma cena animada, com movimento suave de câmera, e junta tudo em um único vídeo Full HD pronto para apresentar ao cliente.")}</p>
-              <p className="lp-vidnote">{t("{n} créditos por cena, de 1 a 3 cenas por pedido (até 5 no plano Max).", { n: porCena })}</p>
               <a className="btn lg lp-btn-light" href="#planos">{t("Ver planos")} »</a>
             </div>
             <div className="lp-loop">

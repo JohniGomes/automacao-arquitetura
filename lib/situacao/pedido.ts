@@ -25,7 +25,7 @@ export function lerPedidoSituacao(form: FormData, limites: LimitesMapa) {
   if (selfIntersects(m)) throw new Error("Os lados do lote se cruzam. Ajuste os pontos para formar uma figura simples.");
 
   const raio = [300, 600, 1000].includes(Number(str("raio"))) ? Number(str("raio")) : 600;
-  if (raio > limites.alcanceMapaM) throw new Error("O alcance de 1 km faz parte dos planos Profissional e Max. Escolha 300 ou 600 m.");
+  if (raio > limites.alcanceMapaM) throw new Error("O alcance de 1 km faz parte do plano Max. Escolha 300 ou 600 m.");
   const endereco = {
     logradouro: str("logradouro").slice(0, 80), numero: str("numero").slice(0, 12), quadra: str("quadra").slice(0, 10),
     bairro: str("bairro").slice(0, 60), cidade: str("cidade").slice(0, 60), uf: str("uf").slice(0, 2).toUpperCase(), cep: str("cep").slice(0, 12),

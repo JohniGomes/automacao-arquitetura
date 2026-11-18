@@ -18,7 +18,7 @@ export default async function Escritorio() {
       <h1>{t("Marca do escritório")}</h1>
       {nivel === "nenhuma" ? (
         <div className="card">
-          <p>{t("A marca do escritório faz parte dos planos Profissional e Max.")}</p>
+          <p>{t("A marca do escritório faz parte do plano Max.")}</p>
           <Link href="/app/creditos" className="chip on">{t("Ver os planos")}</Link>
         </div>
       ) : (

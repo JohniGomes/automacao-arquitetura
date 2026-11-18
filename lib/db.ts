@@ -23,7 +23,7 @@ export type Generation = {
   /** pedido de cancelamento (só o filme para no meio); não vai para o banco */
   cancel?: boolean;
 };
-/** Marca do escritório usada nas pranchas (planos Profissional e Max). `logo` é o nome do arquivo guardado. */
+/** Marca do escritório usada nas pranchas (plano Max). `logo` é o nome do arquivo guardado. */
 export type Escritorio = { userId: string; nome: string; responsavel: string; registro: string; cor: string; logo: string | null };
 /** Link público de apresentação de um projeto (somente leitura, revogável). */
 export type Share = { token: string; userId: string; projectId: string; createdAt: string; revokedAt?: string | null };

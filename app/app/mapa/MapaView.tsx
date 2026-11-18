@@ -63,7 +63,7 @@ export default function Mapa({ alcanceMax = 600 }: { alcanceMax?: number }) {
           { v: "ambos", label: "As duas", desc: `Prancha e vista aérea juntas. ${COSTS.mapaAmbos} créditos.` },
         ]} />
         <Seg<"300" | "600" | "1000"> label="Alcance da prancha" value={raio} onChange={setRaio} options={[{ v: "300", label: "300 m" }, { v: "600", label: "600 m" }, ...(alcanceMax >= 1000 ? [{ v: "1000" as const, label: "1 km" }] : [])]} />
-        {alcanceMax < 1000 && <p className="small muted" style={{ margin: "-6px 2px 10px" }}>{t("O alcance de 1 km faz parte dos planos Profissional e Max.")}</p>}
+        {alcanceMax < 1000 && <p className="small muted" style={{ margin: "-6px 2px 10px" }}>{t("O alcance de 1 km faz parte do plano Max.")}</p>}
       </>}
       result={<Run gen={gen} error={error} onCancel={cancel} />}
     >

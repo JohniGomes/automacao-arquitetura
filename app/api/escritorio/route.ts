@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const u = await currentUser();
   if (!u) return bad("Não autenticado.", 401);
   const nivel = rulesOf(u).marcaEscritorio;
-  if (nivel === "nenhuma") return bad("A marca do escritório faz parte dos planos Profissional e Max.", 403);
+  if (nivel === "nenhuma") return bad("A marca do escritório faz parte do plano Max.", 403);
   if (await limited(`escritorio:${u.id}`, 20, 10 * 60_000)) return bad("Muitas alterações em pouco tempo. Aguarde um pouco.", 429);
   const form = await req.formData();
   const str = (k: string, max: number) => String(form.get(k) || "").replace(/[\r\n]+/g, " ").trim().slice(0, max);
