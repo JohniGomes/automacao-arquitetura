@@ -66,6 +66,17 @@
 
 /* ---------- tela Conta ---------- */
 .acchead { display: flex; align-items: center; gap: var(--space-4); margin: var(--space-2) 0 var(--space-5); }
+.akpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 8px 0 16px; }
+.akpi { background: var(--color-surface-elevated); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: grid; gap: 2px; }
+.akpi span { font-size: 12px; color: var(--color-text-secondary); }
+.akpi b { font-size: 22px; font-weight: 600; }
+.akpi small { font-size: 12px; color: var(--color-text-secondary); }
+.acform { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: end; margin-bottom: 8px; }
+.acform label { display: grid; gap: 4px; font-size: 12px; color: var(--color-text-secondary); }
+.atable-wrap { overflow-x: auto; margin: 6px 0 10px; }
+.atable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.atable th { text-align: left; font-weight: 600; color: var(--color-text-secondary); padding: 6px 10px 6px 0; white-space: nowrap; border-bottom: 1px solid var(--line); }
+.atable td { padding: 7px 10px 7px 0; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .avatar-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .avatar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: calc(-1 * var(--space-3)) 0 var(--space-5); }
 .pushbox { margin: 6px 0; }

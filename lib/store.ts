@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { env } from "./config";
-import { DATA_DIR, db, Escritorio, Generation, Payment, PlanFields, Project, PushSub, save, Share, SupportMsg, Tx, uid, User } from "./db";
+import { DATA_DIR, db, Escritorio, Generation, Payment, PlanFields, Project, PushSub, Coupon, save, Share, SupportMsg, Tx, uid, User } from "./db";
 
 /** Camada de dados. Produção = Supabase (Postgres + Storage). Desenvolvimento sem Supabase = arquivos locais (data/). */
 export interface Store {
@@ -44,6 +44,14 @@ export interface Store {
   addSupport(m: { userId: string; email: string; subject: string; message: string }): Promise<void>;
   /** marca do escritório do usuário (null se ainda não preencheu ou se o SQL novo não foi executado) */
   getOffice(userId: string): Promise<Escritorio | null>;
+  /** cupons (vazio se o SQL novo não foi executado) */
+  listCoupons(): Promise<Coupon[]>;
+  getCoupon(code: string): Promise<Coupon | null>;
+  saveCoupon(c: Coupon): Promise<void>;
+  /** painel de administração: tudo de todos os usuários */
+  adminUsers(): Promise<User[]>;
+  adminGens(sinceIso: string): Promise<Generation[]>;
+  adminPayments(): Promise<Payment[]>;
   /** aparelhos inscritos para notificação push (vazio se o SQL novo não foi executado) */
   listPushes(userId: string): Promise<PushSub[]>;
   addPush(s: PushSub): Promise<void>;
@@ -121,6 +129,12 @@ const localStore: Store = {
   async countTxsByReason(reason) { return db().txs.filter((t) => t.reason === reason).length; },
   async listTxs(userId, limit) { return db().txs.filter((t) => t.userId === userId).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit); },
   async staleGens() { return db().generations.filter((g) => g.status === "queued" || g.status === "running"); },
+  async listCoupons() { return [...db().coupons!].sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
+  async getCoupon(code) { return db().coupons!.find((c) => c.code === code.toLowerCase()) ?? null; },
+  async saveCoupon(c) { const l = db().coupons!.filter((x) => x.code !== c.code); l.push(c); db().coupons = l; save(); },
+  async adminUsers() { return [...db().users]; },
+  async adminGens(sinceIso) { return db().generations.filter((g) => g.createdAt >= sinceIso); },
+  async adminPayments() { return [...(db().payments ?? [])]; },
   async listPushes(userId) { return db().pushes!.filter((p) => p.userId === userId); },
   async addPush(s) { const l = db().pushes!.filter((p) => p.endpoint !== s.endpoint); l.push(s); db().pushes = l; save(); },
   async removePush(endpoint) { db().pushes = db().pushes!.filter((p) => p.endpoint !== endpoint); save(); },
@@ -191,12 +205,13 @@ const toGen = (r: any): Generation => ({
   mock: r.mock, error: r.error ?? undefined, usage: r.usage ?? { images: 0, videoClips: 0 },
   projectId: r.project_id ?? null, favorite: r.favorite ?? false,
 });
+const toCoupon = (r: any): Coupon => ({ code: r.code, creditos: r.creditos, dias: r.dias, plano: r.plano, limite: r.limite ?? null, validoAte: r.valido_ate ?? null, ativo: !!r.ativo, createdAt: r.created_at });
 const toPush = (r: any): PushSub => ({ endpoint: r.endpoint, userId: r.user_id, p256dh: r.p256dh, auth: r.auth, createdAt: r.created_at });
 const toShare = (r: any): Share => ({ token: r.token, userId: r.user_id, projectId: r.project_id, createdAt: r.created_at, revokedAt: r.revoked_at ?? null });
 const toOffice = (r: any): Escritorio => ({ userId: r.user_id, nome: r.nome ?? "", responsavel: r.responsavel ?? "", registro: r.registro ?? "", cor: r.cor ?? "", logo: r.logo ?? null });
 const toProject = (r: any): Project => ({ id: r.id, userId: r.user_id, name: r.name, createdAt: r.created_at });
 /** erro de coluna/tabela inexistente: o SQL novo (supabase/schema.sql) ainda não foi executado */
-const missingSchema = (e: { message: string } | null) => !!e && /project_id|favorite|projects|offices|shares|push_subs|schema cache|does not exist/i.test(e.message);
+const missingSchema = (e: { message: string } | null) => !!e && /project_id|favorite|projects|offices|shares|push_subs|coupons|schema cache|does not exist/i.test(e.message);
 
 const supabaseStore: Store = {
   kind: "supabase",
@@ -306,6 +321,39 @@ const supabaseStore: Store = {
     const { data, error } = await sb().from("generations").select("*").in("status", ["queued", "running"]);
     check(error, "staleGens");
     return (data ?? []).map(toGen);
+  },
+  async listCoupons() {
+    const { data, error } = await sb().from("coupons").select("*").order("created_at", { ascending: false });
+    if (missingSchema(error)) return [];
+    check(error, "listCoupons");
+    return (data ?? []).map(toCoupon);
+  },
+  async getCoupon(code) {
+    const { data, error } = await sb().from("coupons").select("*").eq("code", code.toLowerCase()).maybeSingle();
+    if (missingSchema(error)) return null;
+    check(error, "getCoupon");
+    return data ? toCoupon(data) : null;
+  },
+  async saveCoupon(c) {
+    const { error } = await sb().from("coupons").upsert({ code: c.code, creditos: c.creditos, dias: c.dias, plano: c.plano, limite: c.limite, valido_ate: c.validoAte, ativo: c.ativo });
+    if (missingSchema(error)) throw new Error("Os cupons ainda não estão disponíveis: execute o SQL novo (supabase/migracao-cupons.sql) no Supabase.");
+    check(error, "saveCoupon");
+  },
+  async adminUsers() {
+    const { data, error } = await sb().from("users").select("*").order("created_at", { ascending: false }).limit(5000);
+    check(error, "adminUsers");
+    return (data ?? []).map(toUser);
+  },
+  async adminGens(sinceIso) {
+    const { data, error } = await sb().from("generations").select("*").gte("created_at", sinceIso).limit(10000);
+    check(error, "adminGens");
+    return (data ?? []).map(toGen);
+  },
+  async adminPayments() {
+    const { data, error } = await sb().from("payments").select("*").limit(5000);
+    if (missingSchema(error)) return [];
+    check(error, "adminPayments");
+    return (data ?? []).map((r: any): Payment => ({ provider: r.provider, refId: r.ref_id, userId: r.user_id, kind: r.kind, item: r.item, amount: Number(r.amount), createdAt: r.created_at }));
   },
   async listPushes(userId) {
     const { data, error } = await sb().from("push_subs").select("*").eq("user_id", userId);

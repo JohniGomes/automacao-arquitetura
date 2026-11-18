@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { User } from "./db";
 import { env } from "./config";
 import { store } from "./store";
+import { expirarCupomSeVencido } from "./cupom";
 
 const scrypt = promisify(crypto.scrypt) as (p: string, salt: string, len: number) => Promise<Buffer>;
 const sign = (v: string) => crypto.createHmac("sha256", env.sessionSecret).update(v).digest("hex");
@@ -36,5 +37,7 @@ export async function currentUser(): Promise<User | null> {
   if (!c) return null;
   const [id, exp, sig] = c.split(".");
   if (!id || !exp || !sig || !safeEq(sign(`${id}.${exp}`), sig) || Number(exp) < Date.now()) return null;
-  return store.getUser(id);
+  const u = await store.getUser(id);
+  // plano de cupom vencido: tira o plano e expira os créditos do cupom que sobraram (só age quando já venceu)
+  return u ? expirarCupomSeVencido(u).catch(() => u) : null;
 }

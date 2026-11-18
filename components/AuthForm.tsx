@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Icon from "./icons";
 import LangSwitch from "./LangSwitch";
 import Logo from "./Logo";
@@ -24,12 +24,14 @@ const GoogleG = () => (
 
 export default function AuthForm({ mode, erro }: { mode: "login" | "register"; erro?: string }) {
   const t = useT();
-  const [f, setF] = useState({ name: "", email: "", password: "" });
+  const [f, setF] = useState({ name: "", email: "", password: "", cupom: "" });
   const [aceite, setAceite] = useState(false);
   const [err, setErr] = useState(erro ? t(ERROS[erro] || "Não foi possível entrar com o Google. Tente de novo ou use e-mail e senha.") : "");
   const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState(false);
   const reg = mode === "register";
+  // link de divulgação: /cadastro?cupom=CODIGO já preenche o campo
+  useEffect(() => { const c = new URLSearchParams(location.search).get("cupom"); if (c) { setF((x) => ({ ...x, cupom: c.slice(0, 60) })); setOpen(true); } }, []);
 
   async function go(e: React.FormEvent) {
     e.preventDefault(); setErr("");
@@ -73,6 +75,7 @@ export default function AuthForm({ mode, erro }: { mode: "login" | "register"; e
             <div className="field"><label htmlFor="email">{t("E-mail")}</label><input id="email" type="email" required autoFocus autoComplete="email" inputMode="email" autoCapitalize="none" spellCheck={false} enterKeyHint="next" value={f.email} onChange={set("email")} /></div>
             <div className="field"><label htmlFor="senha">{t("Senha")}</label><PasswordInput id="senha" minLength={8} autoComplete={reg ? "new-password" : "current-password"} value={f.password} onChange={set("password")} />
               {reg ? <p className="small">{t("Mínimo de 8 caracteres.")}</p> : <p className="small"><Link href="/esqueci-senha" data-bg>{t("Esqueci minha senha")}</Link></p>}</div>
+            {reg && <div className="field"><label htmlFor="cupom">{t("Cupom de desconto")} <span className="small">({t("opcional")})</span></label><input id="cupom" type="text" autoCapitalize="characters" autoComplete="off" spellCheck={false} value={f.cupom} onChange={set("cupom")} /></div>}
             <button className="full" disabled={busy}>{reg ? t("Criar conta") : t("Entrar")}</button>
           </form>
         )}
