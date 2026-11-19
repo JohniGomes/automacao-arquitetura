@@ -6,6 +6,8 @@ import ffmpegPath from "ffmpeg-static";
 
 // Cada execução do ffmpeg tem limite de tempo: um processo travado prenderia o job (e uma vaga da fila) para sempre.
 const RUN_TIMEOUT = 8 * 60_000;
+/** Animar uma cena passa disso só em servidor sem CPU: melhor desistir (a cena fica como imagem e os créditos voltam) do que prender a geração. */
+const ANIM_TIMEOUT = 4 * 60_000;
 
 /**
  * Codificação enxuta para instâncias pequenas (poucos CPUs e 512 MB a 2 GB de RAM):
@@ -14,12 +16,12 @@ const RUN_TIMEOUT = 8 * 60_000;
  */
 const ENC = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "21", "-pix_fmt", "yuv420p", "-threads", "2", "-r", "24", "-an"];
 
-function run(args: string[]) {
+function run(args: string[], limit = RUN_TIMEOUT) {
   return new Promise<void>((resolve, reject) => {
     if (!ffmpegPath) return reject(new Error("ffmpeg-static indisponível nesta plataforma"));
     const p = spawn(ffmpegPath, ["-y", "-loglevel", "error", "-nostdin", ...args]);
     let err = "";
-    const timer = setTimeout(() => { p.kill("SIGKILL"); reject(new Error("ffmpeg: tempo esgotado")); }, RUN_TIMEOUT);
+    const timer = setTimeout(() => { p.kill("SIGKILL"); reject(new Error("ffmpeg: tempo esgotado")); }, limit);
     p.stderr.on("data", (d) => { err = (err + d).slice(-2000); });
     p.on("error", (e) => { clearTimeout(timer); reject(e); });
     p.on("close", (c, sig) => {
@@ -65,8 +67,8 @@ export function imageToClip(img: Buffer, seconds: number, move: Move = "push"): 
     const fade = seconds > 1.2 ? `fade=t=in:st=0:d=0.4,fade=t=out:st=${(seconds - 0.4).toFixed(2)}:d=0.4` : "null";
     // 2880 px de largura bastam para o movimento suave (antes 3840: quase o dobro da memória por quadro)
     await run(["-i", path.join(d, "i.png"), "-vf",
-      `scale=2880:-2,zoompan=${moveExpr(move, frames)}:d=${frames}:s=1920x1080:fps=24,${fade},format=yuv420p`,
-      "-t", String(seconds), ...ENC, path.join(d, "o.mp4")]);
+      `scale=1920:-2,zoompan=${moveExpr(move, frames)}:d=${frames}:s=1920x1080:fps=24,${fade},format=yuv420p`,
+      "-t", String(seconds), ...ENC, path.join(d, "o.mp4")], ANIM_TIMEOUT);
     return fs.readFileSync(path.join(d, "o.mp4"));
   });
 }
