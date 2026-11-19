@@ -61,38 +61,29 @@ export function imageToClip(img: Buffer, seconds: number, move: Move = "push"): 
   return withTmp(async (d) => {
     fs.writeFileSync(path.join(d, "i.png"), img);
     const frames = Math.round(seconds * 24);
+    // fade de entrada e saída já na própria cena: a junção final não precisa recodificar nada
+    const fade = seconds > 1.2 ? `fade=t=in:st=0:d=0.4,fade=t=out:st=${(seconds - 0.4).toFixed(2)}:d=0.4` : "null";
     // 2880 px de largura bastam para o movimento suave (antes 3840: quase o dobro da memória por quadro)
     await run(["-i", path.join(d, "i.png"), "-vf",
-      `scale=2880:-2,zoompan=${moveExpr(move, frames)}:d=${frames}:s=1920x1080:fps=24,format=yuv420p`,
+      `scale=2880:-2,zoompan=${moveExpr(move, frames)}:d=${frames}:s=1920x1080:fps=24,${fade},format=yuv420p`,
       "-t", String(seconds), ...ENC, path.join(d, "o.mp4")]);
     return fs.readFileSync(path.join(d, "o.mp4"));
   });
 }
 
 /**
- * Junta clipes (cortados a `seconds` só se > 0; senão inteiros) em um único MP4 1920x1080, 24 fps, sem áudio.
- * Cada clipe é normalizado sozinho (um decodificador por vez) e a junção final só copia os pacotes, sem recodificar:
- * a memória fica quase constante, não importa quantas cenas o filme tenha. `onStep(feitos, total)` avisa o andamento.
+ * Junta as cenas (já no mesmo formato: 1920x1080, 24 fps, H.264, sem áudio) em um único MP4, só copiando os pacotes:
+ * não recodifica, então leva segundos e quase não usa CPU nem memória, não importa quantas cenas o filme tenha.
  */
-export function concatClips(clips: Buffer[], seconds: number, onStep?: (done: number, total: number) => void): Promise<Buffer> {
+export function concatClips(clips: Buffer[]): Promise<Buffer> {
   return withTmp(async (d) => {
-    const norm: string[] = [];
-    for (let i = 0; i < clips.length; i++) {
-      const src = path.join(d, `c${i}.mp4`);
-      const out = path.join(d, `n${i}.mp4`);
-      fs.writeFileSync(src, clips[i]);
-      const fade = seconds > 1.2 ? `fade=t=in:st=0:d=0.4,fade=t=out:st=${(seconds - 0.4).toFixed(2)}:d=0.4,` : "";
-      const vf = `${seconds > 0 ? `trim=duration=${seconds},` : ""}setpts=PTS-STARTPTS,${fade}scale=1920:1080:flags=bicubic:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,fps=24,setsar=1,format=yuv420p`;
-      await run(["-i", src, "-vf", vf, ...ENC, "-movflags", "+faststart", out]);
-      fs.rmSync(src, { force: true });
-      norm.push(out);
-      onStep?.(i + 1, clips.length);
-    }
+    const files = clips.map((c, i) => { const f = path.join(d, `n${i}.mp4`); fs.writeFileSync(f, c); return f; });
     const final = path.join(d, "final.mp4");
-    if (norm.length === 1) fs.copyFileSync(norm[0], final);
+    if (files.length === 1) fs.copyFileSync(files[0], final);
     else {
       const list = path.join(d, "list.txt");
-      fs.writeFileSync(list, norm.map((f) => `file '${f.replace(/\\/g, "/").replace(/'/g, "'\\''")}'`).join("\n"));
+      const q = (f: string) => `file '${f.split("\\").join("/").split("'").join("'\\''")}'`;
+      fs.writeFileSync(list, files.map(q).join("\n"));
       await run(["-f", "concat", "-safe", "0", "-i", list, "-c", "copy", "-movflags", "+faststart", final]);
     }
     return fs.readFileSync(final);
