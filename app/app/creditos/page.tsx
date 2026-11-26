@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { COSTS, PACOTES, PLANOS } from "@/lib/costs";
@@ -17,7 +18,8 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
   const { t } = await getT();
   const lang = await getLang();
   const { pagamento, codigo } = await searchParams;
-  const u = (await currentUser())!;
+  const u = await currentUser();
+  if (!u) redirect("/login");
   const txs = await store.listTxs(u.id, 30);
   const plan = activePlan(u);
   const desconto = rulesOf(u).descontoPacotes;
