@@ -3,7 +3,7 @@
 export type IconName =
   | "school" | "building" | "laptop" | "cloud" | "bolt" | "chevron" | "menu" | "play"
   | "home" | "folder" | "gallery" | "tools" | "user" | "support" | "help" | "lang" | "sun" | "moon" | "screen"
-  | "plus" | "bell" | "credits" | "upload" | "mail" | "check" | "close" | "mapa" | "moodboard" | "filme" | "render" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos" | "luz";
+  | "plus" | "bell" | "credits" | "upload" | "mail" | "check" | "close" | "mapa" | "moodboard" | "filme" | "memorial" | "render" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos" | "luz";
 
 const ICONS: Record<IconName, { main: string; acc?: string }> = {
   plus: { main: "M12 5v14M5 12h14" },
@@ -23,6 +23,7 @@ const ICONS: Record<IconName, { main: string; acc?: string }> = {
   mapa: { main: "M12 21s-6.5-5.4-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.6 12 21 12 21z", acc: "M12 12.5a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" },
   moodboard: { main: "M4 4.5h7v8H4zM13 4.5h7v4.5h-7z", acc: "M13 11.5h7v8h-7zM4 15h7v4.5H4z" },
   filme: { main: "M4 6.5h11.5v11H4z", acc: "M15.5 10.5 20.5 7.5v9l-5-3" },
+  memorial: { main: "M6.5 3.5h8l4 4v13h-12z", acc: "M14.5 3.5v4h4M9.5 12h6M9.5 15.5h6M9.5 19h3.5" },
   render: { main: "M3.5 20.5h17M5.5 20.5V9.5L12 4.5l6.5 5v11", acc: "M12 11.5l.9 1.9 1.9.9-1.9.9-.9 1.9-.9-1.9-1.9-.9 1.9-.9z" },
   melhorar: { main: "M10 3.5l1.9 5 5 1.9-5 1.9-1.9 5-1.9-5-5-1.9 5-1.9z", acc: "M18 15.5l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z" },
   esboco: { main: "M4 20l.9-4.2L16.5 4.2a1.6 1.6 0 0 1 2.3 0l1 1a1.6 1.6 0 0 1 0 2.3L8.2 19.1z", acc: "M14.5 6.2l3.3 3.3" },

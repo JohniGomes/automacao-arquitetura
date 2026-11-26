@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 /** Ícones ilustrados das ferramentas, só para a landing: ladrilho em degradê com brilho e sombra colorida
  *  e um desenho em camadas (corpo claro, detalhe quente, recorte na cor do ladrilho). O app usa o ToolIcon simples. */
 
-type Id = "mapa" | "moodboard" | "render" | "melhorar" | "esboco" | "ideias" | "luz" | "editor" | "angulos" | "filme";
+type Id = "mapa" | "moodboard" | "render" | "melhorar" | "esboco" | "ideias" | "luz" | "editor" | "angulos" | "filme" | "memorial";
 
 /** [claro, escuro] do ladrilho. Paleta da marca: terracota, âmbar, violeta, rosa. */
 const COLORS: Record<Id, [string, string]> = {
@@ -17,6 +17,7 @@ const COLORS: Record<Id, [string, string]> = {
   editor: ["#7F8CFF", "#4A52D6"],
   angulos: ["#FF80B2", "#B4406A"],
   filme: ["#FF6F4D", "#B3301B"],
+  memorial: ["#FF7A59", "#BE3A22"],
 };
 
 const WARM = "#FFE0A8";
@@ -115,6 +116,14 @@ function glyph(id: Id, F: string): ReactNode {
           <path d="M38 12 24 20v15l14-8z" fill="#fff" opacity=".34" />
           <path d="M7 37c3.4 6 11.5 8.6 19 7" stroke={WARM} strokeWidth="2.8" strokeLinecap="round" fill="none" />
           <path d="M23.5 39.6 27 44l-4.8 2" stroke={WARM} strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        </>
+      );
+    case "memorial":
+      return (
+        <>
+          <path d="M11 5h18l9 9v29H11z" fill={F} />
+          <path d="M29 5v9h9z" fill="#fff" opacity=".45" />
+          <path d="M17 24h15M17 30h15M17 36h9" stroke={WARM} strokeWidth="2.8" strokeLinecap="round" fill="none" />
         </>
       );
     case "filme":

@@ -1,5 +1,5 @@
 /** Registro das ferramentas (usado pela gaveta, pela busca da home e pelos atalhos). Seguro para o cliente. */
-export type ToolId = "mapa" | "moodboard" | "render" | "luz" | "filme" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos";
+export type ToolId = "mapa" | "moodboard" | "render" | "luz" | "memorial" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos";
 export type Tool = { id: ToolId; href: string; label: string; group: "Apresentação" | "Imagem" | "Edição"; icon: string; tone: number; hint: string };
 
 export const TOOLS: Tool[] = [
@@ -7,8 +7,8 @@ export const TOOLS: Tool[] = [
     icon: "M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" },
   { id: "moodboard", href: "/app/moodboard", label: "Moodboard", group: "Apresentação", tone: 2, hint: "ambiente cores materiais referência cozinha sala banheiro quarto",
     icon: "M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z" },
-  { id: "filme", href: "/app/filme", label: "Filme do projeto", group: "Apresentação", tone: 3, hint: "vídeo cenas animação mp4",
-    icon: "M4 6h12v12H4zM16 10l5-3v10l-5-3" },
+  { id: "memorial", href: "/app/memorial", label: "Memorial descritivo", group: "Apresentação", tone: 3, hint: "texto documento word descrição materiais acabamentos especificação",
+    icon: "M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 15.5h7M9 19h4" },
   { id: "render", href: "/app/render", label: "Render", group: "Imagem", tone: 4, hint: "fotorrealista modelo 3d print versões",
     icon: "M3 20h18M5 20V9l7-5 7 5v11M10 20v-6h4v6" },
   { id: "melhorar", href: "/app/melhorar", label: "Melhorar render", group: "Imagem", tone: 2, hint: "refinar qualidade realismo premium fidelidade upscale",
@@ -28,7 +28,7 @@ export const GROUPS: Tool["group"][] = ["Apresentação", "Imagem", "Edição"];
 export const DEFAULT_PINS: ToolId[] = ["mapa", "render"];
 export const toolById = (id: string) => TOOLS.find((t) => t.id === id);
 
-export const TYPE_LABEL: Record<string, string> = { mapa: "Mapa de situação", moodboard: "Moodboard", render: "Render", luz: "Variação de luz", filme: "Filme", melhorar: "Melhorar render", esboco: "Render de esboço", ideias: "Gerar ideias", editor: "Editar por regiões", angulos: "Multi-ângulo" };
+export const TYPE_LABEL: Record<string, string> = { mapa: "Mapa de situação", moodboard: "Moodboard", render: "Render", luz: "Variação de luz", filme: "Filme (descontinuado)", memorial: "Memorial descritivo", melhorar: "Melhorar render", esboco: "Render de esboço", ideias: "Gerar ideias", editor: "Editar por regiões", angulos: "Multi-ângulo" };
 
 const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 export function searchTools(q: string): Tool[] {

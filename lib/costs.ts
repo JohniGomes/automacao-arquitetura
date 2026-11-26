@@ -1,12 +1,11 @@
-/** Preço em créditos por unidade. Regra atual: nenhuma ação custa menos de 10 créditos; cena de filme animado = 15 créditos. O custo real de uma imagem de IA é ≈ R$ 0,28; ver README. */
+/** Preço em créditos por unidade. Regra atual: nenhuma ação custa menos de 10 créditos; memorial descritivo = 20 créditos. O custo real de uma imagem de IA é ≈ R$ 0,28; ver README. */
 export const COSTS = {
   mapa: 10, mapaPrancha: 10, mapaAmbos: 15, // mapa = vista aérea ilustrativa (1 imagem de IA); mapaPrancha = prancha por código, sem IA; mapaAmbos = as duas juntas
   moodboard: 10,
   renderPorImagem: 10,
   luz: 10,
-  filmeImagemPorCena: 3,
-  /** cena completa = 3 (imagem) + 12 (animação) = 15 créditos. A animação roda no servidor (ffmpeg) e não gasta IA de vídeo; o vídeo de IA custava ≈ R$ 3,1 por clipe de 5 s e foi retirado do produto */
-  filmeAnimacaoPorCena: 12,
+  /** memorial descritivo: 1 chamada de IA com imagem e texto longo (≈ R$ 0,15) + geração do Word no servidor */
+  memorial: 20,
   /** modo Precisão do render (imagem em 2K) */
   renderPrecisaoPorImagem: 15,
   melhorarPorImagem: 10,
@@ -31,7 +30,7 @@ export const PLANOS = [
   { id: "profissional", nome: "Profissional", preco: 89.9, creditosMes: 1000, destaque: true,
     itens: ["Tudo do Essencial", "Projetos ilimitados, histórico de 12 meses e fila prioritária", "Render em 2K, download sem marca d'água e licença de uso comercial", "1 link de apresentação para o cliente", "15% de desconto em créditos avulsos", "3 gerações ao mesmo tempo", "Suporte por e-mail"] },
   { id: "max", nome: "Max", preco: 129.9, creditosMes: 1500, destaque: false,
-    itens: ["Tudo do Profissional, e mais:", "Menor preço por crédito entre os planos", "Filme com até 5 cenas por pedido", "Mapa de situação até 1 km, vista aérea com 9 lugares e prancha em SVG vetorial", "Logo e nome do escritório na prancha", "Mapa de situação em DXF para AutoCAD (UTM SIRGAS 2000)", "Responsável técnico, registro (CAU ou CREA) e cor própria na prancha", "Links de apresentação ilimitados", "25% de desconto em créditos avulsos", "5 gerações ao mesmo tempo", "Suporte prioritário por WhatsApp", "Acesso antecipado às ferramentas novas"] },
+    itens: ["Tudo do Profissional, e mais:", "Menor preço por crédito entre os planos", "Mapa de situação até 1 km, vista aérea com 9 lugares e prancha em SVG vetorial", "Logo e nome do escritório na prancha", "Mapa de situação em DXF para AutoCAD (UTM SIRGAS 2000)", "Responsável técnico, registro (CAU ou CREA) e cor própria na prancha", "Links de apresentação ilimitados", "25% de desconto em créditos avulsos", "5 gerações ao mesmo tempo", "Suporte prioritário por WhatsApp", "Acesso antecipado às ferramentas novas"] },
 ] as const;
 
 export const COSTS_EDICAO = {
