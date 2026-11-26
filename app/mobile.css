@@ -41,6 +41,9 @@
 
   /* ----- barra de baixo: Início, Projetos, + Criar, Gerações, Conta ----- */
   .shell .rail { padding: 8px 6px 8px; border-radius: 28px; align-items: flex-end; box-shadow: 0 10px 34px rgba(43, 42, 40, .16); }
+  /* sempre colada embaixo, sem acompanhar o scroll: camada própria (o blur de uma barra fixa "escorrega" no Safari/Chrome do celular) e respeito à barra do sistema */
+  .shell .rail { position: fixed; bottom: calc(10px + env(safe-area-inset-bottom)); transform: translate3d(0, 0, 0); -webkit-transform: translate3d(0, 0, 0); will-change: transform; backface-visibility: hidden; -webkit-backface-visibility: hidden; contain: layout; }
+  .shell .wrap { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
   .shell .rail .ritems { flex: 4; display: flex; gap: 0; align-items: flex-end; }
   .shell .rail .rfoot { flex: 1; width: auto; min-width: 0; display: flex; }
   .shell .rail .rfoot .ritem, .shell .rail .ritems .ritem { flex: 1; min-width: 0; }
