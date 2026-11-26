@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { currentUser } from "@/lib/auth";
 import { rulesOf } from "@/lib/plans";
@@ -10,7 +11,8 @@ export const dynamic = "force-dynamic";
 /** Marca do escritório (logo, nome e, no plano Max, responsável técnico e cor), usada nas pranchas do mapa de situação. */
 export default async function Escritorio() {
   const { t } = await getT();
-  const u = (await currentUser())!;
+  const u = await currentUser();
+  if (!u) redirect("/login");
   const nivel = rulesOf(u).marcaEscritorio;
   const o = nivel === "nenhuma" ? null : await store.getOffice(u.id).catch(() => null);
   return (

@@ -12,7 +12,8 @@ export const dynamic = "force-dynamic";
 /** Tela de pagamento do app: Pix (créditos avulsos) ou cartão (créditos avulsos e planos). */
 export default async function Pagar({ searchParams }: { searchParams: Promise<{ item?: string }> }) {
   const { item } = await searchParams;
-  const u = (await currentUser())!;
+  const u = await currentUser();
+  if (!u) redirect("/login");
   const pack = PACOTES.find((p) => p.id === item);
   const plan = pack ? null : PLANOS.find((p) => p.id === item);
   if ((!pack && !plan) || !billingEnabled()) redirect("/app/creditos");

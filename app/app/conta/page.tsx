@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { activePlan } from "@/lib/plans";
 import { getLang, getT, getTheme } from "@/lib/i18n-server";
@@ -11,7 +12,8 @@ export const dynamic = "force-dynamic";
 export default async function Conta() {
   const { t } = await getT();
   const lang = await getLang();
-  const u = (await currentUser())!;
+  const u = await currentUser();
+  if (!u) redirect("/login");
   const plan = activePlan(u);
   const until = u.planUntil ? new Date(u.planUntil).toLocaleDateString(lang === "en" ? "en-US" : "pt-BR") : "";
   const planLine = plan
