@@ -28,8 +28,8 @@ export async function generateMetadata(): Promise<Metadata> {
     applicationName: "Croqui",
     appleWebApp: { capable: true, title: BRAND, statusBarStyle: "default" },
     description: en
-      ? "Site map, moodboard, render, lighting variations and project film with AI."
-      : "Mapa de situação, moodboard, render, variações de luz e filme do projeto com IA.",
+      ? "Site map, moodboard, render, lighting variations and descriptive memorial with AI."
+      : "Mapa de situação, moodboard, render, variações de luz e memorial descritivo com IA.",
   };
 }
 

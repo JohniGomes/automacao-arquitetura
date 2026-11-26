@@ -6,7 +6,7 @@ App web (pt-BR) que automatiza o fluxo manual da apresentação "Inteligência A
 2. **Moodboard** — modelo da galeria do app (ou print do Pinterest enviado) + ambiente (cozinha/sala/banheiro/quarto) + casa de referência.
 3. **Render a partir de print** — 4 versões fotorrealistas, prompt padrão editável que preserva a geometria.
 4. **Variação de iluminação** — manhã, golden hour, blue hour, noite ou luz livre.
-5. **Filme do projeto** — 1 a 5 cenas: imagem (Gemini) → clipe (Gemini Omni) → MP4 1920x1080 montado com ffmpeg, com fila e barra de progresso.
+5. **Memorial descritivo** — a partir de uma foto do projeto, o modelo de texto com visão (Gemini) escreve o memorial completo; sai em texto na tela e em arquivo Word (.docx). O filme do projeto foi descontinuado (custo alto e resultado abaixo do esperado); gerações antigas continuam no histórico.
 
 Transversal: login (e-mail/senha e Google), créditos por ação com estorno em falha, histórico com download, chaves só no servidor, modo mock sem chaves, avisos de responsabilidade técnica e de termos do Google Maps.
 

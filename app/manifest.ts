@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Croqui",
     short_name: "Croqui",
-    description: "Mapa de situação, moodboard, render, variações de luz e filme do projeto com IA.",
+    description: "Mapa de situação, moodboard, render, variações de luz e memorial descritivo com IA.",
     start_url: "/app",
     scope: "/",
     display: "standalone",

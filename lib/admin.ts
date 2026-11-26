@@ -13,12 +13,13 @@ const num = (v: string | undefined, d: number) => (Number.isFinite(Number(v)) &&
 export const CUSTO = () => ({
   imagem: num(process.env.CUSTO_IMAGEM_BRL, 0.28),
   clipe: num(process.env.CUSTO_CLIPE_BRL, 3.1),
+  memorial: num(process.env.CUSTO_MEMORIAL_BRL, 0.15), // texto longo com imagem
   mapa: num(process.env.CUSTO_MAPA_BRL, 0.05), // Maps Static + Geocoding de cada mapa de situação
 });
 
 const DIA = 86_400_000;
 const dia = (iso: string) => iso.slice(0, 10);
-const custoGen = (g: Generation, c: ReturnType<typeof CUSTO>) => g.mock ? 0 : (g.usage?.images ?? 0) * c.imagem + (g.usage?.videoClips ?? 0) * c.clipe + (g.type === "mapa" ? c.mapa : 0);
+const custoGen = (g: Generation, c: ReturnType<typeof CUSTO>) => g.mock ? 0 : (g.usage?.images ?? 0) * c.imagem + (g.usage?.videoClips ?? 0) * c.clipe + (g.type === "mapa" ? c.mapa : 0) + (g.type === "memorial" ? c.memorial : 0);
 
 export type CupomLinha = Coupon & { usos: number };
 

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-export type GenType = "mapa" | "moodboard" | "render" | "luz" | "filme" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos";
+export type GenType = "mapa" | "moodboard" | "render" | "luz" | "filme" | "memorial" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos";
 export type User = { id: string; email: string; name: string; passHash?: string; googleId?: string; credits: number; createdAt: string; termsAcceptedAt?: string; termsVersion?: string;
   /** quando o e-mail foi confirmado (login com Google já nasce confirmado) */
   emailVerifiedAt?: string;

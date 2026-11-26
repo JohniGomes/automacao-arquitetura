@@ -11,7 +11,6 @@ export type PlanRules = {
   render2k: boolean;
   /** downloads de imagem sem a marca d'água do ArqIA */
   semMarca: boolean;
-  cenasFilme: number;
   suportePrioritario: boolean;
   /** maior alcance do mapa de situação, em metros (600 ou 1000) */
   alcanceMapaM: number;
@@ -33,12 +32,12 @@ export type PlanRules = {
 
 /** O que cada plano libera. Mantenha alinhado com a lista de benefícios em lib/costs.ts (PLANOS). */
 export const RULES: Record<PlanId, PlanRules> = {
-  essencial: { projetos: 3, historicoDias: 30, prioridade: false, render2k: false, semMarca: false, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, pranchaDxf: false, simultaneas: 2, descontoPacotes: 0, marcaEscritorio: "nenhuma", linksApresentacao: 0 },
-  profissional: { projetos: Infinity, historicoDias: 365, prioridade: true, render2k: true, semMarca: true, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, pranchaDxf: false, simultaneas: 3, descontoPacotes: 15, marcaEscritorio: "nenhuma", linksApresentacao: 1 },
-  max: { projetos: Infinity, historicoDias: Infinity, prioridade: true, render2k: true, semMarca: true, cenasFilme: 5, suportePrioritario: true, alcanceMapaM: 1000, lugaresAerea: 9, pranchaSvg: true, pranchaDxf: true, simultaneas: 5, descontoPacotes: 25, marcaEscritorio: "completa", linksApresentacao: Infinity },
+  essencial: { projetos: 3, historicoDias: 30, prioridade: false, render2k: false, semMarca: false, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, pranchaDxf: false, simultaneas: 2, descontoPacotes: 0, marcaEscritorio: "nenhuma", linksApresentacao: 0 },
+  profissional: { projetos: Infinity, historicoDias: 365, prioridade: true, render2k: true, semMarca: true, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, pranchaDxf: false, simultaneas: 3, descontoPacotes: 15, marcaEscritorio: "nenhuma", linksApresentacao: 1 },
+  max: { projetos: Infinity, historicoDias: Infinity, prioridade: true, render2k: true, semMarca: true, suportePrioritario: true, alcanceMapaM: 1000, lugaresAerea: 9, pranchaSvg: true, pranchaDxf: true, simultaneas: 5, descontoPacotes: 25, marcaEscritorio: "completa", linksApresentacao: Infinity },
 };
 /** conta sem plano ativo (cadastro gratuito ou só créditos avulsos) */
-export const SEM_PLANO: PlanRules = { projetos: 3, historicoDias: 30, prioridade: false, render2k: false, semMarca: false, cenasFilme: 3, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, pranchaDxf: false, simultaneas: 2, descontoPacotes: 0, marcaEscritorio: "nenhuma", linksApresentacao: 0 };
+export const SEM_PLANO: PlanRules = { projetos: 3, historicoDias: 30, prioridade: false, render2k: false, semMarca: false, suportePrioritario: false, alcanceMapaM: 600, lugaresAerea: 5, pranchaSvg: false, pranchaDxf: false, simultaneas: 2, descontoPacotes: 0, marcaEscritorio: "nenhuma", linksApresentacao: 0 };
 
 /** Menor preço possível de um pacote (o maior desconto de qualquer plano): o webhook nunca aceita um valor abaixo disso. */
 export const FATOR_MINIMO_PACOTE = 1 - Math.max(...Object.values(RULES).map((r) => r.descontoPacotes)) / 100;
