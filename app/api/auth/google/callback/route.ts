@@ -51,9 +51,14 @@ export async function GET(req: NextRequest) {
     } else if (u.googleId) {
       if (u.googleId !== info.sub) return fail("conta já vinculada a outro Google");
     } else {
-      // conta criada com senha e sem verificação de e-mail: não vincula ao Google, senão quem cadastrou o e-mail primeiro
-      // (sem ser o dono) continuaria com acesso à conta depois que o dono entrasse pelo Google
-      return back("/login?erro=conta-existente");
+      // conta criada com e-mail e senha: o Google acabou de provar que esta pessoa é dona do e-mail, então vincula.
+      // Se o e-mail nunca foi confirmado, alguém pode ter cadastrado esse endereço antes do dono (sem ser o dono):
+      // nesse caso a senha antiga é invalidada, e o dono entra pelo Google ou redefine a senha.
+      await store.setGoogleId(u.id, info.sub);
+      if (!u.emailVerifiedAt) {
+        await store.markEmailVerified(u.id);
+        await store.setPassHash(u.id, "!");
+      }
     }
     await startSession(u.id);
     return back("/app");
