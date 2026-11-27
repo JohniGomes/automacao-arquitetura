@@ -7,10 +7,18 @@ export default function Logo({ natal = false }: { natal?: boolean }) {
       <path d="M3 43h42" style={{ stroke: "var(--sage)" }} />
       {natal ? (
         <>
-          <path d="M15.800 17.500C17.500 11 21 5.500 27 3.200c3.200-.8 5.600 1 6.200 4.200.6 3.200 0 6.500-.4 10.100z" fill="#D62F3A" stroke="none" />
-          <rect x="13.500" y="14.800" width="21.500" height="4.600" rx="2.300" fill="#fff" stroke="none" />
-          <circle cx="33.300" cy="4.800" r="2.600" fill="#fff" stroke="none" />
-          <circle cx="40" cy="11" r="1.900" stroke="none" fill="#FFD60A" />
+          {/* Natal: neve no telhado, janela acesa e estrela dourada no topo */}
+          <path d="M11.500 20.200 24 8.600l12.500 11.600" stroke="#fff" strokeWidth="4.600" transform="translate(0 -1.400)" />
+          <circle cx="11" cy="21" r="2.300" fill="#fff" stroke="none" />
+          <circle cx="37" cy="21" r="2.300" fill="#fff" stroke="none" />
+          <circle cx="31.500" cy="16.500" r="1.500" fill="#fff" stroke="none" />
+          <rect x="19.500" y="28" width="10" height="8.500" rx="2" fill="#FFC857" stroke="none" />
+          <path d="M24.500 28.600v7.300" stroke="#C9731F" strokeWidth="0.900" />
+          <path d="M24 .6 25.300 3.300 28 4.500 25.300 5.700 24 8.400 22.700 5.700 20 4.500 22.700 3.300z" fill="#FFD66B" stroke="none" />
+          <circle cx="6.500" cy="12" r="1" fill="#fff" stroke="none" opacity=".9" />
+          <circle cx="42" cy="10" r="1.200" fill="#fff" stroke="none" opacity=".9" />
+          <circle cx="45" cy="19" r=".8" fill="#fff" stroke="none" opacity=".8" />
+          <circle cx="3.500" cy="19" r=".8" fill="#fff" stroke="none" opacity=".8" />
         </>
       ) : (
         <circle cx="35" cy="12" r="3" stroke="none" style={{ fill: "var(--sage)" }} />
