@@ -29,7 +29,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Croqui",
     applicationName: "Croqui",
-    icons: { icon: [{ url: emNatal() ? "/icon-natal.svg" : "/icon.svg", type: "image/svg+xml" }] },
+    icons: {
+      icon: [{ url: emNatal() ? "/icon-natal.svg" : "/icon.svg", type: "image/svg+xml" }],
+      apple: [{ url: emNatal() ? "/icons/natal-apple-180.png" : "/icons/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    },
     appleWebApp: { capable: true, title: BRAND, statusBarStyle: "default" },
     description: en
       ? "Site map, moodboard, render, lighting variations and descriptive memorial with AI."
