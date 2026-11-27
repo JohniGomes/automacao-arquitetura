@@ -14,6 +14,8 @@ import { I18nProvider } from "@/components/I18nProvider";
 import { ToastProvider } from "@/components/Toast";
 import { getLang, getTheme } from "@/lib/i18n-server";
 import { emNatal } from "@/lib/natal";
+import { VERSAO_ATUAL } from "@/lib/novidades";
+import AvisoAtualizacao from "@/components/AvisoAtualizacao";
 
 const BRAND = "Croqui";
 const body = Inter({ subsets: ["latin"], variable: "--f-body", display: "swap" });
@@ -44,7 +46,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const [lang, theme] = await Promise.all([getLang(), getTheme()]);
   return (
     <html lang={lang === "en" ? "en" : "pt-BR"} data-theme={theme} className={`${body.variable} ${display.variable}`}>
-      <body><I18nProvider lang={lang}><ToastProvider>{children}</ToastProvider></I18nProvider></body>
+      <body><I18nProvider lang={lang}><ToastProvider>{children}<AvisoAtualizacao versao={VERSAO_ATUAL} /></ToastProvider></I18nProvider></body>
     </html>
   );
 }

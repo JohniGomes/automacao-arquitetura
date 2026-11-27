@@ -329,3 +329,17 @@
 .mem-doc p { margin: 0 0 10px; text-align: justify; }
 .mem-doc ul { margin: 0 0 10px; padding-left: 20px; display: grid; gap: 4px; }
 @media (max-width: 640px) { .mem-doc { padding: 16px 14px; max-height: none; } .mem-doc p { text-align: left; } }
+
+/* ---------- aviso "Nova atualização" ---------- */
+.upd { position: fixed; z-index: 85; right: 16px; top: 84px; width: min(380px, calc(100vw - 24px)); padding: var(--space-5); border-radius: 20px; background: var(--color-surface-elevated); border: 1px solid var(--color-border-strong); box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .7), 0 0 0 1px rgba(255, 122, 89, .25), 0 0 60px -20px rgba(255, 122, 89, .5); animation: upd-in .35s var(--ease-out); }
+.upd-top { display: flex; align-items: center; gap: var(--space-3); }
+.upd-top strong { display: block; font-size: var(--text-md); color: var(--color-text); }
+.upd-sub { margin: 2px 0 0; font-size: var(--text-sm); color: var(--color-text-secondary); }
+.upd-ico { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; color: #fff; background: var(--grad-btn); box-shadow: 0 8px 20px -8px rgba(240, 100, 60, .8); }
+.upd-ico svg { width: 22px; height: 22px; }
+.upd-list { margin: var(--space-4) 0; padding-left: 18px; display: grid; gap: var(--space-2); font-size: var(--text-base); line-height: var(--leading-snug); color: var(--color-text); }
+.upd-acts { display: flex; gap: var(--space-2); }
+.upd-acts .btn { flex: 1; justify-content: center; }
+@keyframes upd-in { from { opacity: 0; transform: translateY(-8px); } }
+@media (max-width: 960px) { .upd { right: 12px; left: 12px; width: auto; top: calc(72px + env(safe-area-inset-top)); } }
+@media (prefers-reduced-motion: reduce) { .upd { animation: none; } }
