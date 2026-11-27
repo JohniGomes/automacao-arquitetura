@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Logo from "./Logo";
+import Numero from "./anim/Numero";
 import ToolIcon from "./ToolIcon";
 import Icon, { IconName } from "./icons";
 import { useCredits } from "./useCredits";
@@ -70,7 +71,7 @@ export default function Rail({ name, credits, theme: themeInit }: { name: string
           <Item href="/app/ajuda" label={t("Ajuda")} icon="help" active={on("/app/ajuda")} cls="rdesk" />
           <button className={`ritem rdesk ${menu === "lang" ? "on" : ""}`} aria-expanded={menu === "lang"} onClick={(e) => { remember(e); setMenu(menu === "lang" ? null : "lang"); setDrawer(false); }}><Icon name="lang" /><span>{t("Idioma")}</span></button>
           <button className={`ritem rdesk ${menu === "theme" ? "on" : ""}`} aria-expanded={menu === "theme"} onClick={(e) => { remember(e); setMenu(menu === "theme" ? null : "theme"); setDrawer(false); }}><Icon name={curTheme.icon} /><span>{t("Tema")}</span></button>
-          <Link href="/app/creditos" className="rcredits" title={t("Créditos")}><b>{c}</b><span>{t("créditos")}</span></Link>
+          <Link href="/app/creditos" className="rcredits" title={t("Créditos")}><b>{c != null ? <Numero valor={c} duracao={0.8} /> : "…"}</b><span>{t("créditos")}</span></Link>
           <button className={`ritem racc rdesk ${menu === "acc" ? "on" : ""}`} aria-expanded={menu === "acc"} aria-label={t("Conta")} onClick={(e) => { remember(e); setMenu(menu === "acc" ? null : "acc"); setDrawer(false); }}><Icon name="user" /><span>{t("Conta")}</span></button>
           <Item href="/app/conta" label={t("Conta")} icon="user" active={on("/app/conta")} cls="rmob r-acc" />
         </div>

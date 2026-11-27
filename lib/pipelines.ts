@@ -4,7 +4,7 @@ import { Generation, Output, uid } from "./db";
 import { persist } from "./persist";
 import { store } from "./store";
 import { describeProject, generateImage, Img } from "./ai";
-import { concatClips, imageToClip, Move } from "./ffmpeg";
+import { memorialDocx, memorialMock, promptMemorial } from "./memorial";
 import { mockEdit, mockImage } from "./mock";
 import { composeEdit } from "./compose";
 import { reverse, satellite } from "./maps";
@@ -13,7 +13,7 @@ import { Endereco, Marca, montarPrancha, renderPrancha } from "./situacao/pranch
 import { montarDxf } from "./situacao/dxf";
 import { comAtribuicao, comLegenda, montarEntradaAerea, PROMPT_AEREA } from "./situacao/aerea";
 import type { LatLon } from "./situacao/geo";
-import { AMBIENTES, AmbienteKey, CENAS, CenaDef, CenaKey, PROMPT_BIBLIA, PROMPT_MAPA, promptLuz, promptMoodboard, REF_PREFIX } from "./prompts";
+import { AMBIENTES, AmbienteKey, PROMPT_MAPA, promptLuz, promptMoodboard } from "./prompts";
 import { refund } from "./credits";
 import { UserError } from "./errors";
 import { COSTS } from "./costs";
@@ -219,94 +219,30 @@ async function luz(c: Ctx) {
   await addOutput(c, out, ext(out), "image", c.input.params.rotulo);
 }
 
-/** Bíblia visual: descrição de continuidade do projeto, criada uma vez e reaproveitada em todas as cenas. */
-async function visualBible(c: Ctx): Promise<string | null> {
-  if (mockGemini()) return "- (modo mock) especificação visual de exemplo: volumes, materiais e aberturas do projeto.";
-  try {
-    return await describeProject(PROMPT_BIBLIA, [c.input.images.project]);
-  } catch (e: any) {
-    console.warn("Bíblia visual não gerada (as cenas seguem sem ela):", e?.message || e);
-    return null;
+/**
+ * Memorial descritivo: a foto vai para o modelo de texto com visão, que devolve o documento em Markdown. O resultado sai como
+ * texto (para ler na tela) e como arquivo Word (.docx, para editar e entregar).
+ */
+async function memorial(c: Ctx) {
+  const dados = c.input.params.dados;
+  const prompt = promptMemorial(dados);
+  c.gen.prompt = `[Modelo de texto: ${env.geminiTextModel}]\n\n${prompt}`;
+  progress(c, 15, "Analisando a imagem do projeto…");
+  let texto: string;
+  if (mockGemini()) { await new Promise((r) => setTimeout(r, 900)); texto = memorialMock(dados); }
+  else {
+    progress(c, 35, "Escrevendo o memorial descritivo…");
+    texto = await describeProject(prompt, [c.input.images.foto]);
+    // alguns modelos devolvem o texto dentro de uma cerca de código
+    texto = texto.replace(/^```(?:markdown|md)?\s*\n/i, "").replace(/\n```\s*$/, "").trim();
+    if (texto.length < 400) throw new UserError("A IA não conseguiu escrever o memorial dessa imagem. Tente com outra foto, mais nítida e que mostre o projeto inteiro.");
   }
+  progress(c, 80, "Montando o arquivo Word…");
+  await addOutput(c, Buffer.from(texto, "utf8"), "md", "file", "Memorial descritivo (texto)");
+  await addOutput(c, await memorialDocx(texto), "docx", "file", "Memorial descritivo (Word)");
 }
 
-/** Movimento de câmera de cada tipo de cena (o mesmo que o prompt de vídeo antigo pedia). */
-const MOVE_DA_CENA: Record<CenaKey, Move> = { aerea: "push", fachada: "panRight", acesso: "push", interior: "panLeft", materiais: "push", entardecer: "pull" };
-
-async function filme(c: Ctx) {
-  const cenas: CenaKey[] = c.input.params.cenas;
-  const n = cenas.length;
-  const clips: Buffer[] = [];
-  let skipped = 0, fallback = 0;
-  let note = ""; // aviso final (a barra de progresso sobrescreve a mensagem durante a montagem)
-
-  progress(c, 3, "Analisando o projeto para manter a continuidade entre as cenas…");
-  const bible = await visualBible(c);
-  const bibleBlock = bible ? `\n\nPROJECT VISUAL CONTINUITY SPECIFICATION (shared by all scenes):\n${bible}` : "";
-  c.gen.prompt = snap(c, bible ? `PROJECT VISUAL CONTINUITY SPECIFICATION (shared by all scenes):\n${bible}` : "(bíblia visual não gerada: as cenas seguem sem a descrição de continuidade)");
-  if (!bible) c.gen.message = "Sem a bíblia visual (modelo de texto indisponível): as cenas seguem só com a imagem do projeto.";
-
-  for (let i = 0; i < n; i++) {
-    const cena: CenaDef = CENAS[cenas[i]];
-    const base = 5 + (i / n) * 85;
-    const slice = 85 / n;
-    // cena com referência dedicada recebe a imagem 2 (ex.: interior); as demais partem só da imagem do projeto
-    const ref = cena.ref ? c.input.images[cena.ref] : undefined;
-    const imgs = [c.input.images.project, ...(ref ? [ref] : [])];
-    const imgPrompt = (ref ? REF_PREFIX : "") + cena.img + bibleBlock;
-
-    const sceneCost = COSTS.filmeImagemPorCena + COSTS.filmeAnimacaoPorCena;
-    if (c.gen.cancel) {
-      // cancelado pelo usuário: as cenas que não começaram são devolvidas e o filme sai com as que já estão prontas
-      await refundPart(c, sceneCost * (n - i), "Estorno: cenas canceladas");
-      note = "Concluído. Você cancelou a geração; as cenas que não começaram foram devolvidas.";
-      break;
-    }
-
-    progress(c, base + slice * 0.05, `Cena ${i + 1}/${n} (${cena.label}): gerando imagem…`);
-    let img: Buffer;
-    try {
-      img = await makeImage(c, `Cena ${cena.label}`, imgPrompt, imgs, "16:9");
-    } catch (e) {
-      // cena sem imagem: pula e devolve o que ela custaria; as outras seguem
-      console.warn(`filme: cena ${cena.label} sem imagem:`, (e as Error)?.message);
-      await refundPart(c, sceneCost, "Estorno: cena que falhou");
-      skipped++;
-      continue;
-    }
-    await addOutput(c, img, ext(img), "image", `Cena: ${cena.label}`);
-    progress(c, base + slice * 0.3, `Cena ${i + 1}/${n} (${cena.label}): animando a cena…`);
-    c.gen.usage.videoClips++;
-    try {
-      clips.push(await imageToClip(img, env.clipSeconds, MOVE_DA_CENA[cenas[i]] ?? "push"));
-    } catch (e) {
-      // a animação falhou: a cena fica só como imagem e o que ela custaria é devolvido; as outras seguem
-      console.warn(`filme: cena ${cena.label} sem animação:`, (e as Error)?.message);
-      await refundPart(c, COSTS.filmeAnimacaoPorCena, "Estorno: animação da cena que falhou");
-      fallback++;
-    }
-  }
-  if (!clips.length) throw new UserError(c.gen.cancel ? "Geração cancelada." : "Não foi possível gerar nenhuma cena. Tente novamente.");
-  if ((skipped || fallback) && !c.gen.cancel) {
-    note = skipped && fallback ? "Concluído. Algumas cenas não puderam ser geradas ou animadas. Os créditos dessas partes foram devolvidos."
-      : skipped ? "Concluído. Algumas cenas não puderam ser geradas. Os créditos dessas cenas foram devolvidos."
-      : "Concluído. Algumas cenas não puderam ser animadas e ficaram só como imagem. Os créditos da animação foram devolvidos.";
-  }
-  progress(c, 93, "Montando o filme final com ffmpeg…");
-  let final: Buffer;
-  try {
-    final = await concatClips(clips, env.clipSeconds, (done, total) => progress(c, 93 + (done / total) * 5, `Montando o filme: clipe ${done} de ${total}…`));
-  } catch (e) {
-    // sem o MP4 final o usuário fica só com as imagens das cenas: devolve a parte de vídeo
-    console.error("filme: montagem falhou:", (e as Error)?.message);
-    await refundPart(c, clips.length * COSTS.filmeAnimacaoPorCena - (c.gen.refunded || 0), "Estorno: filme não montado");
-    c.gen.message = "Concluído. Não foi possível montar o filme; as imagens das cenas estão disponíveis e os créditos da animação foram devolvidos.";
-    return;
-  }
-  await addOutput(c, final, "mp4", "video", "Filme do projeto (1920x1080)");
-  c.gen.outputs.sort((a) => (a.kind === "video" ? -1 : 1));
-  if (note) c.gen.message = note;
-}
+async function filmeDescontinuado(): Promise<void> { throw new UserError("O filme do projeto foi descontinuado."); }
 
 /**
  * Garantia por código: o modelo pode alterar pixels fora da máscara. Recompõe a imagem original fora da região
@@ -399,7 +335,7 @@ async function angulos(c: Ctx) {
   }
 }
 
-const handlers = { mapa, moodboard, render, luz, filme, melhorar, esboco, ideias, editor, angulos };
+const handlers = { mapa, moodboard, render, luz, memorial, filme: filmeDescontinuado, melhorar, esboco, ideias, editor, angulos };
 
 export async function runPipeline(gen: Generation, input: JobInput) {
   await handlers[input.type]({ gen, input });

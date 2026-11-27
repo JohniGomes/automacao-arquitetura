@@ -1,0 +1,16 @@
+appcroqui.com.br {
+	encode zstd gzip
+	reverse_proxy app:3000 {
+		# a geração do filme pode demorar: não corta a conexão
+		transport http {
+			response_header_timeout 15m
+		}
+	}
+	request_body {
+		max_size 60MB
+	}
+}
+
+www.appcroqui.com.br {
+	redir https://appcroqui.com.br{uri} permanent
+}

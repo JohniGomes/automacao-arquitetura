@@ -20,7 +20,11 @@ export async function sendMail(m: { to: string; subject: string; html: string; t
     body: JSON.stringify({ from: process.env.MAIL_FROM || "Croqui <onboarding@resend.dev>", to: [m.to], subject: m.subject, html: m.html, text: m.text, reply_to: m.replyTo }),
     signal: AbortSignal.timeout(15_000),
   });
-  if (!res.ok) throw new Error(`Resend ${res.status}`);
+  if (!res.ok) {
+    // o motivo vem do Resend (domínio não verificado, destinatário recusado, chave inválida…) e vai para o log do servidor
+    const j = await res.json().catch(() => null);
+    throw new Error(`Resend ${res.status}: ${String(j?.message || j?.name || "sem detalhe").slice(0, 200)}`);
+  }
   return true;
 }
 
@@ -33,7 +37,7 @@ function layout(title: string, body: string, button: { label: string; url: strin
 
 const T = {
   pt: {
-    verifySubject: "Confirme seu e-mail no Croqui", verifyTitle: "Confirme seu e-mail", verifyBody: "Falta só um passo: confirme que este e-mail é seu para liberar as gerações e os créditos de boas-vindas.", verifyBtn: "Confirmar e-mail", verifyFoot: "O link vale por 48 horas. Se você não criou uma conta no Croqui, ignore este e-mail.",
+    verifySubject: "Confirme seu e-mail no Croqui", verifyTitle: "Confirme seu e-mail", verifyBody: "Falta só um passo: confirme que este e-mail é seu para liberar a sua conta. Depois é só escolher o plano e começar o teste grátis.", verifyBtn: "Confirmar e-mail", verifyFoot: "O link vale por 48 horas. Se você não criou uma conta no Croqui, ignore este e-mail.",
     resetSubject: "Redefinir sua senha do Croqui", resetTitle: "Redefinir senha", resetBody: "Recebemos um pedido para redefinir a senha da sua conta. Se foi você, use o botão abaixo.", resetBtn: "Criar nova senha", resetFoot: "O link vale por 1 hora e só pode ser usado uma vez. Se não foi você, ignore este e-mail: sua senha continua a mesma.",
   },
   en: {
@@ -66,7 +70,10 @@ ${url}` }).catch((e) => { console.error("e-mail de boas-vindas falhou:", e?.mess
 
 /** Mensagem do suporte para o e-mail da equipe (SUPPORT_EMAIL). Sem RESEND_API_KEY ou SUPPORT_EMAIL, só fica no banco. */
 export async function sendSupportMail(m: { from: string; subject: string; message: string; name?: string }): Promise<boolean> {
-  if (!mailEnabled() || !env.supportEmail) return false;
+  if (!mailEnabled() || !env.supportEmail) {
+    console.error(`e-mail de suporte não enviado: ${!mailEnabled() ? "RESEND_API_KEY ausente" : "SUPPORT_EMAIL ausente"} no servidor (a mensagem ficou salva no painel de administração)`);
+    return false;
+  }
   return sendMail({
     to: env.supportEmail, replyTo: m.from, subject: `[Croqui suporte] ${m.subject}`,
     html: `<p><b>De:</b> ${esc(m.name || "")} &lt;${esc(m.from)}&gt;</p><p style="white-space:pre-wrap">${esc(m.message)}</p>`,

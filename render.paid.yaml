@@ -1,5 +1,5 @@
 # Blueprint do Render: New + > Blueprint > selecione o repositório.
-# Disco persistente exige plano pago. Para qualidade máxima no filme (ffmpeg 1080p, preset slow) use 2 GB de RAM ou mais.
+# Disco persistente exige plano pago.
 services:
   - type: web
     name: arqia
@@ -24,8 +24,6 @@ services:
         value: "false"
       - key: SIGNUP_CREDITS
         value: "0"   # cadastro público NÃO deve dar crédito grátis: cada crédito gasta dinheiro de API
-      - key: FILME_CENA_SEGUNDOS
-        value: "8"   # duração de cada cena do filme animado (segundos)
       - key: GEMINI_IMAGE_MODEL
         value: gemini-nano-banana-2.1
       - key: GEMINI_VIDEO_MODEL

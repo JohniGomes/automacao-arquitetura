@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 
 type Method = "PIX" | "CREDIT_CARD";
-type Result = { kind: "pix"; paymentId: string; image: string; payload: string; expiresAt?: string } | { kind: "card"; paymentId: string; status: string } | { kind: "done" } | { kind: "scheduled"; at: string };
+type Result = { kind: "pix"; paymentId: string; image: string; payload: string; expiresAt?: string } | { kind: "card"; paymentId: string; status: string } | { kind: "done" } | { kind: "scheduled"; at: string } | { kind: "trial"; dueDate: string; dias: number; creditos: number; valor: number };
 type Change = { mode: "upgrade" | "downgrade" | "keep"; amount: number; extraCredits: number; nextDue: string; newPrice: number };
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 const onlyDigits = (s: string) => s.replace(/\D/g, "");
@@ -17,7 +17,7 @@ const maskExp = (s: string) => onlyDigits(s).slice(0, 4).replace(/^(\d{2})(\d)/,
 const EMPTY = { number: "", holderName: "", exp: "", ccv: "", postalCode: "", addressNumber: "", phone: "" };
 
 /** Troca de plano sem cartão: downgrade, manter o plano ou upgrade abaixo do mínimo de cobrança. */
-export default function CheckoutForm({ itemId, isPlan, title, price, detail, needsDoc, blocked, change }: { itemId: string; isPlan: boolean; title: string; price: number; detail: string; needsDoc: boolean; blocked: string; change?: Change }) {
+export default function CheckoutForm({ itemId, isPlan, title, price, detail, needsDoc, blocked, change, trialDias = 0, trialCreditos = 0, embedded = false, onDone, onBack }: { embedded?: boolean; onDone?: () => void; onBack?: () => void; trialDias?: number; trialCreditos?: number; itemId: string; isPlan: boolean; title: string; price: number; detail: string; needsDoc: boolean; blocked: string; change?: Change }) {
   const t = useT();
   const [method, setMethod] = useState<Method>(isPlan ? "CREDIT_CARD" : "PIX");
   const [doc, setDoc] = useState("");
@@ -27,9 +27,32 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
   const [res, setRes] = useState<Result | null>(null);
   const [paid, setPaid] = useState(false);
   const [copied, setCopied] = useState(false);
+  // cupom de desconto (só assinatura): confere no servidor e mostra o preço do primeiro mês
+  const [cupom, setCupom] = useState("");
+  const [cupomOk, setCupomOk] = useState<{ preco: number; precoFinal: number; teste: { dias: number; creditos: number } | null } | null>(null);
+  const [cupomMsg, setCupomMsg] = useState("");
+  const [cupomBusy, setCupomBusy] = useState(false);
+  const eff = cupomOk ? cupomOk.precoFinal : price;
+  // período grátis: o teste de 3 dias (ou o do cupom de acesso); a cobrança só vem no fim dele
+  const teste = isPlan && !change ? (cupomOk ? cupomOk.teste : trialDias ? { dias: trialDias, creditos: trialCreditos } : null) : null;
+  const dataCobranca = teste ? new Date(Date.now() + teste.dias * 86_400_000).toLocaleDateString("pt-BR") : "";
   const stop = useRef(false);
   const needCard = method === "CREDIT_CARD" && (!change || (change.mode === "upgrade" && change.amount >= 5));
   const set = (k: keyof typeof EMPTY, f: (s: string) => string = (s) => s) => (e: React.ChangeEvent<HTMLInputElement>) => setCard((c) => ({ ...c, [k]: f(e.target.value) }));
+
+  // código guardado no cadastro (ou na página de créditos): já vem preenchido
+  useEffect(() => { if (!isPlan) return; try { const c = localStorage.getItem("croqui.cupom"); if (c) { setCupom(c); void aplicarCupom(c); } } catch { /* sem armazenamento */ } }, [isPlan]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function aplicarCupom(codigo = cupom) {
+    setCupomBusy(true); setCupomMsg(""); setCupomOk(null);
+    try {
+      const r = await fetch("/api/cupom/simular", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cupom: codigo, plano: itemId }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) setCupomMsg(j.error || "Não foi possível conferir o cupom agora. Tente de novo.");
+      else setCupomOk({ preco: j.preco, precoFinal: j.precoFinal, teste: j.teste ?? null });
+    } catch { setCupomMsg("Sem conexão. Verifique a internet e tente de novo."); }
+    setCupomBusy(false);
+  }
 
   // depois do pagamento a tela pergunta ao servidor (que recebe o webhook do Asaas) se já foi confirmado
   useEffect(() => {
@@ -53,6 +76,7 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
     setErr(""); setBusy(true);
     const [mm, yy] = card.exp.split("/");
     const body: Record<string, unknown> = { id: itemId, method, cpfCnpj: doc };
+    if (isPlan && cupomOk) body.cupom = cupom;
     if (needCard) body.card = { holderName: card.holderName, number: onlyDigits(card.number), expiryMonth: mm || "", expiryYear: yy ? `20${yy}` : "", ccv: card.ccv, postalCode: card.postalCode, addressNumber: card.addressNumber, phone: card.phone };
     try {
       const r = await fetch("/api/billing/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), cache: "no-store" });
@@ -77,13 +101,14 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
   if (paid) return (
     <>
       <h1>{t("Pagamento confirmado")}</h1>
-      <div className="card"><p>{t("Tudo certo! Seus créditos já estão na conta.")}</p><Link href="/app/creditos?pagamento=ok" className="btn">{t("Ver meus créditos")}</Link></div>
+      <div className="card"><p>{t("Tudo certo! Seus créditos já estão na conta.")}</p>{onDone ? <button type="button" onClick={() => { window.dispatchEvent(new Event("credits-changed")); onDone?.(); }}>{t("Começar a usar")}</button> : <Link href="/app/creditos?pagamento=ok" className="btn">{t("Ver meus créditos")}</Link>}</div>
     </>
   );
 
   return (
     <>
-      <h1>{t("Pagamento")}</h1>
+      {!embedded && <h1>{t("Pagamento")}</h1>}
+      {embedded && onBack && !res && <p style={{ margin: "0 0 12px" }}><button type="button" className="ghost" onClick={onBack}>← {t("Voltar")}</button></p>}
       <div className="paygrid">
         <div className="card">
           <h2>{t("Resumo")}</h2>
@@ -96,7 +121,18 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
               {change.mode === "downgrade" && <p className="small muted">{t("Você continua no plano atual até")} {change.nextDue}. {t("A partir daí, o plano novo custa")} {brl(change.newPrice)} / {t("mês")}.</p>}
               {change.mode === "keep" && <p className="small muted">{t("Cancela a troca agendada e mantém o plano atual.")}</p>}
             </>
-          ) : <p className="paytotal">{brl(price)}{isPlan ? <span> / {t("mês")}</span> : null}</p>}
+          ) : teste ? (
+            <>
+              <p className="paytotal">{brl(0)}<span> {t("hoje")}</span></p>
+              <p className="small" style={{ margin: "4px 0" }}><b>{teste.dias} {t("dias grátis")}</b>{teste.creditos > 0 ? <> · {teste.creditos} {t("créditos para usar nesse período")}</> : null}</p>
+              <p className="small muted">{t("Você só será cobrado em")} <b>{dataCobranca}</b>: {brl(eff)} / {t("mês")}{cupomOk ? <> ({t("com o desconto do cupom, era")} {brl(cupomOk.preco)})</> : null}. {t("Cancele antes dessa data, em Créditos e planos, e você não paga nada.")}</p>
+            </>
+          ) : (
+            <>
+              <p className="paytotal">{cupomOk ? <><s className="muted small">{brl(price)}</s>{" "}</> : null}{brl(eff)}{isPlan ? <span> / {t("mês")}</span> : null}</p>
+              {cupomOk && <p className="small muted">{t("Cupom aplicado: mensalidade de")} {brl(eff)} ({t("era")} {brl(cupomOk.preco)}), {t("em todas as cobranças")}.</p>}
+            </>
+          )}
           {isPlan && <p className="small muted">{t("A assinatura renova todo mês no mesmo cartão. Você pode cancelar a renovação quando quiser, em Créditos e planos.")}</p>}
           <p className="small muted"><span aria-hidden="true">🔒 </span>{t("Pagamento seguro processado pelo Asaas. Os dados do cartão não são guardados pelo Croqui.")}</p>
         </div>
@@ -114,6 +150,15 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
                 </div>
               )}
               {isPlan && !change && <p className="small muted" style={{ marginTop: 0 }}>{t("Os planos são pagos somente no cartão de crédito.")}</p>}
+              {isPlan && !change && (
+                <div className="field"><label htmlFor="cupom">{t("Cupom de desconto")} <span className="small">({t("opcional")})</span></label>
+                  <div className="row gap" style={{ flexWrap: "nowrap" }}>
+                    <input id="cupom" autoCapitalize="characters" autoComplete="off" spellCheck={false} value={cupom} onChange={(e) => { setCupom(e.target.value); setCupomOk(null); setCupomMsg(""); }} />
+                    <button type="button" className="ghost" disabled={cupomBusy || !cupom.trim()} onClick={() => aplicarCupom()}>{t("Aplicar")}</button>
+                  </div>
+                  {cupomMsg && <p className="small err" role="alert">{t(cupomMsg)}</p>}
+                </div>
+              )}
 
               {needDocField && (
                 <div className="field"><label htmlFor="doc">{method === "CREDIT_CARD" ? t("CPF ou CNPJ do titular do cartão") : t("CPF ou CNPJ")}</label>
@@ -146,9 +191,9 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
 
               {err && <p className="alert err" role="alert">{t(err)}</p>}
               <button type="button" className="full" disabled={busy || !ready} aria-busy={busy} onClick={pay}>
-                {busy ? t("Processando…") : method === "PIX" ? t("Gerar QR Code Pix") : change && !needCard ? t("Confirmar troca de plano") : `${t("Pagar")} ${brl(change ? change.amount : price)}`}
+                {busy ? t("Processando…") : method === "PIX" ? t("Gerar QR Code Pix") : change && !needCard ? t("Confirmar troca de plano") : teste ? t("Começar teste grátis") : `${t("Pagar")} ${brl(change ? change.amount : eff)}`}
               </button>
-              <p className="small muted" style={{ textAlign: "center" }}><Link href="/app/creditos">{t("Voltar para Créditos e planos")}</Link></p>
+              {!embedded && <p className="small muted" style={{ textAlign: "center" }}><Link href="/app/creditos">{t("Voltar para Créditos e planos")}</Link></p>}
             </>
           )}
 
@@ -170,6 +215,14 @@ export default function CheckoutForm({ itemId, isPlan, title, price, detail, nee
               <h2>{t("Troca de plano confirmada")}</h2>
               <p role="status">{res.kind === "scheduled" ? t("O novo plano começa na próxima renovação.") : t("Pronto! A mudança já vale.")}</p>
               <Link href="/app/creditos" className="btn">{t("Ver meus créditos")}</Link>
+            </div>
+          )}
+
+          {res?.kind === "trial" && (
+            <div className="pixbox">
+              <h2>{t("Teste grátis ativado!")}</h2>
+              <p role="status">{res.creditos > 0 ? <>{t("Você já tem")} <b>{res.creditos} {t("créditos")}</b> {t("para usar por")} {res.dias} {t("dias")}. </> : null}{t("A primeira cobrança de")} {brl(res.valor)} {t("será feita em")} {new Date(res.dueDate + "T12:00:00").toLocaleDateString("pt-BR")}. {t("Para não ser cobrado, cancele a renovação antes, em Créditos e planos.")}</p>
+              {onDone ? <button type="button" onClick={() => { window.dispatchEvent(new Event("credits-changed")); onDone?.(); }}>{t("Começar a usar")}</button> : <Link href="/app" className="btn" onClick={() => window.dispatchEvent(new Event("credits-changed"))}>{t("Começar a usar")}</Link>}
             </div>
           )}
 

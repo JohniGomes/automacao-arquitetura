@@ -3,7 +3,7 @@
 export type IconName =
   | "school" | "building" | "laptop" | "cloud" | "bolt" | "chevron" | "menu" | "play"
   | "home" | "folder" | "gallery" | "tools" | "user" | "support" | "help" | "lang" | "sun" | "moon" | "screen"
-  | "plus" | "bell" | "credits" | "upload" | "mail" | "check" | "close" | "mapa" | "moodboard" | "filme" | "render" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos" | "luz";
+  | "plus" | "bell" | "credits" | "upload" | "mail" | "check" | "close" | "mapa" | "moodboard" | "filme" | "memorial" | "render" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos" | "luz";
 
 const ICONS: Record<IconName, { main: string; acc?: string }> = {
   plus: { main: "M12 5v14M5 12h14" },
@@ -11,7 +11,7 @@ const ICONS: Record<IconName, { main: string; acc?: string }> = {
   home: { main: "M3.5 11.2 12 4l8.5 7.2M6 9.8V20h12V9.8", acc: "M10 20v-5h4v5" },
   folder: { main: "M3.5 7.5A1.5 1.5 0 0 1 5 6h4.2l1.8 2H19a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z", acc: "M3.5 11.5h17" },
   gallery: { main: "M5.5 5h13A1.5 1.5 0 0 1 20 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5v-11A1.5 1.5 0 0 1 5.5 5z", acc: "M4.5 16.5 9 12l3.5 3.5 2.5-2.5 5 5" },
-  tools: { main: "M12 3.5v3M12 6.5 6.5 20M12 6.5 17.5 20", acc: "M8.7 14.5h6.6" },
+  tools: { main: "M5 4.5h5.5a.5.5 0 0 1 .5.5v5.5a.5.5 0 0 1-.5.5H5a.5.5 0 0 1-.5-.5V5a.5.5 0 0 1 .5-.5zM13.5 4.5H19a.5.5 0 0 1 .5.5v5.5a.5.5 0 0 1-.5.5h-5.5a.5.5 0 0 1-.5-.5V5a.5.5 0 0 1 .5-.5zM5 13h5.5a.5.5 0 0 1 .5.5V19a.5.5 0 0 1-.5.5H5a.5.5 0 0 1-.5-.5v-5.5a.5.5 0 0 1 .5-.5z", acc: "M16.2 13.2v6M13.2 16.2h6" },
   user: { main: "M12 12.8a4.4 4.4 0 1 0 0-8.8 4.4 4.4 0 0 0 0 8.8z", acc: "M4 20.5a8 8 0 0 1 16 0" },
   credits: { main: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", acc: "M14.6 9.6c-.5-1-1.5-1.6-2.8-1.6-1.5 0-2.6.8-2.6 2s1.1 1.7 2.8 2 2.8.8 2.8 2-1.2 2-2.7 2c-1.2 0-2.3-.6-2.8-1.6M12 6.5V8M12 16v1.5" },
   support: { main: "M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v5H5.5A1.5 1.5 0 0 1 4 17.5zM20 14h-3v5h1.5a1.5 1.5 0 0 0 1.5-1.5z", acc: "M17 19c0 1.2-1.3 2-3 2h-2" },
@@ -23,6 +23,7 @@ const ICONS: Record<IconName, { main: string; acc?: string }> = {
   mapa: { main: "M12 21s-6.5-5.4-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.6 12 21 12 21z", acc: "M12 12.5a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" },
   moodboard: { main: "M4 4.5h7v8H4zM13 4.5h7v4.5h-7z", acc: "M13 11.5h7v8h-7zM4 15h7v4.5H4z" },
   filme: { main: "M4 6.5h11.5v11H4z", acc: "M15.5 10.5 20.5 7.5v9l-5-3" },
+  memorial: { main: "M6.5 3.5h8l4 4v13h-12z", acc: "M14.5 3.5v4h4M9.5 12h6M9.5 15.5h6M9.5 19h3.5" },
   render: { main: "M3.5 20.5h17M5.5 20.5V9.5L12 4.5l6.5 5v11", acc: "M12 11.5l.9 1.9 1.9.9-1.9.9-.9 1.9-.9-1.9-1.9-.9 1.9-.9z" },
   melhorar: { main: "M10 3.5l1.9 5 5 1.9-5 1.9-1.9 5-1.9-5-5-1.9 5-1.9z", acc: "M18 15.5l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z" },
   esboco: { main: "M4 20l.9-4.2L16.5 4.2a1.6 1.6 0 0 1 2.3 0l1 1a1.6 1.6 0 0 1 0 2.3L8.2 19.1z", acc: "M14.5 6.2l3.3 3.3" },

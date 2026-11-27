@@ -6,6 +6,8 @@ import "./ui.css";
 import "./landing.css";
 import "./dark.css";
 import "./mobile.css";
+import "./mascote.css";
+import "./anim.css";
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { I18nProvider } from "@/components/I18nProvider";
@@ -25,13 +27,13 @@ export const viewport: Viewport = {
 export async function generateMetadata(): Promise<Metadata> {
   const en = (await getLang()) === "en";
   return {
-    title: en ? "Croqui — AI for architects" : "Croqui — IA para arquitetos",
+    title: "Croqui",
     applicationName: "Croqui",
     icons: { icon: [{ url: emNatal() ? "/icon-natal.svg" : "/icon.svg", type: "image/svg+xml" }] },
     appleWebApp: { capable: true, title: BRAND, statusBarStyle: "default" },
     description: en
-      ? "Site map, moodboard, render, lighting variations and project film with AI."
-      : "Mapa de situação, moodboard, render, variações de luz e filme do projeto com IA.",
+      ? "Site map, moodboard, render, lighting variations and descriptive memorial with AI."
+      : "Mapa de situação, moodboard, render, variações de luz e memorial descritivo com IA.",
   };
 }
 

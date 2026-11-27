@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useCredits } from "./useCredits";
 import ProjectSelect from "./ProjectSelect";
+import Numero from "./anim/Numero";
 import { useT } from "./I18nProvider";
 
 /**
@@ -42,7 +43,7 @@ export default function ToolShell({ title, tip, panel, cost, busy, canGenerate =
     <>
       <div className="thead">
         <h1>{t(title)}</h1>
-        <Link href="/app/creditos" className="chipcredits" title={t("Créditos")}><b>{saldo ?? "…"}</b> {t("créditos")}</Link>
+        <Link href="/app/creditos" className="chipcredits" title={t("Créditos")}><b>{saldo != null ? <Numero valor={saldo} duracao={0.8} /> : "…"}</b> {t("créditos")}</Link>
       </div>
       <div className="tool">
         <div className="tmain">

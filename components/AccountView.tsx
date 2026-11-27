@@ -10,7 +10,7 @@ import { LANGS, Theme } from "@/lib/i18n";
 import { THEMES, usePrefs } from "@/lib/prefs-client";
 
 /** Tela "Conta": créditos, plano, preferências e documentos, em lista agrupada (como os Ajustes do iOS). */
-export default function AccountView({ name, email, credits, planLine, theme: themeInit }: { name: string; email: string; credits: number; planLine: string; theme: Theme }) {
+export default function AccountView({ name, email, credits, planLine, theme: themeInit, admin }: { name: string; email: string; credits: number; planLine: string; theme: Theme; admin?: boolean }) {
   const t = useT();
   const lang = useLang();
   const c = useCredits(credits);
@@ -34,6 +34,7 @@ export default function AccountView({ name, email, credits, planLine, theme: the
       <h2 className="grouptitle">{t("Conta")}</h2>
       <div className="list">
         <Link href="/app/creditos" className="row-link"><Icon name="credits" /><span>{t("Créditos e extrato")}</span></Link>
+        {admin && <Link href="/app/admin" className="row-link"><Icon name="tools" /><span>{t("Administração")}</span></Link>}
         <Link href="/app/ajuda" className="row-link"><Icon name="help" /><span>{t("Ajuda")}</span></Link>
         <Link href="/app/suporte" className="row-link"><Icon name="support" /><span>{t("Suporte")}</span></Link>
       </div>

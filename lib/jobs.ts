@@ -7,9 +7,9 @@ import { userMessage } from "./errors";
 import { notificarGeracao } from "./push";
 
 /** Fila em memória (um processo). Para escalar, trocar por BullMQ/Redis ou worker separado — ver README. */
-const MAX = 2;
+const MAX = Math.max(1, Math.min(8, Number(process.env.JOBS_CONCURRENCY) || 2)); // gerações ao mesmo tempo no servidor (JOBS_CONCURRENCY)
 /** tempo máximo de um job: depois disso ele é encerrado com erro e estornado, para não prender uma vaga da fila */
-const JOB_TIMEOUT = { filme: 35 * 60_000, default: 12 * 60_000 } as const;
+const JOB_TIMEOUT = { default: 12 * 60_000 } as const;
 /** jobs ativos (na fila ou rodando) por usuário */
 export const MAX_ACTIVE_PER_USER = 3;
 const g = globalThis as unknown as {
@@ -60,7 +60,7 @@ function pump() {
 }
 
 /**
- * Cancela uma geração do usuário. Na fila: sai dela e devolve tudo. Rodando: só o filme (que tem várias etapas) aceita;
+ * Cancela uma geração do usuário. Na fila: sai dela e devolve tudo. Rodando: nenhuma ferramenta aceita cancelar no meio;
  * ele para antes da próxima cena e devolve as cenas que não começaram. Gerações de uma imagem não param no meio.
  */
 export async function cancelJob(userId: string, id: string): Promise<"cancelada" | "parando" | "nao-cancelavel" | "nao-encontrada"> {
@@ -78,7 +78,6 @@ export async function cancelJob(userId: string, id: string): Promise<"cancelada"
     live.delete(id);
     return "cancelada";
   }
-  if (gen.status === "running" && gen.type === "filme") { gen.cancel = true; return "parando"; }
   return "nao-cancelavel";
 }
 
@@ -92,7 +91,7 @@ export function enqueue(gen: Generation, input: JobInput, priority = false) {
     gen.message = "Iniciando…";
     void persist(gen);
     try {
-      await Promise.race([runPipeline(gen, input), timeoutAfter(gen.type === "filme" ? JOB_TIMEOUT.filme : JOB_TIMEOUT.default)]);
+      await Promise.race([runPipeline(gen, input), timeoutAfter(JOB_TIMEOUT.default)]);
       gen.status = "done";
       gen.progress = 100;
       if (!/falharam|^Concluído\./.test(gen.message)) gen.message = "Concluído";

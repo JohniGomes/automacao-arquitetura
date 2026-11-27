@@ -4,6 +4,7 @@ import { useLang, useT } from "./I18nProvider";
 import { Gen, Results } from "./client";
 import { TYPE_LABEL } from "@/lib/tools";
 import { useToast } from "./Toast";
+import Icon from "./icons";
 
 export type Proj = { id: string; name: string };
 
@@ -35,7 +36,7 @@ export default function GenCard({ gen, projects, onChange }: { gen: Gen; project
     <details className="card gcard" id={`g-${gen.id}`}>
       <summary>
         <div className="gthumbs">
-          {thumbs.length ? thumbs.map((o) => <img key={o.file} src={`/api/files/${o.file}?w=480`} alt="" loading="lazy" decoding="async" />) : <span className="gempty">{gen.status === "error" ? t("Erro") : "…"}</span>}
+          {thumbs.length ? thumbs.map((o) => <img key={o.file} src={`/api/files/${o.file}?w=480`} alt="" loading="lazy" decoding="async" />) : <span className="gempty">{gen.status === "error" ? t("Erro") : gen.type === "memorial" && gen.status === "done" ? <Icon name="memorial" /> : "…"}</span>}
         </div>
         <div className="ginfo">
           <strong>{t(gen.summary)}</strong>

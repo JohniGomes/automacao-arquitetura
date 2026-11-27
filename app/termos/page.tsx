@@ -19,10 +19,10 @@ function Portuguese() {
   return (
     <>
       <h2>1. Aceite</h2>
-      <p>Estes Termos regem o uso do ArqIA, plataforma que usa inteligência artificial para gerar mapas de situação, moodboards, renders, variações de iluminação e filmes de projeto. Ao criar uma conta ou usar o serviço, você declara que leu e concorda com estes Termos e com a Política de Privacidade. Se não concordar, não use o serviço.</p>
+      <p>Estes Termos regem o uso do ArqIA, plataforma que usa inteligência artificial para gerar mapas de situação, moodboards, renders, variações de iluminação e memoriais descritivos. Ao criar uma conta ou usar o serviço, você declara que leu e concorda com estes Termos e com a Política de Privacidade. Se não concordar, não use o serviço.</p>
 
       <h2>2. O serviço</h2>
-      <p>O ArqIA recebe imagens e informações que você envia, processa esses conteúdos com modelos de IA e serviços de terceiros e devolve imagens e vídeos. Os resultados são produzidos automaticamente e podem variar a cada geração.</p>
+      <p>O ArqIA recebe imagens e informações que você envia, processa esses conteúdos com modelos de IA e serviços de terceiros e devolve imagens e textos. Os resultados são produzidos automaticamente e podem variar a cada geração.</p>
 
       <h2>3. Cadastro e conta</h2>
       <ul>
@@ -102,7 +102,7 @@ function English() {
       <p>These Terms govern the use of ArqIA, a platform that uses artificial intelligence to generate site maps, moodboards, renders, lighting variations and project films. By creating an account or using the service, you state that you have read and agree to these Terms and to the Privacy Policy. If you do not agree, do not use the service.</p>
 
       <h2>2. The service</h2>
-      <p>ArqIA receives the images and information you send, processes them with AI models and third-party services, and returns images and videos. Results are produced automatically and may vary from one generation to the next.</p>
+      <p>ArqIA receives the images and information you send, processes them with AI models and third-party services, and returns images and texts. Results are produced automatically and may vary from one generation to the next.</p>
 
       <h2>3. Registration and account</h2>
       <ul>

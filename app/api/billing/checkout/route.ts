@@ -3,7 +3,6 @@ import { currentUser } from "@/lib/auth";
 import { billingEnabled, createCheckout, Method, scrub } from "@/lib/billing";
 import { UserError } from "@/lib/errors";
 import { clientIp, limited } from "@/lib/ratelimit";
-import { needsVerification, VERIFY_MSG } from "@/lib/verify";
 
 const NO_STORE = { "Cache-Control": "no-store" };
 
@@ -14,7 +13,6 @@ const NO_STORE = { "Cache-Control": "no-store" };
 export async function POST(req: NextRequest) {
   const u = await currentUser();
   if (!u) return NextResponse.json({ error: "Não autenticado." }, { status: 401, headers: NO_STORE });
-  if (needsVerification(u)) return NextResponse.json({ error: VERIFY_MSG }, { status: 403, headers: NO_STORE });
   if (!billingEnabled()) return NextResponse.json({ error: "A cobrança ainda não está ativa. Fale com o suporte para contratar." }, { status: 501, headers: NO_STORE });
   const b = await req.json().catch(() => ({}));
   const method = String(b.method || "") as Method;
@@ -29,7 +27,7 @@ export async function POST(req: NextRequest) {
       holderName: String(c.holderName || ""), number: String(c.number || ""), expiryMonth: String(c.expiryMonth || ""), expiryYear: String(c.expiryYear || ""),
       ccv: String(c.ccv || ""), postalCode: String(c.postalCode || ""), addressNumber: String(c.addressNumber || ""), phone: String(c.phone || ""),
     } : undefined;
-    const out = await createCheckout(u, String(b.id || ""), method, String(b.cpfCnpj || ""), cardInput, ip);
+    const out = await createCheckout(u, String(b.id || ""), method, String(b.cpfCnpj || ""), cardInput, ip, String(b.cupom || "").slice(0, 60));
     return NextResponse.json(out, { headers: NO_STORE });
   } catch (e: any) {
     if (e instanceof UserError) return NextResponse.json({ error: e.message }, { status: 400, headers: NO_STORE });

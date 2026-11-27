@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Gen } from "@/components/client";
 import GenCard, { Proj } from "@/components/GenCard";
+import Reveal from "@/components/anim/Reveal";
 import { useT } from "@/components/I18nProvider";
 import SectionTabs from "@/components/SectionTabs";
 import { TYPE_LABEL } from "@/lib/tools";
@@ -58,7 +59,7 @@ export default function Geracoes() {
       </div>
       {gens === null ? <p className="muted">{t("Carregando…")}</p> : shown.length === 0 ? (
         <p className="muted">{gens.length === 0 ? t("Nada gerado ainda. Escolha uma ferramenta no menu.") : tab === "fav" ? t("Nenhuma geração favorita.") : t("Nenhuma geração encontrada.")}</p>
-      ) : shown.map((g) => <GenCard key={g.id} gen={g} projects={projects} onChange={(u) => setGens((a) => (a || []).map((x) => (x.id === u.id ? u : x)))} />)}
+      ) : <Reveal mount stagger={0.05} distance={18}>{shown.map((g) => <GenCard key={g.id} gen={g} projects={projects} onChange={(u) => setGens((a) => (a || []).map((x) => (x.id === u.id ? u : x)))} />)}</Reveal>}
     </>
   );
 }

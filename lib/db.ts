@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-export type GenType = "mapa" | "moodboard" | "render" | "luz" | "filme" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos";
+export type GenType = "mapa" | "moodboard" | "render" | "luz" | "filme" | "memorial" | "melhorar" | "esboco" | "ideias" | "editor" | "angulos";
 export type User = { id: string; email: string; name: string; passHash?: string; googleId?: string; credits: number; createdAt: string; termsAcceptedAt?: string; termsVersion?: string;
   /** quando o e-mail foi confirmado (login com Google já nasce confirmado) */
   emailVerifiedAt?: string;
@@ -29,10 +29,13 @@ export type Escritorio = { userId: string; nome: string; responsavel: string; re
 export type Share = { token: string; userId: string; projectId: string; createdAt: string; revokedAt?: string | null };
 /** Inscrição de notificação push de um aparelho (Web Push). */
 export type PushSub = { endpoint: string; userId: string; p256dh: string; auth: string; createdAt: string };
+/** Cupom criado no painel de administração: dá plano + créditos por alguns dias. Os créditos expiram junto com o plano. */
+/** tipo: "acesso" dá plano + créditos por alguns dias; "percentual" (desconto em %) e "valor" (desconto em R$) abatem o primeiro mês de uma assinatura. */
+export type Coupon = { /** acesso sem cobrança e sem cartão (só o VDO Club); os demais cupons de acesso pedem o cartão e cobram ao fim do período */ semCartao: boolean; tipo: "acesso" | "percentual" | "valor"; desconto: number; code: string; creditos: number; dias: number; plano: string; limite: number | null; validoAte: string | null; ativo: boolean; createdAt: string };
 export type Project = { id: string; userId: string; name: string; createdAt: string };
 export type Tx = { id: string; userId: string; delta: number; reason: string; genId?: string; at: string };
 export type SupportMsg = { id: string; userId: string; email: string; subject: string; message: string; createdAt: string };
-type DB = { users: User[]; generations: Generation[]; txs: Tx[]; projects: Project[]; support?: SupportMsg[]; payments?: Payment[]; offices?: Escritorio[]; shares?: Share[]; pushes?: PushSub[] };
+type DB = { users: User[]; generations: Generation[]; txs: Tx[]; projects: Project[]; support?: SupportMsg[]; payments?: Payment[]; offices?: Escritorio[]; shares?: Share[]; pushes?: PushSub[]; coupons?: Coupon[] };
 
 export const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data"); // no Render: disco persistente, ex. /var/data
 const FILE = path.join(DATA_DIR, "db.json");
@@ -49,6 +52,7 @@ export function db(): DB {
   g.__db!.offices ??= [];
   g.__db!.shares ??= [];
   g.__db!.pushes ??= [];
+  g.__db!.coupons ??= [];
   return g.__db!;
 }
 export function save() {

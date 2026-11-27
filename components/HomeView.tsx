@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import Reveal from "./anim/Reveal";
+import Numero from "./anim/Numero";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ToolIcon from "./ToolIcon";
@@ -74,15 +76,15 @@ export default function HomeView({ firstName, planName = "", creditsInit }: { fi
   const featured = [
     { id: "render", text: "Do print do 3D ao render fotorrealista.", cost: t("a partir de {n} créditos", { n: COSTS.renderPorImagem }) },
     { id: "moodboard", text: "Paleta e materiais a partir do render da casa.", cost: t("a partir de {n} créditos", { n: COSTS.moodboard }) },
-    { id: "filme", text: "Filme animado a partir das suas imagens.", cost: t("{n} créditos por cena", { n: COSTS.filmeImagemPorCena + COSTS.filmeAnimacaoPorCena }) },
+    { id: "memorial", text: "Memorial descritivo completo a partir de uma foto.", cost: t("{n} créditos", { n: COSTS.memorial }) },
   ];
 
   return (
     <>
       <div className="homehead">
         {/* a saudação depende da hora do navegador: fica invisível até montar, sem piscar o texto errado */}
-        <h1 style={{ visibility: hello ? "visible" : "hidden" }}>{hello ? t(hello) : "…"}, {firstName}.</h1>
-        <Link href="/app/creditos" className="chipcredits homecred" aria-label={t("Créditos")}><b>{credits ?? "…"}</b> {t("créditos")}</Link>
+        <Reveal mount blur={10} distance={18} duration={0.8}><h1 style={{ visibility: hello ? "visible" : "hidden" }}>{hello ? t(hello) : "…"}, {firstName}.</h1></Reveal>
+        <Link href="/app/creditos" className="chipcredits homecred" aria-label={t("Créditos")}><b>{credits != null ? <Numero valor={credits} duracao={0.9} /> : "…"}</b> {t("créditos")}</Link>
         <div className="hsearch">
           <input type="text" placeholder={t("Buscar ferramenta")} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t("Buscar ferramenta")}
             onKeyDown={(e) => { if (e.key === "Enter" && found[0]) router.push(found[0].href); }} />
@@ -109,14 +111,14 @@ export default function HomeView({ firstName, planName = "", creditsInit }: { fi
 
       <section aria-label={t("Comece por aqui")}>
         <h2 className="sechead">{t("Comece por aqui")}</h2>
-        <div className="featured">
+        <Reveal mount className="featured" stagger={0.1} distance={26} delay={0.1}>
           {featured.map((f) => { const x = toolById(f.id)!; return (
             <Link key={f.id} href={x.href} className="fcard">
               <ToolIcon tool={x} size={46} />
               <div><strong>{t(x.label)}</strong><p>{t(f.text)}</p><span className="fcost">{f.cost}</span></div>
             </Link>
           ); })}
-        </div>
+        </Reveal>
       </section>
 
       <div className="homegrid">

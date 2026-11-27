@@ -1,0 +1,52 @@
+/* Cro, o mascote, e o chat de IA */
+.cro { display: block; overflow: visible; flex: none; }
+.cro-vivo .cro-corpo { transform-origin: 60px 108px; animation: cro-respira 3.4s ease-in-out infinite; }
+.cro-vivo .cro-olhos { transform-origin: 60px 80px; animation: cro-pisca 5.2s infinite; }
+.cro-mao { transform-origin: 96px 84px; animation: cro-aceno 1.1s ease-in-out infinite; }
+@keyframes cro-respira { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.02, 0.975); } }
+@keyframes cro-pisca { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+@keyframes cro-aceno { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(14deg); } }
+@media (prefers-reduced-motion: reduce) { .cro-vivo .cro-corpo, .cro-vivo .cro-olhos, .cro-mao { animation: none; } }
+
+/* botão do Cro no menu lateral e na barra de cima (celular) */
+.shell .ritem.rcro { color: var(--ink); }
+.shell .mcro { position: relative; width: 42px; height: 42px; min-height: 42px; padding: 0; display: grid; place-items: center; border-radius: 50%; background: var(--field); border: 1px solid var(--line); box-shadow: none; }
+.shell .mcro:hover:not(:disabled) { background: var(--field); filter: none; transform: none; }
+
+/* painel do chat */
+.cro-scrim { position: fixed; inset: 0; z-index: 94; background: transparent; }
+.cro-chat { position: fixed; z-index: 95; left: 118px; bottom: 14px; width: min(400px, calc(100vw - 140px)); height: min(640px, calc(100dvh - 28px)); display: flex; flex-direction: column; border-radius: 24px; overflow: hidden;
+  background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(26px) saturate(170%); backdrop-filter: blur(26px) saturate(170%);
+  border: 1px solid color-mix(in srgb, #fff 30%, var(--line)); box-shadow: 0 30px 80px -20px rgba(0, 0, 0, .55); animation: cro-entra .22s ease-out; }
+@keyframes cro-entra { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .cro-chat { animation: none; } }
+.cro-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.cro-head > div { display: grid; line-height: 1.2; flex: 1; min-width: 0; }
+.cro-x { width: 36px; min-height: 36px; padding: 0; border-radius: 50%; font-size: 14px; }
+.cro-msgs { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; overscroll-behavior: contain; }
+.cro-hello p { margin: 0 0 10px; }
+.cro-sug { display: flex; flex-wrap: wrap; gap: 8px; }
+.cro-m { max-width: 88%; padding: 10px 13px; border-radius: 18px; font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.cro-m p { margin: 0 0 6px; } .cro-m p:last-child { margin-bottom: 0; }
+.cro-m ul { margin: 0 0 6px; padding-left: 18px; display: grid; gap: 3px; }
+.cro-m a { color: var(--link); text-decoration: underline; }
+.cro-m.eu { align-self: flex-end; background: var(--color-primary); color: var(--color-on-primary); border-bottom-right-radius: 6px; }
+.cro-m.cro { align-self: flex-start; background: var(--field); border: 1px solid var(--line); border-bottom-left-radius: 6px; }
+.cro-dots { display: inline-flex; gap: 4px; align-items: center; height: 14px; }
+.cro-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted, #8a8680); animation: cro-ponto 1s infinite ease-in-out; }
+.cro-dots i:nth-child(2) { animation-delay: .15s; } .cro-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes cro-ponto { 0%, 80%, 100% { transform: translateY(0); opacity: .5; } 40% { transform: translateY(-4px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cro-dots i { animation: none; } }
+.cro-form { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); align-items: flex-end; }
+.cro-form textarea { flex: 1; min-height: 44px; max-height: 110px; resize: none; padding: 11px 14px; border-radius: 22px; }
+.cro-form button { min-height: 44px; border-radius: 22px; padding: 0 18px; }
+.cro-foot { margin: 0; padding: 0 14px 12px; text-align: center; }
+
+/* "Primeiros passos": o Cro dá as boas-vindas */
+.ob-cro { display: flex; align-items: flex-end; justify-content: center; gap: 4px; margin: 0 auto 4px; }
+.ob-bubble { position: relative; max-width: 250px; margin-bottom: 30px; padding: 10px 14px; border-radius: 18px; border-bottom-left-radius: 4px; background: var(--field); border: 1px solid var(--line); font-size: 13.5px; text-align: left; line-height: 1.4; animation: cro-entra .4s .25s both; }
+@media (prefers-reduced-motion: reduce) { .ob-bubble { animation: none; } }
+
+@media (max-width: 860px) {
+  .cro-chat { left: 10px; right: 10px; bottom: calc(96px + env(safe-area-inset-bottom)); width: auto; height: min(70dvh, 560px); }
+}

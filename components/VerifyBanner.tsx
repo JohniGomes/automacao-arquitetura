@@ -13,8 +13,8 @@ export default function VerifyBanner({ email }: { email: string }) {
   }
   return (
     <div className="card" role="status" style={{ margin: "0 0 18px", padding: "14px 20px" }}>
-      <strong>{t("Confirme seu e-mail para liberar o app.")}</strong>{" "}
-      <span className="muted">{t("Enviamos um link para")} {email}. {t("Seus créditos de boas-vindas entram assim que você confirmar.")}</span>{" "}
+      <strong>{t("Confirme seu e-mail para proteger sua conta.")}</strong>{" "}
+      <span className="muted">{t("Enviamos um link para")} {email}. {t("Você já pode usar o Croqui enquanto isso.")}</span>{" "}
       {state === "sent" ? <span>{t("Link reenviado.")}</span> : (
         <button className="ghost" type="button" disabled={state === "busy"} onClick={resend}>{state === "err" ? t("Não foi possível enviar. Tentar de novo") : t("Reenviar e-mail")}</button>
       )}

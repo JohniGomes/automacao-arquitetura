@@ -11,6 +11,11 @@ import Logo from "@/components/Logo";
 import ToolGlyph from "@/components/landing/ToolGlyph";
 import Benefits from "@/components/landing/Benefits";
 import Nav from "@/components/landing/Nav";
+import Reveal from "@/components/anim/Reveal";
+import Numero from "@/components/anim/Numero";
+import Brilho from "@/components/anim/Brilho";
+import Ima from "@/components/anim/Ima";
+import Holofote from "@/components/anim/Holofote";
 import Savings from "@/components/landing/Savings";
 import { getT } from "@/lib/i18n-server";
 import { emNatal } from "@/lib/natal";
@@ -24,7 +29,7 @@ const ETAPAS = [
   ["Moodboard", "Escolha o modelo de composição e o ambiente (cozinha, sala, banheiro ou quarto). Cores e materiais saem da casa de referência do seu projeto."],
   ["Render", "Envie o print do modelo 3D e receba quatro versões fotorrealistas. A geometria, as aberturas e o enquadramento do seu modelo são preservados."],
   ["Variação de luz", "Manhã, golden hour, blue hour, noite ou uma luz descrita por você. A casa, a câmera e a composição ficam como estão."],
-  ["Filme do projeto", "De uma a cinco cenas (aérea, fachada, acesso, interior, materiais, entardecer) viram um único filme MP4 Full HD, com movimento suave de câmera em cada cena, pronto para apresentar ao cliente."],
+  ["Memorial descritivo", "Envie uma foto do projeto e receba o memorial descritivo completo: descrição da arquitetura, estrutura, materiais, acabamentos e instalações, em texto e em Word para editar."],
 ];
 
 /** Uma frase por ferramenta, em linguagem de escritório (a ordem segue o fluxo do projeto). */
@@ -38,12 +43,12 @@ const FERRAMENTAS: [string, string][] = [
   ["luz", "Manhã, golden hour, noite ou uma luz descrita por você."],
   ["editor", "Pincele só a região que quer mudar. O resto da imagem fica intacto."],
   ["angulos", "Novos ângulos do mesmo ambiente para uma apresentação completa."],
-  ["filme", "Filme animado do projeto em Full HD."],
+  ["memorial", "Memorial descritivo completo a partir de uma foto, em texto e Word."],
 ];
 
 const PARA_QUEM: { icon: IconName; titulo: string; texto: string }[] = [
   { icon: "school", titulo: "Estudantes e entusiastas", texto: "Tire suas ideias do papel e apresente projetos acadêmicos com imagens de alto nível, sem montar uma estação de render." },
-  { icon: "building", titulo: "Escritórios de arquitetura", texto: "Padronize as apresentações da equipe e entregue ao cliente render, variações de luz e filme sem depender de máquinas caras." },
+  { icon: "building", titulo: "Escritórios de arquitetura", texto: "Padronize as apresentações da equipe e entregue ao cliente render, variações de luz e memorial descritivo sem depender de máquinas caras." },
   { icon: "laptop", titulo: "Profissionais autônomos", texto: "Aproveite as ferramentas para criar e simular o ambiente ideal para os seus clientes, direto do celular ou do computador." },
 ];
 
@@ -57,10 +62,10 @@ export default async function Landing() {
   const bonus = Math.floor(env.signupCredits / COSTS.renderPorImagem);
   const start = u ? "/app" : "/cadastro";
   const startLabel = u ? "Abrir o app" : "Criar conta grátis";
-  const temVideo = fs.existsSync(path.join(process.cwd(), "public", "demo", "croqui.mp4"));
+  const temVideo = fs.existsSync(path.join(process.cwd(), "public", "demo", "croqui-memorial.mp4"));
   const precos = PLANOS.map((p) => p.preco);
   const faq: Faq[] = [
-    ["O que é o Croqui?", "O Croqui é uma plataforma de IA para arquitetos: gera render, moodboard, variações de luz, mapa de situação e filme do projeto a partir das suas imagens."],
+    ["O que é o Croqui?", "O Croqui é uma plataforma de IA para arquitetos: gera render, moodboard, variações de luz, mapa de situação e memorial descritivo a partir das suas imagens."],
     ["Preciso de um computador potente?", "Não. O processamento acontece na nuvem: basta um navegador, no computador ou no celular."],
     ["O Croqui tem teste grátis?", bonus > 0 ? "Sim. Ao criar a conta você ganha renders grátis para testar, sem cartão de crédito." : "Criar a conta é grátis e não pede cartão de crédito. Você paga só pelos créditos que usar."],
     ["Quanto custa?", "Os planos mensais vão de {a} a {b} por mês. Também há créditos avulsos a partir de {c}.", { a: brl(Math.min(...precos)), b: brl(Math.max(...precos)), c: brl(Math.min(...PACOTES.map((p) => p.preco))) }],
@@ -84,14 +89,14 @@ export default async function Landing() {
         {/* ---------- herói ---------- */}
         <section className="lp-hero">
           <div className="lp-in lp-herow">
-            <h1>{t("Faça renders fotorrealistas em segundos com")} <em>{t("o Croqui")}</em></h1>
-            <p className="lp-lead">{t("O Croqui é uma plataforma para arquitetos que transforma o print ou esboço de qualquer modelo em render fotorrealista, sem hardware caro. Use pelo celular ou pelo desktop, de onde estiver.")}</p>
-            <div className="lp-cta">
-              <Link className="btn lg" href={start}>{t(startLabel)}</Link>
-            </div>
-            <div className="lp-stage lp-stagehead">
+            <Reveal mount distance={28} blur={10} duration={0.85}><h1>{t("Faça renders fotorrealistas em segundos com")} <em>{t("o Croqui")}</em></h1></Reveal>
+            <Reveal mount delay={0.18} distance={24}><p className="lp-lead">{t("O Croqui é uma plataforma para arquitetos que transforma o print ou esboço de qualquer modelo em render fotorrealista, sem hardware caro. Use pelo celular ou pelo desktop, de onde estiver.")}</p></Reveal>
+            <Reveal mount delay={0.34} distance={20}><div className="lp-cta">
+              <Ima><Link className="btn lg" href={start}>{t(startLabel)}</Link></Ima>
+            </div></Reveal>
+            <Reveal mount delay={0.5} distance={50} scale={0.96} duration={0.95}><div className="lp-stage lp-stagehead">
               <HouseSplit />
-            </div>
+            </div></Reveal>
           </div>
         </section>
 
@@ -100,134 +105,122 @@ export default async function Landing() {
           <section className="lp-sec lp-in" id="video">
             <p className="lp-pill">{t("Veja em ação")}</p>
             <h2>{t("Tudo o que o Croqui faz, em poucos segundos")}</h2>
-            <div className="lp-video"><video src="/demo/croqui.mp4" controls playsInline preload="metadata" /></div>
+            <div className="lp-video"><video src="/demo/croqui-memorial.mp4" poster="/demo/croqui-memorial-poster.jpg" controls playsInline preload="none" /></div>
           </section>
         )}
 
         {/* ---------- funcionalidades (escuro) ---------- */}
         <section className="lp-dark" id="ferramentas">
           <div className="lp-in lp-sec">
-            <div className="lp-center">
+            <Reveal><div className="lp-center">
               <p className="lp-pill">{t("Funcionalidades")}</p>
               <h2>{t("Veja todas as funcionalidades do Croqui que você vai ter acesso")}</h2>
-              <p className="lp-sub">{t("O Croqui gera renders, variações de luz e de estilo, interpreta croquis, edita regiões da imagem e monta o filme do projeto.")}</p>
+              <p className="lp-sub">{t("O Croqui gera renders, variações de luz e de estilo, interpreta croquis, edita regiões da imagem e escreve o memorial descritivo.")}</p>
               <a className="btn lg lp-btn-light" href="#planos">{t("Ver planos")} »</a>
-            </div>
-            <div className="lp-tools">
+            </div></Reveal>
+            <Reveal className="lp-tools" stagger={0.07} distance={30}>
               {FERRAMENTAS.map(([id, desc]) => {
                 const x = toolById(id);
                 return x ? (
-                  <div key={id} className="lp-tool">
+                  <Holofote key={id} className="lp-tool">
                     <ToolGlyph id={id} size={68} />
                     <h3>{t(x.label)}</h3>
                     <p>{t(desc)}</p>
-                  </div>
+                  </Holofote>
                 ) : null;
               })}
-            </div>
+            </Reveal>
           </div>
 
-          {/* imagem em vídeo */}
-          <div className="lp-in lp-sec lp-vid">
-            <div>
-              <p className="lp-pill">{t("Funcionalidades")}</p>
-              <h2>{t("Transforme imagens em vídeos")}</h2>
-              <p className="lp-sub">{t("O filme do projeto transforma cada imagem em uma cena animada, com movimento suave de câmera, e junta tudo em um único vídeo Full HD pronto para apresentar ao cliente.")}</p>
-              <a className="btn lg lp-btn-light" href="#planos">{t("Ver planos")} »</a>
-            </div>
-            <div className="lp-loop">
-              <video src="/landing/filme-hd.mp4" poster="/landing/filme-hd-poster.jpg" autoPlay muted loop playsInline preload="metadata" aria-label={t("Exemplo de cena animada do filme do projeto")} />
-            </div>
-          </div>
         </section>
 
         {/* ---------- etapas ---------- */}
         <section className="lp-sec lp-in" id="etapas">
-          <h2>{t("Cinco etapas, uma atrás da outra.")}</h2>
-          <p className="lp-sub">{t("Cada resultado alimenta o próximo: o render vira variação de luz, e a variação vira cena do filme.")}</p>
-          <ol className="lp-steps">
+          <Reveal><h2>{t("Cinco etapas, uma atrás da outra.")}</h2>
+          <p className="lp-sub">{t("Cada resultado alimenta o próximo: o render vira variação de luz, e o projeto pronto vira memorial descritivo.")}</p></Reveal>
+          <Reveal delay={0.1}><ol className="lp-steps">
             {ETAPAS.map(([titulo, d], i) => (
               <li key={titulo}><span className="n">{i + 1}</span><h3>{t(titulo)}</h3><p>{t(d)}</p></li>
             ))}
-          </ol>
+          </ol></Reveal>
         </section>
 
         {/* ---------- benefícios ---------- */}
         <section className="lp-sec lp-in" id="beneficios">
-          <p className="lp-pill">{t("Benefícios")}</p>
+          <Reveal><p className="lp-pill">{t("Benefícios")}</p>
           <h2>{t("Com o Croqui você ganha mais tempo para criar")}</h2>
-          <p className="lp-sub">{t("Tudo o que você precisa saber sobre o Croqui, da compra ao uso.")}</p>
-          <Benefits />
+          <p className="lp-sub">{t("Tudo o que você precisa saber sobre o Croqui, da compra ao uso.")}</p></Reveal>
+          <Reveal delay={0.1}><Benefits /></Reveal>
         </section>
 
         {/* ---------- calculadora ---------- */}
         <section className="lp-sec lp-alt">
           <div className="lp-in">
-            <h2>{t("Quanto você economiza?")}</h2>
-            <p className="lp-sub">{t("Compare o que você paga hoje por render com um plano do Croqui. Ajuste os números ao seu caso.")}</p>
-            <Savings />
+            <Reveal><h2>{t("Quanto você economiza?")}</h2>
+            <p className="lp-sub">{t("Compare o que você paga hoje por render com um plano do Croqui. Ajuste os números ao seu caso.")}</p></Reveal>
+            <Reveal delay={0.1}><Savings /></Reveal>
           </div>
         </section>
 
         {/* ---------- para quem ---------- */}
         <section className="lp-sec lp-in" id="para-quem">
-          <div className="lp-center">
+          <Reveal><div className="lp-center">
             <p className="lp-pill">{t("Saiba mais sobre o Croqui")}</p>
             <h2>{t("O Croqui é uma solução perfeita para..")}</h2>
-          </div>
-          <div className="lp-who">
+          </div></Reveal>
+          <Reveal className="lp-who" stagger={0.12} distance={34}>
             {PARA_QUEM.map((x) => (
-              <div key={x.titulo}><Icon name={x.icon} /><h3>{t(x.titulo)}</h3><p>{t(x.texto)}</p></div>
+              <Holofote key={x.titulo} className="lp-whocard"><Icon name={x.icon} /><h3>{t(x.titulo)}</h3><p>{t(x.texto)}</p></Holofote>
             ))}
-          </div>
-          <div className="lp-center"><Link className="btn lg" href={start}>{t(startLabel)}</Link></div>
+          </Reveal>
+          <Reveal><div className="lp-center"><Ima><Link className="btn lg" href={start}>{t(startLabel)}</Link></Ima></div></Reveal>
         </section>
 
         {/* ---------- planos ---------- */}
         <section className="lp-sec lp-in" id="planos">
-          <h2>{t("Escolha seu plano")}</h2>
-          <p className="lp-sub">{t("Planos mensais, pagos no cartão de crédito, com renovação automática. Cancele quando quiser.")}</p>
-          <div className="lp-plans">
+          <Reveal><h2>{t("Escolha seu plano")}</h2>
+          <p className="lp-sub">{t("Planos mensais, pagos no cartão de crédito, com renovação automática. Cancele quando quiser.")}</p></Reveal>
+          <Reveal className="lp-plans" stagger={0.14} distance={40}>
             {PLANOS.map((p) => (
-              <div key={p.id} className={`lp-plan ${p.destaque ? "feat" : ""}`}>
-                {p.destaque && <span className="lp-badge">{t("mais escolhido")}</span>}
+              <Holofote key={p.id} className={`lp-plan ${p.destaque ? "feat" : ""}`}>
+                {p.destaque && <span className="lp-badge"><Brilho texto={t("mais escolhido")} /></span>}
                 <h3>{t(p.nome)}</h3>
                 <p className="lp-price"><b>{brl(p.preco)}</b><span>/{t("mês")}</span></p>
-                <p className="lp-credits">{p.creditosMes.toLocaleString("pt-BR")} {t("créditos por mês")}</p>
+                <p className="lp-credits"><Numero valor={p.creditosMes} atraso={0.3} /> {t("créditos por mês")}</p>
                 <p className="lp-renders">{t("até {n} renders rápidos por mês", { n: Math.floor(p.creditosMes / COSTS.renderPorImagem).toLocaleString("pt-BR") })}</p>
                 <ul>{p.itens.map((i) => <li key={i}><Icon name="check" />{t(i)}</li>)}</ul>
                 <Link className={`btn ${p.destaque ? "" : "ghost"}`} href={u ? "/app/creditos" : "/cadastro"}>{t("Assinar")}</Link>
-              </div>
+              </Holofote>
             ))}
-          </div>
+          </Reveal>
         </section>
 
         {/* ---------- perguntas ---------- */}
         <section className="lp-sec lp-in" id="faq">
           <div className="lp-faqgrid">
-            <div>
+            <Reveal><div>
               <p className="lp-pill">{t("Tem dúvidas sobre o Croqui?")}</p>
               <h2>{t("Perguntas frequentes")}</h2>
               <p className="lp-sub">{t("Tudo o que você precisa saber sobre o Croqui, da compra ao uso.")}</p>
-            </div>
-            <div className="lp-faq">
+            </div></Reveal>
+            <Reveal delay={0.12}><div className="lp-faq">
               {faq.map(([q, a, vars]) => (
                 <details key={q}><summary>{t(q)}</summary><p>{t(a, vars)}</p></details>
               ))}
-            </div>
+            </div></Reveal>
           </div>
         </section>
 
         {/* ---------- chamada final ---------- */}
         <section className="lp-in">
-          <div className="lp-final">
+          <Reveal scale={0.96} distance={40}><div className="lp-final">
             <h2>{t("Transforme os seus projetos com o Croqui")}</h2>
-            <p>{t("O Croqui gera novas ideias para ambientes internos e externos, interpreta croquis, edita regiões e monta o filme do projeto.")}</p>
+            <p>{t("O Croqui gera novas ideias para ambientes internos e externos, interpreta croquis, edita regiões e escreve o memorial descritivo.")}</p>
             <div className="lp-cta">
               <Link className="btn lg" href={start}>{t(startLabel)}</Link>
               <a className="btn lg ghost" href="#planos">{t("Ver planos")} »</a>
             </div>
-          </div>
+          </div></Reveal>
         </section>
       </main>
 
@@ -240,7 +233,7 @@ export default async function Landing() {
             </div>
             <div>
               <h4>{t("Funcionalidades")}</h4>
-              {["render", "melhorar", "moodboard", "filme"].map((id) => { const x = toolById(id); return x ? <a key={id} href="#ferramentas">{t(x.label)}</a> : null; })}
+              {["render", "melhorar", "moodboard", "memorial"].map((id) => { const x = toolById(id); return x ? <a key={id} href="#ferramentas">{t(x.label)}</a> : null; })}
             </div>
             <div>
               <h4>{t("Profissionais")}</h4>

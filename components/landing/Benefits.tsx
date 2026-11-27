@@ -8,7 +8,7 @@ import { TOOLS } from "@/lib/tools";
 
 const ITENS: { icon: IconName; titulo: string; texto: string }[] = [
   { icon: "cloud", titulo: "Acesse de qualquer lugar", texto: "O Croqui roda na nuvem, direto no navegador. Você não precisa de um computador potente: use no celular ou no computador e, se quiser, instale na tela inicial." },
-  { icon: "tools", titulo: "Funcionalidades que importam", texto: "Dez ferramentas para cada etapa do projeto: do mapa de situação ao filme, passando por moodboard, render, variações de luz e edição por região." },
+  { icon: "tools", titulo: "Funcionalidades que importam", texto: "Dez ferramentas para cada etapa do projeto: do mapa de situação ao memorial descritivo, passando por moodboard, render, variações de luz e edição por região." },
   { icon: "bolt", titulo: "Resultados rápidos", texto: "Envie o print do seu modelo e receba renders fotorrealistas, com até 4 versões por pedido, sem esperar o processamento do seu computador." },
 ];
 

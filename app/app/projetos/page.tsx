@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import Reveal from "@/components/anim/Reveal";
 import { useEffect, useState } from "react";
 import { ProjectTile } from "@/components/HomeView";
 import { useT } from "@/components/I18nProvider";
@@ -49,7 +50,7 @@ export default function Projetos() {
       {list === null ? <p className="muted">{t("Carregando…")}</p> : shown.length === 0 ? (
         <p className="muted">{list.length === 0 ? t("Você ainda não tem projetos. Crie o primeiro e use-o nas ferramentas.") : t("Nenhum projeto encontrado.")}</p>
       ) : (
-        <div className="pgrid big">{shown.map((p) => <ProjectTile key={p.id} p={p} />)}</div>
+        <Reveal mount className="pgrid big" stagger={0.05} distance={18}>{shown.map((p) => <ProjectTile key={p.id} p={p} />)}</Reveal>
       )}
     </>
   );

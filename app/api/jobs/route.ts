@@ -10,20 +10,20 @@ import { Generation, GenType, uid } from "@/lib/db";
 import { activeJobs, enqueue, live, recoverStale } from "@/lib/jobs";
 import { limited } from "@/lib/ratelimit";
 import { activePlan, rulesOf } from "@/lib/plans";
-import { needsVerification, VERIFY_MSG } from "@/lib/verify";
 import { refund } from "@/lib/credits";
 import { ELEMENTOS, CENAS_LUZ } from "@/lib/compose";
 import { Img } from "@/lib/gemini";
 import { env, mockGemini, mockMaps } from "@/lib/config";
 import { store } from "@/lib/store";
 import { pub } from "@/lib/public";
-import { AMBIENTES, AmbienteKey, CENAS, CenaKey, LUZES, LuzKey } from "@/lib/prompts";
+import { AMBIENTES, AmbienteKey, LUZES, LuzKey } from "@/lib/prompts";
+import { PADROES_MEMORIAL, TIPOS_MEMORIAL } from "@/lib/memorialOpcoes";
 import { lerPedidoSituacao } from "@/lib/situacao/pedido";
 
 export const runtime = "nodejs";
 const bad = (m: string, s = 400) => NextResponse.json({ error: m }, { status: s });
 const TEMPLATES = path.join(process.cwd(), "templates", "moodboards");
-/** corpo máximo de um pedido (filme: até 4 imagens; editor: até 8 máscaras) */
+/** corpo máximo de um pedido (editor: até 8 máscaras) */
 const MAX_BODY = 60 * 1024 * 1024;
 
 export async function GET() {
@@ -63,7 +63,8 @@ async function readImage(userId: string, form: FormData, key: string): Promise<I
 export async function POST(req: NextRequest) {
   const u = await currentUser();
   if (!u) return bad("Não autenticado.", 401);
-  if (needsVerification(u)) return bad(VERIFY_MSG, 403);
+  // o Croqui só funciona com plano: assinatura (com 3 dias grátis) ou acesso de cupom
+  if (!activePlan(u)) return bad("Para usar o Croqui, comece seu teste grátis escolhendo um plano em Créditos e planos.", 402);
   await recoverStale();
   // limites antes de ler o corpo: o formData carrega tudo na memória
   if (Number(req.headers.get("content-length") || 0) > MAX_BODY) return bad("Os arquivos enviados são grandes demais.", 413);
@@ -189,22 +190,18 @@ export async function POST(req: NextRequest) {
       params = { descricao: desc, rotulo: livre ? `Luz: ${livre}` : LUZES[k as LuzKey].label };
       cost = COSTS.luz;
       summary = `Variação de luz — ${params.rotulo}`;
-    } else if (type === "filme") {
-      if (env.filmeRequerCompra && !activePlan(u) && !(await store.listTxs(u.id, 5000)).some((t) => /^(Compra|Plano)/.test(t.reason)))
-        throw new Error("O filme do projeto é liberado para quem tem plano ou já comprou créditos.");
-      await need("project", "Envie a imagem do projeto.");
-      const cenas = str("cenas").split(",").filter((c) => CENAS[c as CenaKey]) as CenaKey[];
-      if (cenas.length < 1 || cenas.length > 5) throw new Error("Escolha de 1 a 5 cenas.");
-      if (cenas.length > rulesOf(u).cenasFilme) throw new Error(`Seu plano permite até ${rulesOf(u).cenasFilme} cenas por filme. O plano Max libera 5.`);
-      // referências dedicadas (imagem 2 das cenas Interior, Fachada e Acesso)
-      for (const k of ["interior", "fachada", "acesso"] as const) {
-        const r = await readImage(u.id, form, k);
-        if (r) images[k] = r;
-      }
-      if (cenas.includes("interior" as CenaKey) && !images.interior) throw new Error("A cena Interior precisa de uma imagem interior de referência: o app não inventa um ambiente que não existe no projeto.");
-      params = { cenas };
-      cost = cenas.length * (COSTS.filmeImagemPorCena + COSTS.filmeAnimacaoPorCena);
-      summary = `Filme do projeto — ${cenas.length} cena(s)`;
+    } else if (type === "memorial") {
+      await need("foto", "Envie a foto ou o render do projeto.");
+      const dados = {
+        nome: str("nome").slice(0, 120), local: str("local").slice(0, 120),
+        tipo: (TIPOS_MEMORIAL as readonly string[]).includes(str("tipo")) ? str("tipo") : "",
+        area: str("area").replace(/[^0-9.,]/g, "").slice(0, 10),
+        padrao: (PADROES_MEMORIAL as readonly string[]).includes(str("padrao")) ? str("padrao") : "",
+        notas: str("notas").slice(0, 600),
+      };
+      params = { dados };
+      cost = COSTS.memorial;
+      summary = `Memorial descritivo${dados.nome ? ` — ${dados.nome}` : ""}`;
     } else throw new Error("Tipo inválido.");
   } catch (e: any) {
     return bad(e.message);

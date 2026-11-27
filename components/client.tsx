@@ -4,6 +4,8 @@ import { useT } from "./I18nProvider";
 import LineLoader from "./LineLoader";
 import Icon from "./icons";
 import { useToast } from "./Toast";
+import MemorialView from "./MemorialView";
+import Reveal from "./anim/Reveal";
 
 export type Gen = {
   id: string; type: string; status: "queued" | "running" | "done" | "error"; progress: number; message: string;
@@ -87,8 +89,8 @@ export function useJob() {
   return { gen, error, busy, submit, cancel };
 }
 
-// tempo típico de cada ferramenta (aviso ao usuário; o filme leva vários minutos)
-const ETA: Record<string, string> = { filme: "de 2 a 5 minutos", mapa: "cerca de 1 minuto", editor: "cerca de 1 minuto por região" };
+// tempo típico de cada ferramenta (aviso ao usuário)
+const ETA: Record<string, string> = { memorial: "cerca de 1 minuto", mapa: "cerca de 1 minuto", editor: "cerca de 1 minuto por região" };
 
 export function Progress({ gen, onCancel }: { gen: Gen; onCancel?: () => void }) {
   const t = useT();
@@ -100,7 +102,7 @@ export function Progress({ gen, onCancel }: { gen: Gen; onCancel?: () => void })
     const i = setInterval(() => setSecs(Math.round((Date.now() - start.current) / 1000)), 1000);
     return () => clearInterval(i);
   }, [active]);
-  const canCancel = !!onCancel && (gen.status === "queued" || (gen.status === "running" && gen.type === "filme"));
+  const canCancel = !!onCancel && gen.status === "queued";
   return (
     <div className="card">
       <div className="row"><strong>{t(gen.summary)}</strong><span className={`tag ${gen.status}`}>{gen.status === "done" ? "✓ " : gen.status === "error" ? "! " : ""}{t({ queued: "Na fila", running: "Gerando", done: "Pronto", error: "Erro" }[gen.status])}</span></div>
@@ -143,8 +145,10 @@ export function Results({ gen }: { gen: Gen }) {
     <div className="results">
       {gen.mock && <p className="warn">{t("Modo mock: estas são imagens/vídeos de exemplo, não saídas reais de IA.")}</p>}
       {gen.type === "mapa" && gen.outputs.some((o) => /aérea|Satélite/.test(o.label || "")) && <p className="attr">{t("Imagens de satélite © Google · Dados do mapa © Google e provedores. Uso sujeito aos Termos da Google Maps Platform.")}</p>}
-      <div className="grid">
-        {gen.outputs.map((o) => (
+      <Reveal mount className="grid" stagger={0.1} distance={22}>
+        {gen.outputs.map((o) => /\.md$/i.test(o.file) ? (
+          <div key={o.file} style={{ gridColumn: "1 / -1" }}><MemorialView file={o.file} /></div>
+        ) : (
           <figure key={o.file}>
             {o.kind === "file"
               ? <div className="filecard" style={{ display: "grid", placeItems: "center", minHeight: 120, background: "var(--card, #fbfaf6)", border: "1px solid var(--line)", borderRadius: 10, fontWeight: 700, letterSpacing: 2 }}>{(o.file.split(".").pop() || "ARQUIVO").toUpperCase()}</div>
@@ -154,7 +158,7 @@ export function Results({ gen }: { gen: Gen }) {
             <figcaption><span>{t(o.label || "")}</span><a href={`/api/files/${o.file}?dl=1`}>{t("Baixar")}</a></figcaption>
           </figure>
         ))}
-      </div>
+      </Reveal>
       {big && <Lightbox src={big.src} alt={big.alt} onClose={() => setBig(null)} />}
     </div>
   );

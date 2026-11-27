@@ -26,7 +26,7 @@ function Portuguese() {
       <h2>2. Dados que coletamos</h2>
       <ul>
         <li><strong>Cadastro:</strong> nome, e-mail e senha (guardada apenas em forma de hash, nunca em texto). No login com Google, recebemos nome, e-mail e identificador da conta Google. Também registramos se e quando você confirmou o e-mail.</li>
-        <li><strong>Conteúdo que você envia e recebe:</strong> imagens (prints de modelos 3D, renders, referências, moodboards), endereços digitados, instruções de texto e as imagens e vídeos gerados.</li>
+        <li><strong>Conteúdo que você envia e recebe:</strong> imagens (prints de modelos 3D, renders, referências, moodboards), endereços digitados, instruções de texto e as imagens e os textos gerados.</li>
         <li><strong>Uso do serviço:</strong> histórico de gerações, saldo e extrato de créditos, e registros de aceite destes documentos (data e versão).</li>
         <li><strong>Pagamentos:</strong> CPF ou CNPJ, plano e compras realizadas. Os dados do cartão são enviados diretamente ao Asaas e não ficam guardados conosco.</li>
         <li><strong>Dados técnicos:</strong> cookie de sessão, endereço de rede (IP) usado para limitar abusos e prevenir fraudes, e registros técnicos de funcionamento e segurança do servidor.</li>
@@ -43,7 +43,7 @@ function Portuguese() {
       <h2>4. Com quem compartilhamos</h2>
       <p>Compartilhamos dados apenas na medida necessária, com operadores e parceiros que nos ajudam a prestar o serviço:</p>
       <ul>
-        <li><strong>Google</strong> (API Gemini, para gerar imagens e vídeos, e Google Maps Platform, para imagens de satélite): recebem o conteúdo e os endereços enviados para cada geração. Também é a Google que fornece o login com Google, se você o usar.</li>
+        <li><strong>Google</strong> (API Gemini, para gerar imagens e textos, e Google Maps Platform, para imagens de satélite): recebem o conteúdo e os endereços enviados para cada geração. Também é a Google que fornece o login com Google, se você o usar.</li>
         <li><strong>Supabase</strong>: banco de dados e armazenamento de arquivos.</li>
         <li><strong>Asaas</strong>: processa pagamentos e assinaturas. Recebe nome, e-mail, CPF ou CNPJ, dados do cartão e o IP da compra.</li>
         <li><strong>Resend</strong>: envia os e-mails do serviço (confirmação de e-mail e recuperação de senha). Recebe seu nome e e-mail.</li>
@@ -87,7 +87,7 @@ function English() {
       <h2>2. Data we collect</h2>
       <ul>
         <li><strong>Registration:</strong> name, email and password (stored only as a hash, never as text). When you sign in with Google, we receive your name, email and Google account identifier. We also record whether and when you confirmed your email.</li>
-        <li><strong>Content you send and receive:</strong> images (3D model screenshots, renders, references, moodboards), typed addresses, text instructions, and the images and videos generated.</li>
+        <li><strong>Content you send and receive:</strong> images (3D model screenshots, renders, references, moodboards), typed addresses, text instructions, and the images and texts generated.</li>
         <li><strong>Use of the service:</strong> generation history, credit balance and statement, and records of your acceptance of these documents (date and version).</li>
         <li><strong>Payments:</strong> CPF or CNPJ (Brazilian tax ID), plan and purchases made. Card data is sent directly to Asaas and is not stored by us.</li>
         <li><strong>Technical data:</strong> session cookie, network address (IP) used to limit abuse and prevent fraud, and technical operation and security logs of the server.</li>
@@ -104,7 +104,7 @@ function English() {
       <h2>4. Who we share it with</h2>
       <p>We share data only as needed, with processors and partners that help us provide the service:</p>
       <ul>
-        <li><strong>Google</strong> (Gemini API, to generate images and videos, and Google Maps Platform, for satellite images): they receive the content and addresses sent for each generation. Google also provides Google sign-in, if you use it.</li>
+        <li><strong>Google</strong> (Gemini API, to generate images and texts, and Google Maps Platform, for satellite images): they receive the content and addresses sent for each generation. Google also provides Google sign-in, if you use it.</li>
         <li><strong>Supabase</strong>: database and file storage.</li>
         <li><strong>Asaas</strong>: processes payments and subscriptions. It receives name, email, CPF or CNPJ, card data and the purchase IP.</li>
         <li><strong>Resend</strong>: sends the service&apos;s emails (email confirmation and password recovery). It receives your name and email.</li>

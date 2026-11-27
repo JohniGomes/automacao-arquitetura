@@ -21,7 +21,7 @@ button.ghost:hover:not(:disabled), .btn.ghost:hover, .chip:hover:not(:disabled) 
 .chip { border-radius: 8px; }
 
 /* ---------- campos ---------- */
-input[type=text], input[type=email], input[type=password], textarea, select {
+input:is(:not([type]), [type=text], [type=number], [type=date], [type=search], [type=tel], [type=url], [type=time]), input[type=email], input[type=password], textarea, select {
   border: 1px solid var(--line-strong); border-radius: 10px; background: var(--field); box-shadow: none;
 }
 textarea { border-radius: 12px; }
@@ -225,7 +225,7 @@ input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer
   .gcard summary { padding: 10px 12px; gap: 10px; }
   .shell .seg { flex-wrap: wrap; border-radius: 14px; }
   .shell .seg button { min-width: 30%; }
-  .shell select, .shell input[type=text], .shell input[type=email], .shell input[type=password], .shell textarea { font-size: 16px; }
+  .shell select, .shell input:is(:not([type]), [type=text], [type=number], [type=date], [type=search], [type=tel], [type=url], [type=time]), .shell input[type=email], .shell input[type=password], .shell textarea { font-size: 16px; }
   .shortcuts { gap: 8px 14px; }
   .shortcut { width: 84px; }
   .hero { padding-bottom: 36px; }

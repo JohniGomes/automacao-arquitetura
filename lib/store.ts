@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { env } from "./config";
-import { DATA_DIR, db, Escritorio, Generation, Payment, PlanFields, Project, PushSub, save, Share, SupportMsg, Tx, uid, User } from "./db";
+import { DATA_DIR, db, Escritorio, Generation, Payment, PlanFields, Project, PushSub, Coupon, save, Share, SupportMsg, Tx, uid, User } from "./db";
 
 /** Camada de dados. Produção = Supabase (Postgres + Storage). Desenvolvimento sem Supabase = arquivos locais (data/). */
 export interface Store {
@@ -29,6 +29,8 @@ export interface Store {
   getGen(id: string, userId: string): Promise<Generation | null>;
   listGens(userId: string): Promise<Generation[]>;
   listTxs(userId: string, limit: number): Promise<Tx[]>;
+  /** quantos lançamentos existem com esse motivo (limite de vagas do código do VDO Club) */
+  countTxsByReason(reason: string): Promise<number>;
   staleGens(): Promise<Generation[]>;
   listProjects(userId: string): Promise<Project[]>;
   getProject(id: string, userId: string): Promise<Project | null>;
@@ -40,8 +42,18 @@ export interface Store {
   setGenMeta(id: string, userId: string, meta: { favorite?: boolean; projectId?: string | null }): Promise<Generation | null>;
   /** mensagem para o suporte (lida pelo dono do app no banco) */
   addSupport(m: { userId: string; email: string; subject: string; message: string }): Promise<void>;
+  /** últimas mensagens de suporte (painel de administração) */
+  listSupport(limit: number): Promise<SupportMsg[]>;
   /** marca do escritório do usuário (null se ainda não preencheu ou se o SQL novo não foi executado) */
   getOffice(userId: string): Promise<Escritorio | null>;
+  /** cupons (vazio se o SQL novo não foi executado) */
+  listCoupons(): Promise<Coupon[]>;
+  getCoupon(code: string): Promise<Coupon | null>;
+  saveCoupon(c: Coupon): Promise<void>;
+  /** painel de administração: tudo de todos os usuários */
+  adminUsers(): Promise<User[]>;
+  adminGens(sinceIso: string): Promise<Generation[]>;
+  adminPayments(): Promise<Payment[]>;
   /** aparelhos inscritos para notificação push (vazio se o SQL novo não foi executado) */
   listPushes(userId: string): Promise<PushSub[]>;
   addPush(s: PushSub): Promise<void>;
@@ -59,7 +71,7 @@ export interface Store {
   fileUrl(userId: string, name: string, download: boolean): Promise<string | null>;
 }
 
-const TYPES: Record<string, string> = { png: "image/png", jpg: "image/jpeg", webp: "image/webp", mp4: "video/mp4", svg: "image/svg+xml", dxf: "application/dxf" };
+const TYPES: Record<string, string> = { png: "image/png", jpg: "image/jpeg", webp: "image/webp", mp4: "video/mp4", svg: "image/svg+xml", dxf: "application/dxf", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", md: "text/markdown; charset=utf-8" };
 export const contentType = (name: string) => TYPES[name.split(".").pop() || ""] || "application/octet-stream";
 
 // ---------------------------------------------------------------- local
@@ -116,8 +128,16 @@ const localStore: Store = {
   },
   async getGen(id, userId) { return db().generations.find((x) => x.id === id && x.userId === userId) ?? null; },
   async listGens(userId) { return db().generations.filter((g) => g.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
+  async countTxsByReason(reason) { return db().txs.filter((t) => t.reason === reason).length; },
   async listTxs(userId, limit) { return db().txs.filter((t) => t.userId === userId).sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit); },
   async staleGens() { return db().generations.filter((g) => g.status === "queued" || g.status === "running"); },
+  // cupons gravados antes dos descontos não têm tipo: são de acesso
+  async listCoupons() { return db().coupons!.map((c) => ({ ...c, semCartao: c.semCartao ?? c.tipo === undefined, tipo: c.tipo ?? "acesso", desconto: c.desconto ?? 0 })).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); },
+  async getCoupon(code) { const c = db().coupons!.find((x) => x.code === code.toLowerCase()); return c ? { ...c, semCartao: c.semCartao ?? c.tipo === undefined, tipo: c.tipo ?? "acesso", desconto: c.desconto ?? 0 } : null; },
+  async saveCoupon(c) { const l = db().coupons!.filter((x) => x.code !== c.code); l.push(c); db().coupons = l; save(); },
+  async adminUsers() { return [...db().users]; },
+  async adminGens(sinceIso) { return db().generations.filter((g) => g.createdAt >= sinceIso); },
+  async adminPayments() { return [...(db().payments ?? [])]; },
   async listPushes(userId) { return db().pushes!.filter((p) => p.userId === userId); },
   async addPush(s) { const l = db().pushes!.filter((p) => p.endpoint !== s.endpoint); l.push(s); db().pushes = l; save(); },
   async removePush(endpoint) { db().pushes = db().pushes!.filter((p) => p.endpoint !== endpoint); save(); },
@@ -169,6 +189,7 @@ const localStore: Store = {
     (db().support ??= []).push(row);
     save();
   },
+  async listSupport(limit) { return [...(db().support ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, limit); },
   async putFile(userId, name, data) { fs.mkdirSync(fdir(userId), { recursive: true }); fs.writeFileSync(path.join(fdir(userId), path.basename(name)), data); },
   async getFile(userId, name) { const p = path.join(fdir(userId), path.basename(name)); return fs.existsSync(p) ? fs.readFileSync(p) : null; },
   async fileUrl() { return null; },
@@ -188,12 +209,13 @@ const toGen = (r: any): Generation => ({
   mock: r.mock, error: r.error ?? undefined, usage: r.usage ?? { images: 0, videoClips: 0 },
   projectId: r.project_id ?? null, favorite: r.favorite ?? false,
 });
+const toCoupon = (r: any): Coupon => ({ semCartao: !!r.sem_cartao, tipo: r.tipo ?? "acesso", desconto: Number(r.desconto ?? 0), code: r.code, creditos: r.creditos, dias: r.dias, plano: r.plano, limite: r.limite ?? null, validoAte: r.valido_ate ?? null, ativo: !!r.ativo, createdAt: r.created_at });
 const toPush = (r: any): PushSub => ({ endpoint: r.endpoint, userId: r.user_id, p256dh: r.p256dh, auth: r.auth, createdAt: r.created_at });
 const toShare = (r: any): Share => ({ token: r.token, userId: r.user_id, projectId: r.project_id, createdAt: r.created_at, revokedAt: r.revoked_at ?? null });
 const toOffice = (r: any): Escritorio => ({ userId: r.user_id, nome: r.nome ?? "", responsavel: r.responsavel ?? "", registro: r.registro ?? "", cor: r.cor ?? "", logo: r.logo ?? null });
 const toProject = (r: any): Project => ({ id: r.id, userId: r.user_id, name: r.name, createdAt: r.created_at });
 /** erro de coluna/tabela inexistente: o SQL novo (supabase/schema.sql) ainda não foi executado */
-const missingSchema = (e: { message: string } | null) => !!e && /project_id|favorite|projects|offices|shares|push_subs|schema cache|does not exist/i.test(e.message);
+const missingSchema = (e: { message: string } | null) => !!e && /project_id|favorite|projects|offices|shares|push_subs|coupons|schema cache|does not exist/i.test(e.message);
 
 const supabaseStore: Store = {
   kind: "supabase",
@@ -289,6 +311,11 @@ const supabaseStore: Store = {
     check(error, "listGens");
     return (data ?? []).map(toGen);
   },
+  async countTxsByReason(reason) {
+    const { count, error } = await sb().from("credit_txs").select("id", { count: "exact", head: true }).eq("reason", reason);
+    check(error, "countTxsByReason");
+    return count ?? 0;
+  },
   async listTxs(userId, limit) {
     const { data, error } = await sb().from("credit_txs").select("*").eq("user_id", userId).order("at", { ascending: false }).limit(limit);
     check(error, "listTxs");
@@ -298,6 +325,39 @@ const supabaseStore: Store = {
     const { data, error } = await sb().from("generations").select("*").in("status", ["queued", "running"]);
     check(error, "staleGens");
     return (data ?? []).map(toGen);
+  },
+  async listCoupons() {
+    const { data, error } = await sb().from("coupons").select("*").order("created_at", { ascending: false });
+    if (missingSchema(error)) return [];
+    check(error, "listCoupons");
+    return (data ?? []).map(toCoupon);
+  },
+  async getCoupon(code) {
+    const { data, error } = await sb().from("coupons").select("*").eq("code", code.toLowerCase()).maybeSingle();
+    if (missingSchema(error)) return null;
+    check(error, "getCoupon");
+    return data ? toCoupon(data) : null;
+  },
+  async saveCoupon(c) {
+    const { error } = await sb().from("coupons").upsert({ code: c.code, sem_cartao: c.semCartao, tipo: c.tipo, desconto: c.desconto, creditos: c.creditos, dias: c.dias, plano: c.plano, limite: c.limite, valido_ate: c.validoAte, ativo: c.ativo });
+    if (missingSchema(error)) throw new Error("Os cupons ainda não estão disponíveis: execute os SQLs novos (supabase/migracao-cupons.sql e supabase/migracao-cupons-desconto.sql e supabase/migracao-cupons-cartao.sql) no Supabase.");
+    check(error, "saveCoupon");
+  },
+  async adminUsers() {
+    const { data, error } = await sb().from("users").select("*").order("created_at", { ascending: false }).limit(5000);
+    check(error, "adminUsers");
+    return (data ?? []).map(toUser);
+  },
+  async adminGens(sinceIso) {
+    const { data, error } = await sb().from("generations").select("*").gte("created_at", sinceIso).limit(10000);
+    check(error, "adminGens");
+    return (data ?? []).map(toGen);
+  },
+  async adminPayments() {
+    const { data, error } = await sb().from("payments").select("*").limit(5000);
+    if (missingSchema(error)) return [];
+    check(error, "adminPayments");
+    return (data ?? []).map((r: any): Payment => ({ provider: r.provider, refId: r.ref_id, userId: r.user_id, kind: r.kind, item: r.item, amount: Number(r.amount), createdAt: r.created_at }));
   },
   async listPushes(userId) {
     const { data, error } = await sb().from("push_subs").select("*").eq("user_id", userId);
@@ -390,6 +450,12 @@ const supabaseStore: Store = {
     const { error } = await sb().from("support_messages").insert({ id: uid(), user_id: m.userId, email: m.email, subject: m.subject, message: m.message });
     if (error && /support_messages|schema cache|does not exist/i.test(error.message)) throw new Error("O suporte ainda não está disponível: execute o SQL novo (supabase/migracao-suporte.sql) no Supabase.");
     check(error, "addSupport");
+  },
+  async listSupport(limit) {
+    const { data, error } = await sb().from("support_messages").select("*").order("created_at", { ascending: false }).limit(limit);
+    if (error && /support_messages|schema cache|does not exist/i.test(error.message)) return [];
+    check(error, "listSupport");
+    return (data ?? []).map((r: any): SupportMsg => ({ id: r.id, userId: r.user_id, email: r.email, subject: r.subject, message: r.message, createdAt: r.created_at }));
   },
   async putFile(userId, name, data) {
     const { error } = await sb().storage.from(BUCKET).upload(`${userId}/${path.basename(name)}`, data, { contentType: contentType(name), upsert: true });
