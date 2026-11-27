@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Numero from "./anim/Numero";
 import Icon from "./icons";
 import { useLang, useT } from "./I18nProvider";
 import { useCredits } from "./useCredits";
@@ -26,7 +27,7 @@ export default function AccountView({ name, email, credits, planLine, theme: the
       <AvatarForm />
 
       <section className="accbalance" aria-label={t("Créditos")}>
-        <div><span className="lbl">{t("Saldo")}</span><b>{c ?? "…"}</b><span className="unit">{t("créditos")}</span></div>
+        <div><span className="lbl">{t("Saldo")}</span><b>{c != null ? <Numero valor={c} duracao={1.2} /> : "…"}</b><span className="unit">{t("créditos")}</span></div>
         <p>{planLine}</p>
         <Link href="/app/creditos" className="btn">{t("Comprar créditos")}</Link>
       </section>
