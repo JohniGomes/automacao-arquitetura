@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useCredits } from "./useCredits";
 import ProjectSelect from "./ProjectSelect";
 import Numero from "./anim/Numero";
+import Mascote from "./Mascote";
 import { useT } from "./I18nProvider";
 
 /**
@@ -16,6 +17,7 @@ export default function ToolShell({ title, tip, panel, cost, busy, canGenerate =
 }) {
   const saldo = useCredits();
   const t = useT();
+  const faltam = saldo != null && saldo < cost ? cost - saldo : 0;
   const resRef = useRef<HTMLDivElement>(null);
   // no celular, ao gerar, a tela desce até o andamento e o resultado
   // ao terminar, desce de novo para o começo do resultado (a imagem só ocupa espaço depois de pronta)
@@ -57,7 +59,13 @@ export default function ToolShell({ title, tip, panel, cost, busy, canGenerate =
           </div>
           <div className="tpfoot">
             <div className="tcost"><span>{t("Custo total")}</span><b>{cost} {t("créditos")}</b></div>
-            <button className="full" disabled={busy || !canGenerate} aria-busy={busy} onClick={onGenerate}>{busy ? t("Gerando…") : t("Gerar")}</button>
+            {faltam > 0 && (
+              <div className="tp-falta" role="alert">
+                <Mascote humor="triste" size={40} animado={false} />
+                <p>{t("Faltam {n} créditos para gerar.", { n: faltam })} <Link href="/app/creditos">{t("Comprar créditos")}</Link></p>
+              </div>
+            )}
+            <button className="full" disabled={busy || !canGenerate || faltam > 0} aria-busy={busy} onClick={onGenerate}>{busy ? t("Gerando…") : t("Gerar")}</button>
             {!busy && !canGenerate && <p className="small muted" style={{ margin: "8px 2px 0", textAlign: "center" }}>{t("Preencha o que falta para gerar.")}</p>}
           </div>
         </aside>

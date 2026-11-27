@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Numero from "@/components/anim/Numero";
 import { currentUser } from "@/lib/auth";
 import { store } from "@/lib/store";
 import { COSTS, PACOTES, PLANOS } from "@/lib/costs";
@@ -32,7 +33,7 @@ export default async function Creditos({ searchParams }: { searchParams: Promise
     <>
       <h1>{t("Créditos e planos")}</h1>
       {pagamento === "ok" && <p className="warn" role="status">{t("Pagamento enviado. Os créditos aparecem aqui assim que o pagamento for confirmado (Pix e cartão costumam levar segundos).")}</p>}
-      <div className="card"><div className="row" style={{ alignItems: "flex-start", flexWrap: "nowrap" }}><div style={{ minWidth: 0 }}><h2>{t("Saldo")}: {u.credits} {t("créditos")}</h2>
+      <div className="card"><div className="row" style={{ alignItems: "flex-start", flexWrap: "nowrap" }}><div style={{ minWidth: 0 }}><h2>{t("Saldo")}: <Numero valor={u.credits} duracao={1.2} /> {t("créditos")}</h2>
         {plan ? (
           <p className="small muted" style={{ margin: "6px 0 0" }}>
             {t("Plano")} <b>{t(plan.nome)}</b> ({t("mensal")}) · {u.planStatus === "cancelado" ? t("renovação cancelada, vale até") : t("válido até")} {until}

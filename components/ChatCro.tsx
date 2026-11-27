@@ -1,7 +1,9 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import Mascote from "./Mascote";
+import Mascote, { type Humor } from "./Mascote";
+import { useCredits } from "./useCredits";
+import { nivelSaldo } from "@/lib/saldo";
 import { useT } from "./I18nProvider";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -34,8 +36,11 @@ function Texto({ s, onNav }: { s: string; onNav: () => void }) {
  * Chat do Cro: painel flutuante com o assistente de IA do Croqui. Abre por evento (botão no menu lateral e na barra do topo).
  * O histórico fica só neste navegador (localStorage); o servidor recebe as últimas mensagens a cada pergunta.
  */
-export default function ChatCro({ nome }: { nome: string }) {
+export default function ChatCro({ nome, creditos, limite }: { nome: string; creditos: number; limite: number }) {
   const t = useT();
+  const saldo = useCredits(creditos);
+  const nivel = saldo == null ? "ok" : nivelSaldo(saldo, limite);
+  const humorBase: Humor = nivel === "acabou" ? "triste" : nivel === "baixo" ? "preocupado" : "feliz";
   const [aberto, setAberto] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [txt, setTxt] = useState("");
@@ -76,7 +81,7 @@ export default function ChatCro({ nome }: { nome: string }) {
 
   if (!aberto) return (
     <button type="button" className="cro-fab" onClick={() => setAberto(true)} aria-label={t("Falar com o Cro")} title={t("Falar com o Cro")}>
-      <Mascote size={58} />
+      <Mascote size={58} humor={humorBase} />
     </button>
   );
   const primeiro = (nome.trim().split(/[\s@]/)[0] || "").slice(0, 30);
@@ -85,14 +90,14 @@ export default function ChatCro({ nome }: { nome: string }) {
       <div className="cro-scrim" onClick={() => setAberto(false)} />
       <section className="cro-chat" role="dialog" aria-label={t("Chat com o Cro")}>
         <header className="cro-head">
-          <Mascote size={44} humor={busy ? "pensando" : "feliz"} animado={false} />
+          <Mascote size={44} humor={busy ? "pensando" : humorBase} animado={false} />
           <div><strong>Cro</strong><span className="small muted">{t("Assistente do Croqui")}</span></div>
           <button type="button" className="ghost cro-x" onClick={() => setAberto(false)} aria-label={t("Fechar")}>✕</button>
         </header>
         <div className="cro-msgs" role="log" aria-live="polite">
           {msgs.length === 0 && (
             <div className="cro-hello">
-              <p>{t("Oi")}{primeiro ? `, ${primeiro}` : ""}! {t("Eu sou o Cro. Pergunte como usar uma ferramenta, quanto custa ou como funcionam os créditos.")}</p>
+              <p>{t("Oi")}{primeiro ? `, ${primeiro}` : ""}! {nivel === "acabou" ? t("Seus créditos acabaram. Posso te explicar como comprar mais ou qual plano combina com você.") : nivel === "baixo" ? t("Seus créditos estão acabando. Posso te ajudar a escolher como recarregar.") : t("Eu sou o Cro. Pergunte como usar uma ferramenta, quanto custa ou como funcionam os créditos.")}</p>
               <div className="cro-sug">{SUGESTOES.map((s) => <button key={s} type="button" className="chip" onClick={() => enviar(t(s))}>{t(s)}</button>)}</div>
             </div>
           )}

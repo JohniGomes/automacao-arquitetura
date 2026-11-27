@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Logo from "./Logo";
 import Mascote from "./Mascote";
+import Numero from "./anim/Numero";
 import { abrirCro } from "./ChatCro";
 import Icon from "./icons";
 import { Gen } from "./client";
@@ -72,7 +73,7 @@ export default function MobileTop({ name, credits }: { name: string; credits: nu
       <header className="mtop">
         <Link href="/app" className="mbrand" aria-label={t("Croqui, início")}><Logo /></Link>
         <div className="mtop-r">
-          <Link href="/app/creditos" className="mcred" aria-label={t("Créditos")}><b>{c ?? "…"}</b> {t("créditos")}</Link>
+          <Link href="/app/creditos" className="mcred" aria-label={t("Créditos")}><b>{c != null ? <Numero valor={c} duracao={0.8} /> : "…"}</b> {t("créditos")}</Link>
           <button type="button" className="mcro" aria-label={t("Falar com o Cro")} onClick={() => abrirCro()}><Mascote size={32} animado={false} /></button>
           <button type="button" className="mbell" aria-label={t("Notificações")} aria-expanded={open} onClick={toggle}>
             <Icon name="bell" />
