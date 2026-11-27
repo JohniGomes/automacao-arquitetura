@@ -3,6 +3,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Logo from "./Logo";
+import Mascote from "./Mascote";
+import { abrirCro } from "./ChatCro";
 import ToolIcon from "./ToolIcon";
 import Icon, { IconName } from "./icons";
 import { useCredits } from "./useCredits";
@@ -68,6 +70,7 @@ export default function Rail({ name, credits, theme: themeInit }: { name: string
         <div className="rfoot">
           <Item href="/app/suporte" label={t("Suporte")} icon="support" active={on("/app/suporte")} cls="rdesk" />
           <Item href="/app/ajuda" label={t("Ajuda")} icon="help" active={on("/app/ajuda")} cls="rdesk" />
+          <button type="button" className="ritem rcro rdesk" onClick={() => { close(); abrirCro(); }}><Mascote size={26} animado={false} /><span>Cro</span></button>
           <button className={`ritem rdesk ${menu === "lang" ? "on" : ""}`} aria-expanded={menu === "lang"} onClick={(e) => { remember(e); setMenu(menu === "lang" ? null : "lang"); setDrawer(false); }}><Icon name="lang" /><span>{t("Idioma")}</span></button>
           <button className={`ritem rdesk ${menu === "theme" ? "on" : ""}`} aria-expanded={menu === "theme"} onClick={(e) => { remember(e); setMenu(menu === "theme" ? null : "theme"); setDrawer(false); }}><Icon name={curTheme.icon} /><span>{t("Tema")}</span></button>
           <Link href="/app/creditos" className="rcredits" title={t("Créditos")}><b>{c}</b><span>{t("créditos")}</span></Link>

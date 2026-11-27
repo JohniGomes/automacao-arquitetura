@@ -4,6 +4,7 @@ import { getTheme } from "@/lib/i18n-server";
 import Rail from "@/components/Rail";
 import MobileTop from "@/components/MobileTop";
 import Onboarding from "@/components/Onboarding";
+import ChatCro from "@/components/ChatCro";
 import { activePlan } from "@/lib/plans";
 import { PLANOS } from "@/lib/costs";
 import { billingEnabled } from "@/lib/billing";
@@ -22,6 +23,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="shell">
       <Rail name={u.name} credits={u.credits} theme={await getTheme()} />
       {semPlano && <Onboarding nome={u.name || u.email} plans={PLANOS.map((p) => ({ id: p.id, nome: p.nome, preco: p.preco, creditosMes: p.creditosMes, destaque: p.destaque, itens: p.itens }))} trialDias={teste?.dias ?? 0} trialCreditos={teste?.creditos ?? 0} needsDoc={!u.asaasCustomerId} billingOn={billingEnabled()} />}
+      <ChatCro nome={u.name || u.email} />
       <div className="main">
         <MobileTop name={u.name || u.email} credits={u.credits} />
         <div className="wrap">

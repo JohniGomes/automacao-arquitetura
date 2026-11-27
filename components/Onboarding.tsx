@@ -3,6 +3,8 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import CheckoutForm from "@/app/app/pagar/CheckoutForm";
 import Logo from "./Logo";
+import Mascote from "./Mascote";
+import { abrirCro } from "./ChatCro";
 import Icon from "./icons";
 import { COSTS } from "@/lib/costs";
 import { useT } from "./I18nProvider";
@@ -56,6 +58,10 @@ export default function Onboarding({ nome, plans, trialDias, trialCreditos, need
 
         {passo === "inicio" && (
           <div className="ob-body ob-center">
+            <div className="ob-cro">
+              <Mascote humor="acenando" size={132} />
+              <p className="ob-bubble">{t("Oi, eu sou o Cro! Vou te ajudar a começar. Qualquer dúvida, é só me chamar.")}</p>
+            </div>
             <h1>{t("Bem-vindo ao Croqui")}{primeiro ? `, ${primeiro}` : ""}!</h1>
             {trial ? (<>
               <p className="ob-lead">{t("Sua conta está criada. Falta só começar o seu teste grátis.")}</p>
@@ -121,7 +127,7 @@ export default function Onboarding({ nome, plans, trialDias, trialCreditos, need
           </div>
         )}
 
-        <p className="small muted ob-foot"><a href="/app/suporte">{t("Suporte")}</a> · <button type="button" className="ghost ob-link" onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); location.href = "/"; }}>{t("Sair")}</button></p>
+        <p className="small muted ob-foot"><button type="button" className="ghost ob-link" onClick={() => abrirCro()}>{t("Falar com o Cro")}</button> · <a href="/app/suporte">{t("Suporte")}</a> · <button type="button" className="ghost ob-link" onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); location.href = "/"; }}>{t("Sair")}</button></p>
       </div>
     </div>
   );
