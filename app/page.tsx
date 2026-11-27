@@ -11,6 +11,10 @@ import Logo from "@/components/Logo";
 import ToolGlyph from "@/components/landing/ToolGlyph";
 import Benefits from "@/components/landing/Benefits";
 import Nav from "@/components/landing/Nav";
+import Reveal from "@/components/anim/Reveal";
+import Numero from "@/components/anim/Numero";
+import Brilho from "@/components/anim/Brilho";
+import Ima from "@/components/anim/Ima";
 import Savings from "@/components/landing/Savings";
 import { getT } from "@/lib/i18n-server";
 
@@ -82,14 +86,14 @@ export default async function Landing() {
         {/* ---------- herói ---------- */}
         <section className="lp-hero">
           <div className="lp-in lp-herow">
-            <h1>{t("Faça renders fotorrealistas em segundos com")} <em>{t("o Croqui")}</em></h1>
-            <p className="lp-lead">{t("O Croqui é uma plataforma para arquitetos que transforma o print ou esboço de qualquer modelo em render fotorrealista, sem hardware caro. Use pelo celular ou pelo desktop, de onde estiver.")}</p>
-            <div className="lp-cta">
-              <Link className="btn lg" href={start}>{t(startLabel)}</Link>
-            </div>
-            <div className="lp-stage lp-stagehead">
+            <Reveal mount distance={28} blur={10} duration={0.85}><h1>{t("Faça renders fotorrealistas em segundos com")} <em>{t("o Croqui")}</em></h1></Reveal>
+            <Reveal mount delay={0.18} distance={24}><p className="lp-lead">{t("O Croqui é uma plataforma para arquitetos que transforma o print ou esboço de qualquer modelo em render fotorrealista, sem hardware caro. Use pelo celular ou pelo desktop, de onde estiver.")}</p></Reveal>
+            <Reveal mount delay={0.34} distance={20}><div className="lp-cta">
+              <Ima><Link className="btn lg" href={start}>{t(startLabel)}</Link></Ima>
+            </div></Reveal>
+            <Reveal mount delay={0.5} distance={50} scale={0.96} duration={0.95}><div className="lp-stage lp-stagehead">
               <HouseSplit />
-            </div>
+            </div></Reveal>
           </div>
         </section>
 
@@ -105,13 +109,13 @@ export default async function Landing() {
         {/* ---------- funcionalidades (escuro) ---------- */}
         <section className="lp-dark" id="ferramentas">
           <div className="lp-in lp-sec">
-            <div className="lp-center">
+            <Reveal><div className="lp-center">
               <p className="lp-pill">{t("Funcionalidades")}</p>
               <h2>{t("Veja todas as funcionalidades do Croqui que você vai ter acesso")}</h2>
               <p className="lp-sub">{t("O Croqui gera renders, variações de luz e de estilo, interpreta croquis, edita regiões da imagem e escreve o memorial descritivo.")}</p>
               <a className="btn lg lp-btn-light" href="#planos">{t("Ver planos")} »</a>
-            </div>
-            <div className="lp-tools">
+            </div></Reveal>
+            <Reveal className="lp-tools" stagger={0.07} distance={30}>
               {FERRAMENTAS.map(([id, desc]) => {
                 const x = toolById(id);
                 return x ? (
@@ -122,98 +126,98 @@ export default async function Landing() {
                   </div>
                 ) : null;
               })}
-            </div>
+            </Reveal>
           </div>
 
         </section>
 
         {/* ---------- etapas ---------- */}
         <section className="lp-sec lp-in" id="etapas">
-          <h2>{t("Cinco etapas, uma atrás da outra.")}</h2>
-          <p className="lp-sub">{t("Cada resultado alimenta o próximo: o render vira variação de luz, e o projeto pronto vira memorial descritivo.")}</p>
-          <ol className="lp-steps">
+          <Reveal><h2>{t("Cinco etapas, uma atrás da outra.")}</h2>
+          <p className="lp-sub">{t("Cada resultado alimenta o próximo: o render vira variação de luz, e o projeto pronto vira memorial descritivo.")}</p></Reveal>
+          <Reveal delay={0.1}><ol className="lp-steps">
             {ETAPAS.map(([titulo, d], i) => (
               <li key={titulo}><span className="n">{i + 1}</span><h3>{t(titulo)}</h3><p>{t(d)}</p></li>
             ))}
-          </ol>
+          </ol></Reveal>
         </section>
 
         {/* ---------- benefícios ---------- */}
         <section className="lp-sec lp-in" id="beneficios">
-          <p className="lp-pill">{t("Benefícios")}</p>
+          <Reveal><p className="lp-pill">{t("Benefícios")}</p>
           <h2>{t("Com o Croqui você ganha mais tempo para criar")}</h2>
-          <p className="lp-sub">{t("Tudo o que você precisa saber sobre o Croqui, da compra ao uso.")}</p>
-          <Benefits />
+          <p className="lp-sub">{t("Tudo o que você precisa saber sobre o Croqui, da compra ao uso.")}</p></Reveal>
+          <Reveal delay={0.1}><Benefits /></Reveal>
         </section>
 
         {/* ---------- calculadora ---------- */}
         <section className="lp-sec lp-alt">
           <div className="lp-in">
-            <h2>{t("Quanto você economiza?")}</h2>
-            <p className="lp-sub">{t("Compare o que você paga hoje por render com um plano do Croqui. Ajuste os números ao seu caso.")}</p>
-            <Savings />
+            <Reveal><h2>{t("Quanto você economiza?")}</h2>
+            <p className="lp-sub">{t("Compare o que você paga hoje por render com um plano do Croqui. Ajuste os números ao seu caso.")}</p></Reveal>
+            <Reveal delay={0.1}><Savings /></Reveal>
           </div>
         </section>
 
         {/* ---------- para quem ---------- */}
         <section className="lp-sec lp-in" id="para-quem">
-          <div className="lp-center">
+          <Reveal><div className="lp-center">
             <p className="lp-pill">{t("Saiba mais sobre o Croqui")}</p>
             <h2>{t("O Croqui é uma solução perfeita para..")}</h2>
-          </div>
-          <div className="lp-who">
+          </div></Reveal>
+          <Reveal className="lp-who" stagger={0.12} distance={34}>
             {PARA_QUEM.map((x) => (
               <div key={x.titulo}><Icon name={x.icon} /><h3>{t(x.titulo)}</h3><p>{t(x.texto)}</p></div>
             ))}
-          </div>
-          <div className="lp-center"><Link className="btn lg" href={start}>{t(startLabel)}</Link></div>
+          </Reveal>
+          <Reveal><div className="lp-center"><Ima><Link className="btn lg" href={start}>{t(startLabel)}</Link></Ima></div></Reveal>
         </section>
 
         {/* ---------- planos ---------- */}
         <section className="lp-sec lp-in" id="planos">
-          <h2>{t("Escolha seu plano")}</h2>
-          <p className="lp-sub">{t("Planos mensais, pagos no cartão de crédito, com renovação automática. Cancele quando quiser.")}</p>
-          <div className="lp-plans">
+          <Reveal><h2>{t("Escolha seu plano")}</h2>
+          <p className="lp-sub">{t("Planos mensais, pagos no cartão de crédito, com renovação automática. Cancele quando quiser.")}</p></Reveal>
+          <Reveal className="lp-plans" stagger={0.14} distance={40}>
             {PLANOS.map((p) => (
               <div key={p.id} className={`lp-plan ${p.destaque ? "feat" : ""}`}>
-                {p.destaque && <span className="lp-badge">{t("mais escolhido")}</span>}
+                {p.destaque && <span className="lp-badge"><Brilho texto={t("mais escolhido")} /></span>}
                 <h3>{t(p.nome)}</h3>
                 <p className="lp-price"><b>{brl(p.preco)}</b><span>/{t("mês")}</span></p>
-                <p className="lp-credits">{p.creditosMes.toLocaleString("pt-BR")} {t("créditos por mês")}</p>
+                <p className="lp-credits"><Numero valor={p.creditosMes} atraso={0.3} /> {t("créditos por mês")}</p>
                 <p className="lp-renders">{t("até {n} renders rápidos por mês", { n: Math.floor(p.creditosMes / COSTS.renderPorImagem).toLocaleString("pt-BR") })}</p>
                 <ul>{p.itens.map((i) => <li key={i}><Icon name="check" />{t(i)}</li>)}</ul>
                 <Link className={`btn ${p.destaque ? "" : "ghost"}`} href={u ? "/app/creditos" : "/cadastro"}>{t("Assinar")}</Link>
               </div>
             ))}
-          </div>
+          </Reveal>
         </section>
 
         {/* ---------- perguntas ---------- */}
         <section className="lp-sec lp-in" id="faq">
           <div className="lp-faqgrid">
-            <div>
+            <Reveal><div>
               <p className="lp-pill">{t("Tem dúvidas sobre o Croqui?")}</p>
               <h2>{t("Perguntas frequentes")}</h2>
               <p className="lp-sub">{t("Tudo o que você precisa saber sobre o Croqui, da compra ao uso.")}</p>
-            </div>
-            <div className="lp-faq">
+            </div></Reveal>
+            <Reveal delay={0.12}><div className="lp-faq">
               {faq.map(([q, a, vars]) => (
                 <details key={q}><summary>{t(q)}</summary><p>{t(a, vars)}</p></details>
               ))}
-            </div>
+            </div></Reveal>
           </div>
         </section>
 
         {/* ---------- chamada final ---------- */}
         <section className="lp-in">
-          <div className="lp-final">
+          <Reveal scale={0.96} distance={40}><div className="lp-final">
             <h2>{t("Transforme os seus projetos com o Croqui")}</h2>
             <p>{t("O Croqui gera novas ideias para ambientes internos e externos, interpreta croquis, edita regiões e escreve o memorial descritivo.")}</p>
             <div className="lp-cta">
               <Link className="btn lg" href={start}>{t(startLabel)}</Link>
               <a className="btn lg ghost" href="#planos">{t("Ver planos")} »</a>
             </div>
-          </div>
+          </div></Reveal>
         </section>
       </main>
 

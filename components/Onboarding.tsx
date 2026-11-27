@@ -4,6 +4,8 @@ import { useState } from "react";
 import CheckoutForm from "@/app/app/pagar/CheckoutForm";
 import Logo from "./Logo";
 import Mascote from "./Mascote";
+import Reveal from "./anim/Reveal";
+import Numero from "./anim/Numero";
 import { abrirCro } from "./ChatCro";
 import Icon from "./icons";
 import { COSTS } from "@/lib/costs";
@@ -57,7 +59,7 @@ export default function Onboarding({ nome, plans, trialDias, trialCreditos, need
         </div>
 
         {passo === "inicio" && (
-          <div className="ob-body ob-center">
+          <Reveal mount className="ob-body ob-center" distance={26} duration={0.55}>
             <div className="ob-cro">
               <Mascote humor="acenando" size={132} />
               <p className="ob-bubble">{t("Oi, eu sou o Cro! Vou te ajudar a começar. Qualquer dúvida, é só me chamar.")}</p>
@@ -79,11 +81,11 @@ export default function Onboarding({ nome, plans, trialDias, trialCreditos, need
               </form>
             )}
             {cupomMsg && <p className="small" role="status">{t(cupomMsg)}</p>}
-          </div>
+          </Reveal>
         )}
 
         {passo === "plano" && (
-          <div className="ob-body">
+          <Reveal mount className="ob-body" distance={26} duration={0.55}>
             <h1>{t("Escolha seu plano")}</h1>
             <p className="ob-lead">{trial ? `${t("Você começa com")} ${trialDias} ${t("dias grátis")} ${t("e")} ${trialCreditos} ${t("créditos")}. ${t("Só depois do teste o plano escolhido é cobrado.")}` : t("O plano é cobrado no cartão todo mês.")}</p>
             <div className="ob-plans" role="radiogroup" aria-label={t("Planos")}>
@@ -92,7 +94,7 @@ export default function Onboarding({ nome, plans, trialDias, trialCreditos, need
                   {p.destaque && <span className="ob-tag">{t("mais escolhido")}</span>}
                   <strong>{t(p.nome)}</strong>
                   <span className="ob-price">{brl(p.preco)}<small>/{t("mês")}</small></span>
-                  <span className="ob-credits">{p.creditosMes.toLocaleString("pt-BR")} {t("créditos por mês")}</span>
+                  <span className="ob-credits"><Numero valor={p.creditosMes} duracao={0.9} /> {t("créditos por mês")}</span>
                   <span className="small muted">{t("até {n} renders rápidos por mês", { n: Math.floor(p.creditosMes / COSTS.renderPorImagem).toLocaleString("pt-BR") })}</span>
                   <ul>{p.itens.map((i) => <li key={i}><Icon name="check" />{t(i)}</li>)}</ul>
                   <span className="ob-pick" aria-hidden="true">{planoId === p.id ? t("Selecionado") : t("Selecionar")}</span>
@@ -104,11 +106,11 @@ export default function Onboarding({ nome, plans, trialDias, trialCreditos, need
               <button type="button" className="ghost" onClick={() => setPasso("inicio")}>{t("Voltar")}</button>
               <button type="button" disabled={!billingOn} onClick={() => setPasso("cartao")}>{t("Avançar")}</button>
             </div>
-          </div>
+          </Reveal>
         )}
 
         {passo === "cartao" && plano && (
-          <div className="ob-body">
+          <Reveal mount className="ob-body" distance={26} duration={0.55}>
             <CheckoutForm
               key={plano.id}
               embedded
@@ -124,7 +126,7 @@ export default function Onboarding({ nome, plans, trialDias, trialCreditos, need
               trialDias={trialDias}
               trialCreditos={trialCreditos}
             />
-          </div>
+          </Reveal>
         )}
 
         <p className="small muted ob-foot"><button type="button" className="ghost ob-link" onClick={() => abrirCro()}>{t("Falar com o Cro")}</button> · <a href="/app/suporte">{t("Suporte")}</a> · <button type="button" className="ghost ob-link" onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); location.href = "/"; }}>{t("Sair")}</button></p>
