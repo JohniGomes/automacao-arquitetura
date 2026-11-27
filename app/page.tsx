@@ -94,7 +94,7 @@ export default async function Landing() {
             <Reveal mount delay={0.34} distance={20}><div className="lp-cta">
               <Ima><Link className="btn lg" href={start}>{t(startLabel)}</Link></Ima>
             </div></Reveal>
-            <Reveal mount delay={0.5} distance={50} scale={0.96} duration={0.95}><div className="lp-stage lp-stagehead">
+            <Reveal mount delay={0.5} distance={50} scale={0.96} duration={0.95} style={{ width: "100%" }}><div className="lp-stage lp-stagehead">
               <HouseSplit />
             </div></Reveal>
           </div>
@@ -203,7 +203,7 @@ export default async function Landing() {
               <h2>{t("Perguntas frequentes")}</h2>
               <p className="lp-sub">{t("Tudo o que você precisa saber sobre o Croqui, da compra ao uso.")}</p>
             </div></Reveal>
-            <Reveal delay={0.12}><div className="lp-faq">
+            <Reveal delay={0.12} style={{ width: "100%" }}><div className="lp-faq">
               {faq.map(([q, a, vars]) => (
                 <details key={q}><summary>{t(q)}</summary><p>{t(a, vars)}</p></details>
               ))}

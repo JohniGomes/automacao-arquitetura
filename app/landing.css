@@ -107,7 +107,7 @@ section[id] { scroll-margin-top: 84px; }
 
 /* ---------- herói ---------- */
 .lp-hero { position: relative; }
-.lp-herow { padding-top: var(--space-16); padding-bottom: var(--space-10); text-align: center; display: grid; justify-items: center; }
+.lp-herow { padding-top: var(--space-16); padding-bottom: 0; text-align: center; display: grid; justify-items: center; }
 .lp-hero h1 { font-size: clamp(1.625rem, 6.4vw, 4.25rem); line-height: 1.06; letter-spacing: -0.035em; font-weight: var(--weight-regular); max-width: 28ch; text-wrap: balance; color: #fff; text-shadow: 0 2px 40px rgba(255, 122, 89, .25); overflow-wrap: break-word; }
 .lp-hero h1 em { font-style: italic; background: var(--lp-grad); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; padding-right: .08em; }
 .lp-lead { font-size: 1.1875rem; line-height: var(--leading-body); color: var(--lp-mute); max-width: 56ch; margin: var(--space-5) 0 var(--space-6); }
@@ -116,7 +116,7 @@ section[id] { scroll-margin-top: 84px; }
 .lp-note b { color: #fff; font-weight: var(--weight-medium); }
 
 /* celular com cartões de vidro flutuando */
-.lp-stagehead { margin: var(--space-12) 0 var(--space-6); }
+.lp-stagehead { margin: var(--space-10) 0 0; }
 .lp-stage { width: 100%; text-align: left; position: relative; }
 .lp-stage::before { content: ""; position: absolute; inset: -30px; z-index: -1; border-radius: 40px; background: var(--lp-grad); opacity: .22; filter: blur(60px); }
 .lp-stage .house { aspect-ratio: 1920 / 1072; width: 100%; border-radius: 24px; border: 1px solid var(--lp-line-2); box-shadow: 0 40px 100px -30px rgba(0, 0, 0, .8); }
@@ -319,7 +319,7 @@ section[id] { scroll-margin-top: 84px; }
   .lp-aurora i { filter: blur(70px); }
   .lp-aurora .b1 { width: 340px; height: 340px; }
   .lp-aurora .b3 { width: 380px; height: 380px; }
-  .lp-stagehead { margin-top: var(--space-12); }
+  .lp-stagehead { margin-top: var(--space-8); }
 }
 @media (prefers-reduced-motion: reduce) { .lp-aurora i, .lp-menu { animation: none; } .lp-tool, .lp-who > div, .lpi { transition: none; } .lp-tool:hover .lpi { transform: none; } }
 
@@ -330,9 +330,9 @@ section[id] { scroll-margin-top: 84px; }
 }
 @media (max-width: 560px) {
   .lp-sec { padding-top: var(--space-10); padding-bottom: var(--space-10); }
-  .lp-herow { padding-top: var(--space-8); padding-bottom: var(--space-6); }
+  .lp-herow { padding-top: var(--space-8); padding-bottom: 0; }
   .lp-lead { font-size: 1.0625rem; margin: var(--space-4) 0 var(--space-5); }
-  .lp-stagehead { margin-top: var(--space-8); }
+  .lp-stagehead { margin-top: var(--space-6); }
   .lp .lp-hero h1 { font-size: clamp(1.5rem, 6.6vw, 2.25rem); }
   .lp h2 { font-size: clamp(1.625rem, 7.4vw, 2rem); }
   .lp-sub { font-size: 1rem; }
