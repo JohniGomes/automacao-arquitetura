@@ -60,7 +60,7 @@ export default async function Landing() {
   const bonus = Math.floor(env.signupCredits / COSTS.renderPorImagem);
   const start = u ? "/app" : "/cadastro";
   const startLabel = u ? "Abrir o app" : "Criar conta grátis";
-  const temVideo = fs.existsSync(path.join(process.cwd(), "public", "demo", "croqui.mp4"));
+  const temVideo = fs.existsSync(path.join(process.cwd(), "public", "demo", "croqui-memorial.mp4"));
   const precos = PLANOS.map((p) => p.preco);
   const faq: Faq[] = [
     ["O que é o Croqui?", "O Croqui é uma plataforma de IA para arquitetos: gera render, moodboard, variações de luz, mapa de situação e memorial descritivo a partir das suas imagens."],
@@ -103,7 +103,7 @@ export default async function Landing() {
           <section className="lp-sec lp-in" id="video">
             <p className="lp-pill">{t("Veja em ação")}</p>
             <h2>{t("Tudo o que o Croqui faz, em poucos segundos")}</h2>
-            <div className="lp-video"><video src="/demo/croqui.mp4" controls playsInline preload="metadata" /></div>
+            <div className="lp-video"><video src="/demo/croqui-memorial.mp4" poster="/demo/croqui-memorial-poster.jpg" controls playsInline preload="none" /></div>
           </section>
         )}
 
