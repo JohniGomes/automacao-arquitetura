@@ -13,6 +13,7 @@ import Benefits from "@/components/landing/Benefits";
 import Nav from "@/components/landing/Nav";
 import Savings from "@/components/landing/Savings";
 import { getT } from "@/lib/i18n-server";
+import { emNatal } from "@/lib/natal";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,7 @@ export default async function Landing() {
   const u = await currentUser();
   const { t } = await getT();
   // a oferta da landing vem do que a conta realmente recebe (SIGNUP_CREDITS), em renders inteiros
+  const natal = emNatal();
   const bonus = Math.floor(env.signupCredits / COSTS.renderPorImagem);
   const start = u ? "/app" : "/cadastro";
   const startLabel = u ? "Abrir o app" : "Criar conta grátis";
@@ -76,7 +78,7 @@ export default async function Landing() {
     <div className="lp">
       <div className="lp-aurora" aria-hidden="true"><i className="b1" /><i className="b2" /><i className="b3" /><i className="b4" /></div>
       <div className="lp-grid" aria-hidden="true" />
-      <Nav logged={!!u} />
+      <Nav logged={!!u} natal={natal} />
 
       <main>
         {/* ---------- herói ---------- */}
@@ -231,7 +233,7 @@ export default async function Landing() {
 
       <footer className="lp-foot">
         <div className="lp-in">
-          <div className="lp-foottop"><span className="brand" style={{ padding: 0 }}><Logo />Croqui</span></div>
+          <div className="lp-foottop"><span className="brand" style={{ padding: 0 }}><Logo natal={natal} />Croqui</span></div>
           <div className="lp-footgrid">
             <div>
               <p className="lp-tag">{t("A IA que transforma o jeito de criar projetos de arquitetura.")}</p>

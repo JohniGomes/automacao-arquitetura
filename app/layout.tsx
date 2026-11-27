@@ -11,6 +11,7 @@ import { Fraunces, Inter } from "next/font/google";
 import { I18nProvider } from "@/components/I18nProvider";
 import { ToastProvider } from "@/components/Toast";
 import { getLang, getTheme } from "@/lib/i18n-server";
+import { emNatal } from "@/lib/natal";
 
 const BRAND = "Croqui";
 const body = Inter({ subsets: ["latin"], variable: "--f-body", display: "swap" });
@@ -26,6 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: en ? "Croqui — AI for architects" : "Croqui — IA para arquitetos",
     applicationName: "Croqui",
+    icons: { icon: [{ url: emNatal() ? "/icon-natal.svg" : "/icon.svg", type: "image/svg+xml" }] },
     appleWebApp: { capable: true, title: BRAND, statusBarStyle: "default" },
     description: en
       ? "Site map, moodboard, render, lighting variations and project film with AI."

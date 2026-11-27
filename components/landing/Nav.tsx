@@ -47,7 +47,7 @@ function Drop({ id, label, open, setOpen, children }: { id: string; label: strin
 }
 
 /** Cabeçalho da landing: logo, menus, idioma, entrar e criar conta. */
-export default function Nav({ logged }: { logged: boolean }) {
+export default function Nav({ logged, natal = false }: { logged: boolean; natal?: boolean }) {
   const t = useT();
   const lang = useLang();
   const { pickLang } = usePrefs("system");
@@ -70,7 +70,7 @@ export default function Nav({ logged }: { logged: boolean }) {
   return (
     <header className="lp-nav" ref={ref}>
       <div className="lp-in lp-navin">
-        <Link href="/" className="brand" style={{ padding: 0 }}><Logo />Croqui</Link>
+        <Link href="/" className="brand" style={{ padding: 0 }}><Logo natal={natal} />Croqui</Link>
 
         <nav className="lp-links" aria-label={t("Principal")}>
           <Drop id="tools" label={t("Ferramentas")} open={open} setOpen={setOpen}>
