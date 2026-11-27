@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import Logo from "./Logo";
+import Mascote from "./Mascote";
+import { abrirCro } from "./ChatCro";
 import Icon from "./icons";
 import { Gen } from "./client";
 import { useLang, useT } from "./I18nProvider";
@@ -71,6 +73,7 @@ export default function MobileTop({ name, credits }: { name: string; credits: nu
         <Link href="/app" className="mbrand" aria-label={t("Croqui, início")}><Logo /></Link>
         <div className="mtop-r">
           <Link href="/app/creditos" className="mcred" aria-label={t("Créditos")}><b>{c ?? "…"}</b> {t("créditos")}</Link>
+          <button type="button" className="mcro" aria-label={t("Falar com o Cro")} onClick={() => abrirCro()}><Mascote size={32} animado={false} /></button>
           <button type="button" className="mbell" aria-label={t("Notificações")} aria-expanded={open} onClick={toggle}>
             <Icon name="bell" />
             {unread > 0 && <span className="mdot" aria-label={`${unread} ${t("novas")}`} />}
