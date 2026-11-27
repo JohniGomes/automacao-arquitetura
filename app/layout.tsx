@@ -7,6 +7,7 @@ import "./landing.css";
 import "./dark.css";
 import "./mobile.css";
 import "./mascote.css";
+import "./anim.css";
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { I18nProvider } from "@/components/I18nProvider";

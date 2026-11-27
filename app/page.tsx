@@ -15,6 +15,7 @@ import Reveal from "@/components/anim/Reveal";
 import Numero from "@/components/anim/Numero";
 import Brilho from "@/components/anim/Brilho";
 import Ima from "@/components/anim/Ima";
+import Holofote from "@/components/anim/Holofote";
 import Savings from "@/components/landing/Savings";
 import { getT } from "@/lib/i18n-server";
 
@@ -119,11 +120,11 @@ export default async function Landing() {
               {FERRAMENTAS.map(([id, desc]) => {
                 const x = toolById(id);
                 return x ? (
-                  <div key={id} className="lp-tool">
+                  <Holofote key={id} className="lp-tool">
                     <ToolGlyph id={id} size={68} />
                     <h3>{t(x.label)}</h3>
                     <p>{t(desc)}</p>
-                  </div>
+                  </Holofote>
                 ) : null;
               })}
             </Reveal>
@@ -167,7 +168,7 @@ export default async function Landing() {
           </div></Reveal>
           <Reveal className="lp-who" stagger={0.12} distance={34}>
             {PARA_QUEM.map((x) => (
-              <div key={x.titulo}><Icon name={x.icon} /><h3>{t(x.titulo)}</h3><p>{t(x.texto)}</p></div>
+              <Holofote key={x.titulo} className="lp-whocard"><Icon name={x.icon} /><h3>{t(x.titulo)}</h3><p>{t(x.texto)}</p></Holofote>
             ))}
           </Reveal>
           <Reveal><div className="lp-center"><Ima><Link className="btn lg" href={start}>{t(startLabel)}</Link></Ima></div></Reveal>
@@ -179,7 +180,7 @@ export default async function Landing() {
           <p className="lp-sub">{t("Planos mensais, pagos no cartão de crédito, com renovação automática. Cancele quando quiser.")}</p></Reveal>
           <Reveal className="lp-plans" stagger={0.14} distance={40}>
             {PLANOS.map((p) => (
-              <div key={p.id} className={`lp-plan ${p.destaque ? "feat" : ""}`}>
+              <Holofote key={p.id} className={`lp-plan ${p.destaque ? "feat" : ""}`}>
                 {p.destaque && <span className="lp-badge"><Brilho texto={t("mais escolhido")} /></span>}
                 <h3>{t(p.nome)}</h3>
                 <p className="lp-price"><b>{brl(p.preco)}</b><span>/{t("mês")}</span></p>
@@ -187,7 +188,7 @@ export default async function Landing() {
                 <p className="lp-renders">{t("até {n} renders rápidos por mês", { n: Math.floor(p.creditosMes / COSTS.renderPorImagem).toLocaleString("pt-BR") })}</p>
                 <ul>{p.itens.map((i) => <li key={i}><Icon name="check" />{t(i)}</li>)}</ul>
                 <Link className={`btn ${p.destaque ? "" : "ghost"}`} href={u ? "/app/creditos" : "/cadastro"}>{t("Assinar")}</Link>
-              </div>
+              </Holofote>
             ))}
           </Reveal>
         </section>

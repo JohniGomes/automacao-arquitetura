@@ -5,6 +5,7 @@ import LineLoader from "./LineLoader";
 import Icon from "./icons";
 import { useToast } from "./Toast";
 import MemorialView from "./MemorialView";
+import Reveal from "./anim/Reveal";
 
 export type Gen = {
   id: string; type: string; status: "queued" | "running" | "done" | "error"; progress: number; message: string;
@@ -144,7 +145,7 @@ export function Results({ gen }: { gen: Gen }) {
     <div className="results">
       {gen.mock && <p className="warn">{t("Modo mock: estas são imagens/vídeos de exemplo, não saídas reais de IA.")}</p>}
       {gen.type === "mapa" && gen.outputs.some((o) => /aérea|Satélite/.test(o.label || "")) && <p className="attr">{t("Imagens de satélite © Google · Dados do mapa © Google e provedores. Uso sujeito aos Termos da Google Maps Platform.")}</p>}
-      <div className="grid">
+      <Reveal mount className="grid" stagger={0.1} distance={22}>
         {gen.outputs.map((o) => /\.md$/i.test(o.file) ? (
           <div key={o.file} style={{ gridColumn: "1 / -1" }}><MemorialView file={o.file} /></div>
         ) : (
@@ -157,7 +158,7 @@ export function Results({ gen }: { gen: Gen }) {
             <figcaption><span>{t(o.label || "")}</span><a href={`/api/files/${o.file}?dl=1`}>{t("Baixar")}</a></figcaption>
           </figure>
         ))}
-      </div>
+      </Reveal>
       {big && <Lightbox src={big.src} alt={big.alt} onClose={() => setBig(null)} />}
     </div>
   );
