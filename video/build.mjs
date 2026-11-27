@@ -18,7 +18,7 @@ const P = {
   n3: [8.0, 9.23, "Sem horas", "de espera."],
   c1: [9.69, 10.14, "Croqui"],
   c2: [10.59, 12.47, "A *IA* feita para arquitetura."],
-  d4: [12.86, 14.91], d5: [15.31, 17.24], d6: [17.52, 20.06], d7: [20.49, 21.9],
+  d4: [12.86, 14.91], d5: [15.31, 17.24], d6: [17.52, 18.64] /* "Da edição por região" (o resto da frase, sobre o filme, foi cortado do áudio) */, d7: [20.49, 21.9],
   e1: [22.27, 23.69, "Menos tempo *renderizando.*"],
   e2: [23.94, 25.27, "Mais tempo *criando.*"],
   e3: [25.62, 26.96, "Teste *grátis* agora."],
@@ -36,7 +36,7 @@ const ICONS = {
   render: ["M3.5 20.5h17M5.5 20.5V9.5L12 4.5l6.5 5v11", "M12 11.5l.9 1.9 1.9.9-1.9.9-.9 1.9-.9-1.9-1.9-.9 1.9-.9z", "#5A564F"],
   luz: ["M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z", "M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4", "#B98A4E"],
   editor: ["M4.5 4.5h15v15h-15z", "M8.5 15.5l5-5 2 2-5 5h-2z", "#5A564F"],
-  filme: ["M4 6.5h11.5v11H4z", "M15.5 10.5 20.5 7.5v9l-5-3", "#A8432B"],
+  memorial: ["M6.5 3.5h8l3.5 3.5v13.5h-11.5z", "M9.5 11h5.5M9.5 14h5.5M9.5 17h3.5", "#A8432B"],
 };
 const iconSvg = (k) => `<svg viewBox="0 0 24 24" fill="none" stroke="#FFFDF9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${ICONS[k][0]}"/><path d="${ICONS[k][1]}"/></svg>`;
 
@@ -224,7 +224,7 @@ tl.to("#s3-logo",{scale:1.06,transformOrigin:"50% 50%",duration:2.4,ease:"none"}
       { id: "rend", img: "render_loaded", name: "Render", icon: "render", a: 15.1, b: 16.0, f: [0.55, 0.3], hv: 940, fv: [0.5, 0.3] },
       { id: "luz", img: "luz_loaded", name: "Variação de luz", icon: "luz", a: 16.0, b: 17.45, f: [0.55, 0.3], hv: 600, fv: [0.66, 0.25] },
       { id: "edit", img: "editor_loaded", name: "Editar por regiões", icon: "editor", a: 17.45, b: 18.9, f: [0.55, 0.3], hv: 760, fv: [0.5, 0.45] },
-      { id: "film", video: true, name: "Filme do projeto", icon: "filme", a: 18.9, b: 20.3, f: [0.5, 0.5], hv: 563, fv: [0.5, 0.5] },
+      { id: "memo", img: "memorial", name: "Memorial descritivo", icon: "memorial", a: 18.9, b: 20.3, f: [0.55, 0.3], hv: 940, fv: [0.62, 0.3] },
       { id: "home", img: "app", name: "Tudo em um só lugar", icon: null, a: 20.3, b: 22.2, f: [0.55, 0.3], hv: 940, fv: [0.5, 0.22] },
     ];
     const css = `.s4-win{position:absolute;left:${win.x}px;top:${win.y}px;width:${win.w}px;height:${win.h}px;border-radius:26px;overflow:hidden;background:#F4EFE8;box-shadow:0 50px 140px -30px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.2),0 0 120px -20px rgba(176,132,255,.4);opacity:0}
@@ -238,9 +238,7 @@ tl.to("#s3-logo",{scale:1.06,transformOrigin:"50% 50%",duration:2.4,ease:"none"}
 .s4-chip .lg{width:${V ? 64 : 56}px;height:${V ? 64 : 56}px;flex:none}`;
     const homeLogo = `<svg class="lg" viewBox="0 0 48 48" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 26 24 9l20 17M12 22v19h25V22" stroke="#F6F1EA"/><path d="M3 43h42" stroke="#FF7A59"/><circle cx="35" cy="12" r="3" fill="#FF7A59" stroke="none"/></svg>`;
     const body = shots.map((s) => {
-      const inner = s.video
-        ? `<div class="s4-in s4-vid" id="s4-${s.id}-in"><video id="s4-vid" class="clip" data-start="${T(s.a, s0)}" data-duration="${r3(s.b - s.a + 0.2)}" src="assets/video/filme-demo.mp4" muted playsinline></video></div>`
-        : `<div class="s4-in" id="s4-${s.id}-in"><img src="assets/shots/${s.img}.png" alt=""></div>`;
+      const inner = `<div class="s4-in" id="s4-${s.id}-in"><img src="assets/shots/${s.img}.png" alt=""></div>`;
       const vidWin = s.video && V ? "" : "";
       return `<div class="s4-win" id="s4-${s.id}"${V ? ` style="height:${s.hv}px"` : ""}>${inner}</div><div class="s4-chip" id="s4-${s.id}-c">${s.icon ? `<span class="ti" style="background:${ICONS[s.icon][2]}">${iconSvg(s.icon)}</span>` : homeLogo}<span>${s.name}</span></div>`;
     }).join("\n");
