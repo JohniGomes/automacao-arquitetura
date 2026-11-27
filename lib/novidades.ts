@@ -7,6 +7,16 @@ export type Novidade = { id: string; titulo: Texto; itens: Texto[] };
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: "2026-11-28-cro",
+    titulo: { pt: "Conheça o Cro, seu assistente", en: "Meet Cro, your assistant" },
+    itens: [
+      { pt: "Novo: o Cro, um mascote com chat de IA que tira dúvidas sobre as ferramentas, os créditos e os planos.", en: "New: Cro, a mascot with an AI chat that answers questions about the tools, credits and plans." },
+      { pt: "Novo: Memorial descritivo. Envie uma foto do projeto e receba o memorial completo, em texto e em Word.", en: "New: Descriptive memorial. Send a photo of your project and get the complete memorial, as text and as a Word file." },
+      { pt: "Avisos quando seus créditos estiverem acabando ou acabarem, e o saldo agora conta com animação.", en: "Alerts when your credits are running low or run out, and your balance now counts up with an animation." },
+      { pt: "Mais animações pelo app e fotos de fundo em Full HD nas telas de entrada.", en: "More animations across the app and Full HD background photos on the sign-in screens." },
+    ],
+  },
+  {
     id: "2026-11-27-natal",
     titulo: { pt: "Visual novo e clima de Natal", en: "New look and a Christmas touch" },
     itens: [

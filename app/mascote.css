@@ -10,8 +10,8 @@
 
 /* botão do Cro no menu lateral e na barra de cima (celular) */
 .shell .ritem.rcro { color: var(--ink); }
-.shell .mcro { position: relative; width: 42px; height: 42px; min-height: 42px; padding: 0; display: grid; place-items: center; border-radius: 50%; background: var(--field); border: 1px solid var(--line); box-shadow: none; }
-.shell .mcro:hover:not(:disabled) { background: var(--field); filter: none; transform: none; }
+.shell .mcro { position: relative; width: 44px; height: 44px; min-height: 44px; padding: 0; display: grid; place-items: center; border-radius: 0; background: none; border: 0; box-shadow: none; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .45)); }
+.shell .mcro:hover:not(:disabled) { background: none; transform: scale(1.06); }
 
 /* painel do chat */
 .cro-scrim { position: fixed; inset: 0; z-index: 94; background: transparent; }

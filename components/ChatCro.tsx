@@ -81,7 +81,7 @@ export default function ChatCro({ nome, creditos, limite }: { nome: string; cred
 
   if (!aberto) return (
     <button type="button" className="cro-fab" onClick={() => setAberto(true)} aria-label={t("Falar com o Cro")} title={t("Falar com o Cro")}>
-      <Mascote size={58} humor={humorBase} />
+      <Mascote size={66} humor={humorBase} />
     </button>
   );
   const primeiro = (nome.trim().split(/[\s@]/)[0] || "").slice(0, 30);

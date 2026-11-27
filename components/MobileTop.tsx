@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import Logo from "./Logo";
 import Mascote from "./Mascote";
@@ -30,6 +31,7 @@ function ago(iso: string, lang: string) {
 export default function MobileTop({ name, credits }: { name: string; credits: number }) {
   const t = useT();
   const lang = useLang();
+  const path = usePathname();
   const c = useCredits(credits);
   const [open, setOpen] = useState(false);
   const [gens, setGens] = useState<Gen[]>([]);
@@ -73,7 +75,9 @@ export default function MobileTop({ name, credits }: { name: string; credits: nu
       <header className="mtop">
         <Link href="/app" className="mbrand" aria-label={t("Croqui, início")}><Logo /></Link>
         <div className="mtop-r">
-          <Link href="/app/creditos" className="mcred" aria-label={t("Créditos")}><b>{c != null ? <Numero valor={c} duracao={0.8} /> : "…"}</b> {t("créditos")}</Link>
+          {path !== "/app" && (
+  <Link href="/app/creditos" className="mcred" aria-label={t("Créditos")}><b>{c != null ? <Numero valor={c} duracao={0.8} /> : "…"}</b> {t("créditos")}</Link>
+          )}
           <button type="button" className="mcro" aria-label={t("Falar com o Cro")} onClick={() => abrirCro()}><Mascote size={32} animado={false} /></button>
           <button type="button" className="mbell" aria-label={t("Notificações")} aria-expanded={open} onClick={toggle}>
             <Icon name="bell" />
