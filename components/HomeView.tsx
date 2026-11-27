@@ -83,7 +83,7 @@ export default function HomeView({ firstName, planName = "", creditsInit }: { fi
     <>
       <div className="homehead">
         {/* a saudação depende da hora do navegador: fica invisível até montar, sem piscar o texto errado */}
-        <h1 style={{ visibility: hello ? "visible" : "hidden" }}>{hello ? t(hello) : "…"}, {firstName}.</h1>
+        <Reveal mount blur={10} distance={18} duration={0.8}><h1 style={{ visibility: hello ? "visible" : "hidden" }}>{hello ? t(hello) : "…"}, {firstName}.</h1></Reveal>
         <Link href="/app/creditos" className="chipcredits homecred" aria-label={t("Créditos")}><b>{credits != null ? <Numero valor={credits} duracao={0.9} /> : "…"}</b> {t("créditos")}</Link>
         <div className="hsearch">
           <input type="text" placeholder={t("Buscar ferramenta")} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t("Buscar ferramenta")}

@@ -5,6 +5,8 @@ import Rail from "@/components/Rail";
 import MobileTop from "@/components/MobileTop";
 import Onboarding from "@/components/Onboarding";
 import ChatCro from "@/components/ChatCro";
+import Faiscas from "@/components/anim/Faiscas";
+import PageTransition from "@/components/anim/PageTransition";
 import { activePlan } from "@/lib/plans";
 import { PLANOS } from "@/lib/costs";
 import { billingEnabled } from "@/lib/billing";
@@ -28,7 +30,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <MobileTop name={u.name || u.email} credits={u.credits} />
         <div className="wrap">
           {needsVerification(u) && <VerifyBanner email={u.email} />}
-          {children}
+          <Faiscas><PageTransition>{children}</PageTransition></Faiscas>
         </div>
       </div>
     </div>

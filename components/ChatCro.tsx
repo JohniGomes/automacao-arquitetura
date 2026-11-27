@@ -74,7 +74,11 @@ export default function ChatCro({ nome }: { nome: string }) {
     setBusy(false);
   }
 
-  if (!aberto) return null;
+  if (!aberto) return (
+    <button type="button" className="cro-fab" onClick={() => setAberto(true)} aria-label={t("Falar com o Cro")} title={t("Falar com o Cro")}>
+      <Mascote size={58} />
+    </button>
+  );
   const primeiro = (nome.trim().split(/[\s@]/)[0] || "").slice(0, 30);
   return (
     <>
